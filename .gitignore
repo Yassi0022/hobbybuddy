@@ -1,0 +1,36 @@
+# === Java / Spring Boot ===
+target/
+*.jar
+*.class
+.mvn/
+mvnw
+mvnw.cmd
+
+# === Python ===
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# === Node ===
+node_modules/
+
+# === Environment & Secrets ===
+.env
+.env.*
+
+# === IDE ===
+.idea/
+.vscode/
+*.iml
+*.swp
+
+# === OS ===
+.DS_Store
+Thumbs.db
+
+# === Vercel ===
+.vercel/
+
+# === Docker (optional, keep compose but ignore volumes) ===
+docker-volumes/

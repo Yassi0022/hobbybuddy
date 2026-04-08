@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#6366f1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/images/icon-192.png">
+    <title>HobbyBuddy - Personality Quiz</title>
+    <link rel="stylesheet" href="/css/hobbybuddy.css?v=10">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="bg-mesh"><div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div></div>
+
+    <nav class="navbar navbar-solid">
+        <div class="nav-container">
+            <a href="/" class="logo"><i class="fas fa-users"></i><span>HobbyBuddy</span></a>
+            <ul class="nav-menu">
+                <li><span class="quiz-counter" id="nav-counter">1 / 50</span></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- SCREEN 1: Splash -->
+    <div id="screen-splash" class="gamified-screen active">
+        <h1 class="splash-title animate-in">Discover who you really are</h1>
+        <p class="splash-subtitle animate-in delay-1">
+            <i class="fas fa-stopwatch" style="color: var(--color-accent-teal);"></i> Just 4 minutes &bull; 
+            <i class="fas fa-list-ol" style="color: var(--color-accent-violet);"></i> 50 questions &bull; 
+            <i class="fas fa-microscope" style="color: var(--color-accent-rose);"></i> Scientific backend
+        </p>
+    </div>
+
+    <!-- SCREEN 2: The Quiz (5 Rounds of 10) -->
+    <div id="screen-quiz" class="gamified-screen" style="display: none;">
+        <div class="quiz-top-progress" style="background:var(--color-input-bg); height: 8px; border-radius:4px; margin: 20px;">
+            <div class="quiz-top-progress-fill" id="quiz-top-fill" style="background:var(--gradient-primary); height:100%; width:0%; border-radius:4px; transition: width 0.3s ease;"></div>
+        </div>
+        <div style="text-align:center; font-size:0.9rem; color:var(--color-text-light); margin-bottom: 20px; font-weight:500;" id="quiz-narrative-progress">
+            Discovering your personality... 0% complete
+        </div>
+
+        <div class="quiz-card-container">
+            <div class="quiz-card" id="quiz-card">
+                <div class="quiz-card-trait badge" id="quiz-card-trait" style="margin-bottom:20px; font-size:0.8rem; padding:6px 14px;">Round 1: ...</div>
+                <p class="quiz-card-question" id="quiz-card-question" style="font-size: 1.6rem; line-height:1.4; font-weight:700; color:var(--color-text);">Loading...</p>
+                <div class="quiz-card-options btn-group-horizontal" id="quiz-card-options" style="display:flex; flex-direction:row; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:30px;">
+                    <!-- JS Injected Buttons -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCREEN 3: Round Unlock -->
+    <div id="screen-unlock" class="gamified-screen" style="display: none; justify-content:center; align-items:center; flex-direction:column; padding: 20px;">
+        <div id="unlock-icon" style="font-size: 5rem; margin-bottom: 20px; animation: bounceIn 0.5s ease; color:var(--color-accent-violet);"><i class="fas fa-unlock"></i></div>
+        <h2 id="unlock-title" style="font-size: 2.5rem; margin-bottom: 20px; text-align: center;">Your psychological profile is ready!</h2>
+        <p id="unlock-subtitle" style="color:var(--color-text-muted); max-width: 500px; margin: 0 auto; margin-bottom: 30px; text-align: center;">Our AI has successfully analyzed your 50 responses.</p>
+    </div>
+
+    <!-- SCREEN 4: Final Reveal -->
+    <div id="screen-reveal" class="gamified-screen" style="display: none; padding-top: 60px;">
+        <h1 style="font-size: 2.2rem; text-align:center; margin-bottom: 10px;" class="gradient-text">Your psychological profile is ready!</h1>
+        <p style="text-align:center; color:var(--color-text-light); margin-bottom: 40px;">Here is your digital footprint (IPIP-50 Big Five)</p>
+        
+        <div id="reveal-traits-container" style="max-width: 600px; margin: 0 auto 40px auto; display:flex; flex-direction:column; gap:20px;">
+            <!-- JS Injected Trait Bars -->
+        </div>
+
+        <div style="text-align:center;">
+            <button class="btn-primary btn-large" id="btn-to-dashboard" style="margin-top: 40px; padding: 16px 40px; font-size: 1.15rem; font-weight: 800;">
+            <i class="fas fa-search"></i> Find your HobbyBuddy!
+        </button>
+        <br>
+        <button id="btn-share-vibe" class="btn-outline" style="margin-top: 16px; padding: 14px 30px; font-size: 1rem; font-weight: 700; display:inline-flex; align-items:center; gap:10px;">
+            <i class="fas fa-share-alt" style="color:var(--color-accent-violet);"></i> Condividi il tuo Vibe
+        </button>
+        </div>
+    </div>
+
+    <!-- Google Translate Widget for Auto-localization -->
+    <div id="google_translate_element" style="position:fixed; bottom:20px; left:20px; z-index:9999;"></div>
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({pageLanguage: 'en', layout: google.translate.TranslateElement.InlineLayout.SIMPLE}, 'google_translate_element');
+        }
+    </script>
+    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+    <script src="/js/hobbybuddy.js?v=7"></script>
+</body>
+</html>

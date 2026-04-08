@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#6366f1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/images/icon-192.png">
+    <title>HobbyBuddy - Social Dashboard</title>
+    <link rel="stylesheet" href="/css/hobbybuddy.css?v=10">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="bg-mesh"><div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div></div>
+
+    <nav class="navbar navbar-solid">
+        <div class="nav-container">
+            <a href="/" class="logo"><i class="fas fa-users"></i><span>HobbyBuddy</span></a>
+            <ul class="nav-menu">
+                <li><a href="#" id="btn-logout" class="cta-button">Sign Out</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- 3-Column Social Feed Layout -->
+    <div class="dashboard-layout">
+        
+        <!-- Left Sidebar: Profile & Nav -->
+        <aside class="sidebar">
+            <div class="user-profile-mini">
+                <div class="avatar-lg" id="profile-avatar"><i class="fas fa-user"></i></div>
+                <h3 id="user-name">Loading...</h3>
+                <p>Explorer & Enthusiast</p>
+                <button class="btn-outline" style="width:100%; justify-content:center;">Edit Profile</button>
+            </div>
+            
+            <nav class="sidebar-menu">
+                <button class="menu-item active" id="btn-nav-home"><i class="fas fa-home"></i> Home Feed</button>
+                <button class="menu-item" id="btn-nav-discover"><i class="fas fa-compass"></i> Discover</button>
+                <button class="menu-item" id="btn-nav-messages"><i class="fas fa-envelope"></i> Messages</button>
+                <button class="menu-item" id="btn-nav-events"><i class="fas fa-calendar-alt"></i> Events</button>
+            </nav>
+        </aside>
+
+        <!-- Main View Area (Center) -->
+        <main class="feed-content" id="main-content-area">
+            
+            <!-- VIEW: HOME (Default) -->
+            <div id="view-home" class="view-section active">
+                <!-- Top Matches Section -->
+                <section>
+                    <div class="section-header">
+                        <h2><i class="fas fa-sparkles"></i> Your Top Matches</h2>
+                        <button class="btn-outline" id="btn-find-buddy"><i class="fas fa-sync-alt"></i> Refresh AI Match</button>
+                    </div>
+                    
+                    <div id="loading-spinner" class="loader-container" style="display:none;">
+                        <div class="spinner-border"></div>
+                        <p>AI Engine analyzing personality vectors...</p>
+                    </div>
+                    
+                    <div id="dashboard-error" class="form-error" style="display:none; margin-bottom: 20px;">
+                        <i class="fas fa-exclamation-triangle"></i> <span id="error-text">Matching failed.</span>
+                    </div>
+
+                    <div class="matches-scroll" id="matches-container">
+                        <div class="match-card-social" style="width: 100%; border-style: dashed;">
+                            <div class="match-avatar-social" style="background:transparent;"><i class="fas fa-user-friends"></i></div>
+                            <h3>No matches yet</h3>
+                            <p>Click 'Refresh AI Match' to find buddies!</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Activity Feed Section -->
+                <section>
+                    <div class="section-header">
+                        <h2><i class="fas fa-stream"></i> Community Activity</h2>
+                    </div>
+
+                    <div class="post-card">
+                        <div class="post-header">
+                            <div class="post-avatar" style="background: url('https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop') center/cover;"></div>
+                            <div class="post-meta">
+                                <h4>Elena G.</h4>
+                                <span>2 hours ago in <b>Photography</b></span>
+                            </div>
+                        </div>
+                        <div class="post-content">
+                            Hey everyone! Planning a sunrise photo walk this Saturday around the city center. Perfect for trying out new lenses 😊 Let me know if anyone wants to join!
+                        </div>
+                        <div class="post-actions" style="display:flex; gap:15px; color:var(--color-text-light); font-size:0.9rem;">
+                            <span style="cursor:pointer;"><i class="far fa-heart"></i> 24</span>
+                            <span style="cursor:pointer;"><i class="far fa-comment"></i> 5</span>
+                        </div>
+                    </div>
+
+                    <div class="post-card">
+                        <div class="post-header">
+                            <div class="post-avatar" style="background: var(--gradient-secondary); display:flex; justify-content:center; align-items:center; color:white;"><i class="fas fa-user"></i></div>
+                            <div class="post-meta">
+                                <h4>Marco R. <span class="badge success" style="font-size:0.6rem; padding:2px 6px;">New Match</span></h4>
+                                <span>5 hours ago in <b>Running</b></span>
+                            </div>
+                        </div>
+                        <div class="post-content">
+                            Just smashed my 10k personal best! If anyone is training for the half marathon next month and needs a pacing buddy, hit me up! 🏃‍♂️⚡
+                        </div>
+                        <div class="post-actions" style="display:flex; gap:15px; color:var(--color-text-light); font-size:0.9rem;">
+                            <span style="cursor:pointer;"><i class="far fa-heart"></i> 12</span>
+                            <span style="cursor:pointer;"><i class="far fa-comment"></i> 1</span>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- VIEW: DISCOVER -->
+            <div id="view-discover" class="view-section" style="display:none;">
+                <div class="section-header">
+                    <h2><i class="fas fa-users"></i> Explore Community</h2>
+                </div>
+                <div id="discover-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(250px, 1fr)); gap:20px;">
+                    <!-- Filled via JS -->
+                    <div class="loader-container" style="grid-column: 1/-1;"><div class="spinner-border"></div></div>
+                </div>
+            </div>
+
+            <!-- VIEW: MESSAGES -->
+            <div id="view-messages" class="view-section" style="display:none;">
+                <div class="section-header">
+                    <h2><i class="fas fa-envelope"></i> Connections</h2>
+                </div>
+                
+                <h3 style="font-size: 1.1rem; color: var(--color-text-muted); margin-bottom: 15px; border-bottom: 1px solid var(--color-border); padding-bottom: 10px;">Pending Vibe Checks (Action Required)</h3>
+                <div id="pending-requests-container" style="margin-bottom: 40px;">
+                    <!-- Filled by JS -->
+                    <div class="post-card" style="text-align:center; padding: 20px; border-style: dashed; background: transparent;">
+                        <p style="color:var(--color-text-light);">No pending requests. Discover new buddies!</p>
+                    </div>
+                </div>
+
+                <h3 style="font-size: 1.1rem; color: var(--color-text-muted); margin-bottom: 15px; border-bottom: 1px solid var(--color-border); padding-bottom: 10px;">Active Chats</h3>
+                <div id="active-chats-container">
+                    <div class="post-card" style="text-align:center; padding: 50px 20px;">
+                        <i class="fas fa-comments" style="font-size: 3rem; color: var(--color-input-border); margin-bottom: 20px;"></i>
+                        <h3>Your inbox is empty</h3>
+                        <p>Complete a Vibe Check to unlock real-time chat.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: EVENTS -->
+            <div id="view-events" class="view-section" style="display:none;">
+                <div class="section-header">
+                    <h2><i class="fas fa-calendar-alt"></i> Upcoming Events</h2>
+                </div>
+                <div id="events-spinner" class="loader-container" style="display:none; text-align:center; padding: 40px;">
+                    <div class="spinner-border"></div>
+                    <p style="margin-top: 15px; font-weight: 600; color: var(--color-text-muted);">Finding activities near you...</p>
+                </div>
+                <div id="events-feed-container">
+                    <div class="post-card" style="text-align:center; padding: 50px 20px;">
+                        <i class="fas fa-map-marker-alt" style="font-size: 3.5rem; color: var(--color-input-border); margin-bottom: 20px;"></i>
+                        <h3 style="margin-bottom: 10px; font-size: 1.8rem;">Discover Local Events</h3>
+                        <p style="color: var(--color-text-muted); margin-bottom: 30px; font-size: 1.05rem;">Find and join HobbyBuddy activities happening in your exact city right now.</p>
+                        <button id="btn-load-events" class="btn-primary" style="padding: 14px 28px; font-size: 1.1rem;"><i class="fas fa-location-arrow"></i> Find Events Near Me</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Right Sidebar: Trending -->
+        <aside class="sidebar">
+            <div class="trending-card">
+                <h3 style="margin-bottom: 20px; font-size: 1.1rem;"><i class="fas fa-chart-line" style="color:var(--color-accent-rose);"></i> Trending Hobbies</h3>
+                
+                <div class="trending-item">
+                    <div class="trending-info">
+                        <h4>Urban Photography</h4>
+                        <p>120 active buddies</p>
+                    </div>
+                    <span class="trending-count">+15%</span>
+                </div>
+                <div class="trending-item">
+                    <div class="trending-info">
+                        <h4>Group Hiking</h4>
+                        <p>85 active buddies</p>
+                    </div>
+                    <span class="trending-count">+8%</span>
+                </div>
+                <div class="trending-item">
+                    <div class="trending-info">
+                        <h4>Board Games</h4>
+                        <p>200 active buddies</p>
+                    </div>
+                    <span class="trending-count">+4%</span>
+                </div>
+                <div class="trending-item">
+                    <div class="trending-info">
+                        <h4>Tech Startups</h4>
+                        <p>95 active buddies</p>
+                    </div>
+                    <span class="trending-count">+22%</span>
+                </div>
+                
+                <button class="btn-outline" style="width:100%; margin-top: 15px; font-size:0.85rem;">View All Topics</button>
+            </div>
+            
+            <div class="trending-card" style="margin-top: 20px;">
+                <h3 style="margin-bottom: 10px; font-size: 1.1rem;"><i class="fas fa-info-circle"></i> About HobbyBuddy</h3>
+                <p style="font-size: 0.85rem;">Your vibrant community powered by IPIP Big-Five valid personality matching. Say goodbye to random encounters, say hello to your new best friends.</p>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Chat Modal -->
+    <div class="chat-modal" id="chat-modal">
+        <div class="chat-header">
+            <div>
+                <h3>Chatting with <span id="chat-partner-name">...</span></h3>
+                <span style="font-size:0.75rem; opacity:0.8;"><i class="fas fa-circle" style="color:var(--color-input-bg); font-size:0.5rem; margin-right:4px;"></i> Online</span>
+            </div>
+            <button class="btn-close-chat" id="btn-close-chat"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="chat-messages" id="chat-messages">
+            <div style="text-align:center; font-size:0.8rem; color:var(--color-text-muted); margin-top:20px;">
+                Vibe Check passed! You can now chat freely.
+            </div>
+        </div>
+        <form class="chat-input" id="chat-form">
+            <input type="text" id="chat-input-text" placeholder="Type a message..." required autocomplete="off">
+            <button type="submit" class="btn-send"><i class="fas fa-paper-plane"></i></button>
+        </form>
+    </div>
+
+    <!-- Icebreaker Modal -->
+    <div class="chat-modal" id="icebreaker-modal" style="z-index: 2000;">
+        <div class="chat-header" style="background: var(--gradient-secondary);">
+            <div>
+                <h3><i class="fas fa-lock" style="margin-right: 8px;"></i> Vibe Lock: <span id="ib-partner-name">...</span></h3>
+            </div>
+            <button class="btn-close-chat" id="btn-close-ib"><i class="fas fa-times"></i></button>
+        </div>
+        <div style="padding: 25px; text-align: center; background: white; height: 100%; overflow-y: auto;">
+            <div style="width: 80px; height: 80px; background: var(--gradient-primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; margin: 0 auto 20px auto; box-shadow: var(--shadow-glow);">
+                <i class="fas fa-lightbulb"></i>
+            </div>
+            <h2 style="font-size: 1.5rem; margin-bottom: 10px; font-weight: 800;">Break the Ice</h2>
+            <p style="color: var(--color-text-muted); margin-bottom: 30px; font-size: 0.95rem;">You must pass the Vibe Check to unlock free-text chat. Answer the prompt below based on your shared passions.</p>
+            
+            <div style="background: var(--color-input-bg); border-radius: 12px; padding: 20px; border-left: 4px solid var(--color-accent-violet); text-align: left; margin-bottom: 25px;">
+                <span class="badge" id="ib-hobby-tag" style="margin-bottom: 10px;">Photography</span>
+                <p id="ib-prompt" style="font-weight: 600; font-size: 1.1rem; color: var(--color-text-main);">"What's your favorite lens to shoot with on a weekend?"</p>
+            </div>
+
+            <textarea id="ib-answer" rows="3" placeholder="Type your brilliant answer here..." style="width: 100%; border: 2px solid var(--color-input-border); border-radius: 12px; padding: 15px; font-family: inherit; font-size: 1rem; margin-bottom: 20px; resize: none;"></textarea>
+            
+            <button id="btn-send-ib" class="btn-primary btn-large" style="width: 100%; padding: 14px; font-size: 1.1rem;"><i class="fas fa-paper-plane"></i> Send Vibe Check</button>
+        </div>
+    </div>
+
+    <!-- Google Translate Widget for Auto-localization -->
+    <div id="google_translate_element" style="position:fixed; bottom:20px; left:20px; z-index:9999;"></div>
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({pageLanguage: 'en', layout: google.translate.TranslateElement.InlineLayout.SIMPLE}, 'google_translate_element');
+        }
+    </script>
+    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+    <!-- WebSockets -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+
+    <script src="/js/hobbybuddy.js?v=9"></script>
+</body>
+</html>

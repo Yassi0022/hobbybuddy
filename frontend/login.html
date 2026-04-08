@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#6366f1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/images/icon-192.png">
+    <title>HobbyBuddy - Sign In</title>
+    <link rel="stylesheet" href="/css/hobbybuddy.css?v=10">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="bg-mesh"><div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div></div>
+    <nav class="navbar navbar-solid">
+        <div class="nav-container">
+            <a href="/" class="logo"><i class="fas fa-users"></i><span>HobbyBuddy</span></a>
+            <ul class="nav-menu"><li><a href="/register" class="cta-button">Join Now</a></li></ul>
+        </div>
+    </nav>
+    <div class="auth-page">
+        <div class="auth-container">
+            <div class="auth-card">
+                <div class="auth-icon" style="font-size: 3.5rem; color: var(--color-accent-violet); margin-bottom: 15px; text-shadow: var(--shadow-glow);"><i class="fas fa-sign-in-alt"></i></div>
+                <h2 class="auth-title" style="font-size: 2.2rem; font-weight: 800; margin-bottom: 10px; color: var(--color-text-main);">Welcome Back Buddy!</h2>
+                <p class="auth-subtitle" style="font-size: 1.05rem; color: var(--color-text-muted); margin-bottom: 30px;">Sign in to discover your new matches and messages</p>
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="login-email"><i class="fas fa-envelope"></i> Email</label>
+                        <input type="email" id="login-email" placeholder="you@example.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password"><i class="fas fa-lock"></i> Password</label>
+                        <input type="password" id="login-password" placeholder="Your password" required>
+                    </div>
+                    <div id="login-error" class="form-error" style="display:none;"></div>
+                    <button type="submit" class="btn-form-primary" style="font-size: 1.1rem; padding: 14px 28px;"><i class="fas fa-sign-in-alt"></i> Sign In Now</button>
+                </form>
+                <div class="auth-footer" style="padding-top: 20px;">Don't have an account yet? <a href="/register">Join now</a></div>
+            </div>
+        </div>
+    </div>
+    <!-- Google Translate Widget -->
+    <div id="google_translate_element" style="position:fixed; bottom:20px; left:20px; z-index:9999;"></div>
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({pageLanguage: 'en', layout: google.translate.TranslateElement.InlineLayout.SIMPLE}, 'google_translate_element');
+        }
+    </script>
+    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+    <script src="/js/hobbybuddy.js?v=9"></script>
+</body>
+</html>
