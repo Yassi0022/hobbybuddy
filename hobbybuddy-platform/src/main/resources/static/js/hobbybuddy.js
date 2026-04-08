@@ -127,21 +127,32 @@ window.fetch = async function(...args) {
         config.headers['Authorization'] = 'Bearer ' + token;
     }
     const response = await originalFetch(resource, config);
-    // Intercept expired / invalid token responses
-    if ((response.status === 401 || response.status === 403) && !_isRedirectingToLogin) {
-        // Skip interception for login/register calls (they have their own handling)
-        const url = typeof resource === 'string' ? resource : resource.url;
-        if (!url.includes('/login') && !url.includes('/register')) {
+    
+    const url = typeof resource === 'string' ? resource : resource.url || '';
+
+    // Ignore server error statuses
+    if (response.status >= 500) return response;
+    
+    // Ignore external API endpoints
+    if (url.includes('google') || url.includes('translate') || !url.includes('/api/')) {
+        return response;
+    }
+
+    // Intercept expired / invalid token responses only
+    if (response.status === 401 || response.status === 403) {
+        // ONLY redirect on global level if the explicit session check fails
+        if (url.includes('/api/users/me') && !_isRedirectingToLogin) {
             _isRedirectingToLogin = true;
-            showToast('Sessione scaduta. Effettua di nuovo il login.', 'error');
+            console.warn("Session check failed (401/403). Redirecting to /login.");
             localStorage.removeItem('jwt');
             localStorage.removeItem('userId');
             localStorage.removeItem('userName');
-            setTimeout(() => { window.location.href = '/login'; }, 2000);
+            localStorage.removeItem('userEmail');
+            window.location.href = '/login';
         }
     }
     return response;
-}; // End of fetch override
+};
 
 // ============================
 // NAVIGATION
@@ -236,16 +247,25 @@ if (registerForm) {
         }
 
         try {
+            console.log("Submitting registration...");
             const res = await fetch(API_BASE_URL + '/api/users', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(userData)
             });
-            if (!res.ok) throw new Error('Registration failed');
+            if (!res.ok) {
+                const errData = await res.json();
+                throw new Error(errData.error || 'Registration failed');
+            }
             const data = await res.json();
-            localStorage.setItem('userId', data.id);
+            console.log("Registration OK:", data);
+            
+            // Unified keys
+            localStorage.setItem('userId', data.id || data.userId || data.id);
             localStorage.setItem('userName', data.name);
+            localStorage.setItem('userEmail', data.email || userData.email);
             if (data.token) localStorage.setItem('jwt', data.token);
+            
             window.location.href = '/quiz';
         } catch (err) {
             showToast('Error: ' + err.message, 'error');
@@ -260,8 +280,16 @@ if (registerForm) {
 // ============================
 const quizCard = document.getElementById('quiz-card');
 if (quizCard) {
-    const userId = localStorage.getItem('userId');
-    if (!userId || userId === 'undefined') { window.location.href = '/register'; }
+    let userId = localStorage.getItem('userId');
+    // Verify auth correctly with backend
+    fetch(API_BASE_URL + '/api/users/me').then(async res => {
+        if (!res.ok) { window.location.href = '/login'; }
+        else {
+            const data = await res.json();
+            userId = data.id;
+            localStorage.setItem('userId', data.id);
+        }
+    }).catch(() => { window.location.href = '/login'; });
     const TRAIT_LABELS = ['Extraversion', 'Agreeableness', 'Conscientiousness', 'Emotional Stability', 'Openness'];
     const TRAIT_ICONS = ['fa-fire', 'fa-handshake', 'fa-tasks', 'fa-leaf', 'fa-lightbulb'];
     const TRAIT_CLASSES = ['extraversion', 'agreeableness', 'conscientiousness', 'neuroticism', 'openness'];
@@ -452,13 +480,11 @@ if (quizCard) {
     }
 
     function updateUI() {
-        // Calculate percentage out of 50
-        // currentIdx is the index of the current question. If answers[currentIdx] is set, we add 1.
         let completed = answers.filter(a => a !== null).length;
-        const pct = Math.round((completed / TOTAL) * 100);
-        
-        if (topFill) topFill.style.width = pct + '%';
-        if (narrativeProgress) narrativeProgress.textContent = `Stai scoprendo la tua personalità... ${pct}% completato`;
+        const navCounter = document.getElementById('nav-counter');
+        if (navCounter) navCounter.textContent = `${completed}/50`;
+        if (topFill) topFill.style.width = `${(completed / 50) * 100}%`;
+        if (narrativeProgress) narrativeProgress.textContent = `Round ${Math.floor(completed / 10) + 1} - ${Math.round((completed / 50) * 100)}%`;
     }
 
     async function submitTraits() {
@@ -578,45 +604,71 @@ if (quizCard) {
 
 
 // ============================
-// LOGIN
+// LOGIN (AJAX Handler for JWT Storage)
 // ============================
 const loginForm = document.getElementById('login-form');
 if (loginForm) {
+    console.log("Login form detected. Attaching AJAX handler.");
     loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        console.log("Login form submit intercepted.");
+        
         const errorDiv = document.getElementById('login-error');
-        errorDiv.style.display = 'none';
-        const email = document.getElementById('login-email').value.trim();
-        const password = document.getElementById('login-password').value.trim();
-        if (!email || !password) { errorDiv.textContent = 'Please fill in all fields.'; errorDiv.style.display = 'block'; return; }
+        if (errorDiv) errorDiv.style.display = 'none';
+        
+        const emailInput = document.getElementById('login-email');
+        const passwordInput = document.getElementById('login-password');
+        
+        const email = emailInput ? emailInput.value.trim() : '';
+        const password = passwordInput ? passwordInput.value.trim() : '';
+        
+        if (!email || !password) { 
+            showToast('Please fill in all fields.', 'error');
+            return; 
+        }
 
         const btn = loginForm.querySelector('.btn-form-primary');
+        const originalBtnHtml = btn.innerHTML;
         btn.disabled = true;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing in...';
 
         try {
+            console.log("Sending AJAX POST to /api/users/login for: " + email);
             const res = await fetch(API_BASE_URL + `/api/users/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password })
             });
-            if (res.status === 404) { errorDiv.textContent = 'No account found with this email.'; errorDiv.style.display = 'block'; }
-            else if (res.status === 401) { errorDiv.textContent = 'Wrong password.'; errorDiv.style.display = 'block'; }
-            else if (!res.ok) { throw new Error('Login failed'); }
-            else {
+
+            if (res.status === 401) {
+                console.warn("Login failed: 401 Unauthorized");
+                showToast('Invalid email or password.', 'error');
+            } else if (!res.ok) {
+                const text = await res.text();
+                throw new Error(text || 'Login failed');
+            } else {
                 const data = await res.json();
-                localStorage.setItem('userId', data.id);
+                console.log("Login success! Captured Data:", data);
+                
+                // Store unified keys
+                localStorage.setItem('jwt', data.token);
+                localStorage.setItem('userId', data.userId || data.id);
                 localStorage.setItem('userName', data.name);
-                if (data.token) localStorage.setItem('jwt', data.token);
-                window.location.href = '/dashboard';
+                localStorage.setItem('userEmail', data.email);
+                
+                showToast('Welcome back, ' + data.name + '!', 'success');
+                setTimeout(() => { 
+                    console.log("Redirecting to /dashboard");
+                    window.location.href = '/dashboard'; 
+                }, 800);
                 return;
             }
         } catch (err) {
-            errorDiv.textContent = 'Error: ' + err.message;
-            errorDiv.style.display = 'block';
+            console.error("AJAX Login error:", err);
+            showToast('Error: ' + err.message, 'error');
         }
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In';
+        btn.innerHTML = originalBtnHtml;
     });
 }
 
@@ -628,12 +680,30 @@ if (loginForm) {
 // ============================
 const btnFindBuddy = document.getElementById('btn-find-buddy');
 if (btnFindBuddy) {
-    const userId = localStorage.getItem('userId');
-    const userName = localStorage.getItem('userName');
-    if (!userId || userId === 'undefined') { window.location.href = '/login'; }
+    let userId = localStorage.getItem('userId');
+    let userName = localStorage.getItem('userName');
+    
+    // Auth Validation Check
+    fetch(API_BASE_URL + '/api/users/me').then(async res => {
+        if (!res.ok) {
+            window.location.href = '/login';
+        } else {
+            const data = await res.json();
+            userId = data.id;
+            userName = data.name;
+            localStorage.setItem('userId', data.id);
+            localStorage.setItem('userName', data.name);
+            localStorage.setItem('userEmail', data.email);
+            
+            const userNameEl = document.getElementById('user-name');
+            if (userNameEl) userNameEl.textContent = userName;
+        }
+    }).catch(() => {
+        window.location.href = '/login';
+    });
 
     const userNameEl = document.getElementById('user-name');
-    if (userNameEl && userName) userNameEl.textContent = userName;
+    if (userNameEl && userName && userName !== 'undefined') userNameEl.textContent = userName;
 
     const btnLogout = document.getElementById('btn-logout');
     if (btnLogout) {
@@ -697,13 +767,30 @@ if (btnFindBuddy) {
                 </div>
             `;
             
+            let answers = JSON.parse(localStorage.getItem('hobbybuddy_answers') || '[]');
+            let completeCount = answers.filter(a => a !== null).length;
+            if (completeCount < 50) {
+                grid.innerHTML = `
+                <div style="grid-column: 1/-1; text-align:center; padding: 60px 20px;">
+                    <i class="fas fa-clipboard-list" style="font-size:4rem;color:var(--color-input-border);margin-bottom:20px;"></i>
+                    <h2 style="font-size: 2rem; margin-bottom: 10px;">Profilo incompleto</h2>
+                    <p style="color: var(--color-text-muted); margin-bottom:20px;">Rispondi a tutte le 50 domande per sbloccare i match AI.</p>
+                    <a href="/quiz" class="btn-primary" style="padding:12px 24px; text-decoration:none; border-radius:50px;"><i class="fas fa-play"></i> Completa Quiz</a>
+                </div>`;
+                return;
+            }
+            
             try {
                 const res = await fetch(API_BASE_URL + `/api/users/${userId}/find-buddy`);
                 if (!res.ok) throw new Error('Failed to load matches');
                 let others = await res.json();
                 
                 if (others.length === 0) {
-                    grid.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding: 60px 20px;"><i class="fas fa-ghost" style="font-size:4rem;color:var(--color-input-border);margin-bottom:20px;"></i><h2 style="font-size: 2rem; margin-bottom: 10px;">Nobody is here!</h2><p style="color: var(--color-text-muted);">Invite your friends to take the personality test.</p></div>';
+                    grid.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding: 60px 20px;"><i class="fas fa-ghost" style="font-size:4rem;color:var(--color-input-border);margin-bottom:20px;"></i><h2 style="font-size: 2rem; margin-bottom: 10px;">Nessun match trovato</h2><p style="color: var(--color-text-muted); margin-bottom: 20px;">Aggiorna la pagina o riprova.</p><button id="btn-refresh-match" class="btn-primary" style="padding:12px 24px; border-radius:50px;"><i class="fas fa-sync"></i> Refresh AI Match</button></div>';
+                    setTimeout(() => {
+                        const btnRefresh = document.getElementById('btn-refresh-match');
+                        if (btnRefresh) btnRefresh.addEventListener('click', () => navDiscover.click());
+                    }, 100);
                     return;
                 }
                 

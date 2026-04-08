@@ -37,8 +37,8 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
     const url = new URL(event.request.url);
 
-    // Never cache API calls or WebSocket upgrades — always go to network
-    if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/ws-chat')) {
+    // Never cache API calls, WebSocket upgrades, or POST requests
+    if (event.request.method === 'POST' || url.pathname.startsWith('/api/') || url.pathname.startsWith('/ws-chat')) {
         event.respondWith(fetch(event.request));
         return;
     }

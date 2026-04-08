@@ -1,51 +1,46 @@
 version: '3.8'
 
 services:
-  mysql:
-    image: mysql:8.0
-    container_name: hobbybuddy-mysql
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-    ports:
-      - "3306"
-    volumes:
-      - mysql_data:/var/lib/mysql
-    # ← QUESTO healthcheck va QUI dentro mysql!
-    healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot" ]
-      timeout: 20s
-      retries: 10
+  #mysql:
+  #  image: mysql:8.0
+  #  container_name: hobbybuddy-mysql
+  #  environment:
+  #    MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+  #    MYSQL_DATABASE: ${MYSQL_DATABASE}
+  #    MYSQL_USER: ${MYSQL_USER}
+  #    MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+  #  ports:
+  #    - "3306"
+  #  volumes:
+  #    - mysql_data:/var/lib/mysql
+  # ← QUESTO healthcheck va QUI dentro mysql!
+  #healthcheck:
+  #  test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot" ]
+  #  timeout: 20s
+  #  retries: 10
 
-  fastapi:
-    build: ./matching-engine
-    container_name: hobbybuddy-fastapi
-    ports:
-      - "8001:8001"
-    depends_on:
-      mysql:
-        condition: service_healthy
-    environment:
-      - DATABASE_URL=mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql:3306/${MYSQL_DATABASE}
+  #fastapi:
+  #  build: ./matching-engine
+  #  container_name: hobbybuddy-fastapi
+  #  ports:
+  #    - "8001:8001"
+  #  depends_on:
+  #    mysql:
+  #      condition: service_healthy
+  #  environment:
+  #    - DATABASE_URL=mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql:3306/${MYSQL_DATABASE}
 
   springboot:
-    build: ./hobbybuddy-platform
+    build:
+      context: ./hobbybuddy-platform
     container_name: hobbybuddy-springboot
     ports:
       - "8080:8080"
-    depends_on:
-      mysql:
-        condition: service_healthy
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/${MYSQL_DATABASE}?createDatabaseIfNotExist=true
-      - SPRING_DATASOURCE_USERNAME=${MYSQL_USER}
-      - SPRING_DATASOURCE_PASSWORD=${MYSQL_PASSWORD}
-      - SPRING_DATASOURCE_DRIVER-CLASS-NAME=com.mysql.cj.jdbc.Driver
-      - SPRING_DATASOURCE_HIKARI_CONNECTION-TIMEOUT=60000
-      - SPRING_DATASOURCE_INITIALIZATION-MODE=always
-      - SPRING_JPA_HIBERNATE_DDL-AUTO=update
-      - FASTAPI_URL=http://fastapi:8001
-volumes:
-  mysql_data:
+      - SPRING_DATASOURCE_URL=${AIVEN_URL}
+      - SPRING_DATASOURCE_USERNAME=${AIVEN_USER}
+      - SPRING_DATASOURCE_PASSWORD=${AIVEN_PASSWORD}
+      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=com.mysql.cj.jdbc.Driver
+      - SPRING_DATASOURCE_HIKARI_CONNECTION_TIMEOUT=60000
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - FASTAPI_URL=https://hobbybuddy-matching.onrender.com

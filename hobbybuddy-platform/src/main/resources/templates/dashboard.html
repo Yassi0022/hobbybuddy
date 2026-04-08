@@ -1,15 +1,15 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#6366f1">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="manifest" href="/manifest.json">
-    <link rel="apple-touch-icon" href="/images/icon-192.png">
+    <link rel="manifest" th:href="@{/manifest.json}">
+    <link rel="apple-touch-icon" th:href="@{/images/icon-192.png}">
     <title>HobbyBuddy - Social Dashboard</title>
-    <link rel="stylesheet" href="/css/hobbybuddy.css?v=10">
+    <link rel="stylesheet" th:href="@{/css/hobbybuddy.css(v=10)}">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -18,7 +18,7 @@
 
     <nav class="navbar navbar-solid">
         <div class="nav-container">
-            <a href="/" class="logo"><i class="fas fa-users"></i><span>HobbyBuddy</span></a>
+            <a th:href="@{/}" class="logo"><i class="fas fa-users"></i><span>HobbyBuddy</span></a>
             <ul class="nav-menu">
                 <li><a href="#" id="btn-logout" class="cta-button">Sign Out</a></li>
             </ul>
@@ -275,6 +275,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
 
-    <script src="/js/hobbybuddy.js?v=9"></script>
+    <script th:src="@{/js/hobbybuddy.js(v=9)}"></script>
 </body>
 </html>

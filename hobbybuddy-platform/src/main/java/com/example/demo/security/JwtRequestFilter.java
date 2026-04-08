@@ -11,14 +11,18 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import org.springframework.security.core.userdetails.UserDetails;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Arrays;
 
 @Component
 public class JwtRequestFilter extends OncePerRequestFilter {
 
     @Autowired
     private JwtUtil jwtUtil;
+
+    @Autowired
+    private CustomUserDetailsService userDetailsService;
 
     @Override
     protected void doFilterInternal(@org.springframework.lang.NonNull HttpServletRequest request,
@@ -30,35 +34,47 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         String username = null;
         String jwt = null;
 
-        // Skip WS endpoint authorization at filter level if we extract it during STOMP handshake,
-        // but for now let's just let ws-chat pass if the auth comes inside query param or we handle it in interceptor
-        if (request.getRequestURI().startsWith("/ws-chat")) {
-            chain.doFilter(request, response);
-            return;
-        }
+        logger.info(String.format("Request: %s %s, Cookie jwt: %s", request.getMethod(), request.getRequestURI(), 
+            Arrays.stream(request.getCookies() != null ? request.getCookies() : new jakarta.servlet.http.Cookie[0])
+                .filter(c -> "jwt".equals(c.getName()))
+                .findFirst().map(jakarta.servlet.http.Cookie::getValue).orElse("NO JWT COOKIE")));
 
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             jwt = authorizationHeader.substring(7);
-            try {
-                username = jwtUtil.extractUsername(jwt);
-            } catch (Exception e) {
-                logger.error("Failed to extract username from token", e);
+        } else if (request.getCookies() != null) {
+            for (jakarta.servlet.http.Cookie cookie : request.getCookies()) {
+                if ("jwt".equals(cookie.getName())) {
+                    jwt = cookie.getValue();
+                    break;
+                }
             }
-        } else if (request.getParameter("token") != null) {
+        }
+        
+        // Final fallback to query param (e.g. for WebSockets or specific links)
+        if (jwt == null && request.getParameter("token") != null) {
             jwt = request.getParameter("token");
+            logger.info("[DEBUG-AUTH] Query parameter 'token' detected");
+        }
+
+        if (jwt != null) {
             try {
+                logger.info("Parsing JWT from cookie: " + (jwt.length() > 20 ? jwt.substring(0, 20) + "..." : jwt));
                 username = jwtUtil.extractUsername(jwt);
             } catch (Exception e) {
-                logger.error("Failed to extract username from token", e);
+                logger.error("Failed to extract username from token: " + e.getMessage());
             }
         }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             if (jwtUtil.validateToken(jwt)) {
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        username, null, new ArrayList<>());
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                if (userDetails != null) {
+                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                            userDetails, null, userDetails.getAuthorities()); 
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                    logger.info("SECURITY CONTEXT POPOLATO per: " + userDetails.getUsername());
+                }
             }
         }
         chain.doFilter(request, response);

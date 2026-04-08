@@ -1,15 +1,15 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#6366f1">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="manifest" href="/manifest.json">
-    <link rel="apple-touch-icon" href="/images/icon-192.png">
+    <link rel="manifest" th:href="@{/manifest.json}">
+    <link rel="apple-touch-icon" th:href="@{/images/icon-192.png}">
     <title>HobbyBuddy - Find your adventure companion</title>
-    <link rel="stylesheet" href="/css/hobbybuddy.css?v=10">
+    <link rel="stylesheet" th:href="@{/css/hobbybuddy.css(v=10)}">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -19,12 +19,12 @@
     <header class="hero">
         <nav class="navbar">
             <div class="nav-container">
-                <a href="/" class="logo"><i class="fas fa-users"></i><span>HobbyBuddy</span></a>
+                <a th:href="@{/}" class="logo"><i class="fas fa-users"></i><span>HobbyBuddy</span></a>
                 <ul class="nav-menu">
                     <li><a href="#features">Features</a></li>
                     <li><a href="#how-it-works">How It Works</a></li>
                     <li><a href="#social-proof">Community</a></li>
-                    <li><a href="/login" class="cta-button">Sign In</a></li>
+                    <li><a th:href="@{/login}" class="cta-button">Sign In</a></li>
                 </ul>
                 <div class="hamburger"><span></span><span></span><span></span></div>
             </div>
@@ -44,7 +44,7 @@
                     Complete the scientific psychological test in 4 minutes. Our AI will instantly analyze your profile to connect you with real, holistically compatible people.
                 </p>
                 <div class="hero-buttons">
-                    <a href="/register" class="btn-primary btn-large" style="padding: 16px 36px; font-size: 1.15rem;"><i class="fas fa-rocket"></i> Start Free Now</a>
+                    <a th:href="@{/register}" class="btn-primary btn-large" style="padding: 16px 36px; font-size: 1.15rem;"><i class="fas fa-rocket"></i> Start Free Now</a>
                     <a href="#how-it-works" class="btn-secondary btn-large" style="padding: 16px 36px; font-size: 1.15rem;">How It Works</a>
                 </div>
             </div>
@@ -145,7 +145,7 @@
                     <span class="cta-badge"><i class="fas fa-lock"></i> Privacy-first</span>
                     <span class="cta-badge"><i class="fas fa-clock"></i> 5 min quiz</span>
                 </div>
-                <a href="/register" class="btn-accent"><i class="fas fa-arrow-right"></i> Start the Quiz</a>
+                <a th:href="@{/register}" class="btn-accent"><i class="fas fa-arrow-right"></i> Start the Quiz</a>
             </div>
         </div>
     </section>
@@ -166,6 +166,6 @@
     </script>
     <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
     
-    <script src="/js/hobbybuddy.js?v=9"></script>
+    <script th:src="@{/js/hobbybuddy.js(v=9)}"></script>
 </body>
 </html>
