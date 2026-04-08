@@ -1,4 +1,0 @@
-requests==2.31.0
-ollama==0.1.7
-plyer==2.1.0
-Jinja2==3.1.3
