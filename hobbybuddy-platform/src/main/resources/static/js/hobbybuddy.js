@@ -11,8 +11,8 @@ if ('serviceWorker' in navigator) {
 // ENVIRONMENT: API BASE URL
 // ============================
 const IS_LOCAL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-const API_BASE_URL = IS_LOCAL ? '' : 'https://hobbybuddy-backend.onrender.com';
-const WS_BASE_URL  = IS_LOCAL ? '' : 'https://hobbybuddy-backend.onrender.com';
+const API_BASE_URL = IS_LOCAL ? '' : 'https://hobbybuddy-springboot.onrender.com';
+const WS_BASE_URL = IS_LOCAL ? '' : 'https://hobbybuddy-springboot.onrender.com';
 
 // ============================
 // PARTICLE SYSTEM (Canvas)
@@ -106,7 +106,7 @@ function showToast(message, type = 'error') {
     toast.className = `toast ${type}`;
     toast.innerHTML = `<i class="fas ${icon}"></i> <span>${message}</span>`;
     container.appendChild(toast);
-    
+
     setTimeout(() => {
         toast.classList.add('fade-out');
         setTimeout(() => toast.remove(), 300);
@@ -118,7 +118,7 @@ function showToast(message, type = 'error') {
 // ============================
 const originalFetch = window.fetch;
 let _isRedirectingToLogin = false;
-window.fetch = async function(...args) {
+window.fetch = async function (...args) {
     let [resource, config] = args;
     const token = localStorage.getItem('jwt');
     if (token) {
@@ -127,12 +127,12 @@ window.fetch = async function(...args) {
         config.headers['Authorization'] = 'Bearer ' + token;
     }
     const response = await originalFetch(resource, config);
-    
+
     const url = typeof resource === 'string' ? resource : resource.url || '';
 
     // Ignore server error statuses
     if (response.status >= 500) return response;
-    
+
     // Ignore external API endpoints
     if (url.includes('google') || url.includes('translate') || !url.includes('/api/')) {
         return response;
@@ -259,13 +259,13 @@ if (registerForm) {
             }
             const data = await res.json();
             console.log("Registration OK:", data);
-            
+
             // Unified keys
             localStorage.setItem('userId', data.id || data.userId || data.id);
             localStorage.setItem('userName', data.name);
             localStorage.setItem('userEmail', data.email || userData.email);
             if (data.token) localStorage.setItem('jwt', data.token);
-            
+
             window.location.href = '/quiz';
         } catch (err) {
             showToast('Error: ' + err.message, 'error');
@@ -294,7 +294,7 @@ if (quizCard) {
     const TRAIT_ICONS = ['fa-fire', 'fa-handshake', 'fa-tasks', 'fa-leaf', 'fa-lightbulb'];
     const TRAIT_CLASSES = ['extraversion', 'agreeableness', 'conscientiousness', 'neuroticism', 'openness'];
     const TRAIT_API_NAMES = ['extraversion', 'agreeableness', 'conscientiousness', 'neuroticism', 'openness'];
-    
+
     // Scale: 1=Disagree, 2=Slightly Disagree, 3=Neutral, 4=Slightly Agree, 5=Agree
     const SCALE_LABELS = ['Disagree', 'Slightly Disagree', 'Neutral', 'Slightly Agree', 'Agree'];
 
@@ -358,7 +358,7 @@ if (quizCard) {
 
     const TOTAL = QUESTIONS.length;
     let currentIdx = 0;
-    
+
     // Load answers from localStorage or create new array
     let savedAnswers = localStorage.getItem('hobbybuddy_answers');
     const answers = savedAnswers ? JSON.parse(savedAnswers) : new Array(TOTAL).fill(null);
@@ -371,8 +371,8 @@ if (quizCard) {
         }
     }
     // If all answered
-    if (currentIdx === 0 && answers[TOTAL-1] !== null) {
-        currentIdx = TOTAL; 
+    if (currentIdx === 0 && answers[TOTAL - 1] !== null) {
+        currentIdx = TOTAL;
     }
 
     const screenSplash = document.getElementById('screen-splash');
@@ -391,7 +391,7 @@ if (quizCard) {
         setTimeout(() => {
             screenSplash.style.display = 'none';
             screenSplash.classList.remove('active');
-            
+
             if (currentIdx >= TOTAL) {
                 // Already finished
                 submitTraits();
@@ -406,7 +406,7 @@ if (quizCard) {
     function renderQuestion(idx, direction) {
         currentIdx = idx;
         const quizCard = document.getElementById('quiz-card');
-        
+
         if (direction) {
             quizCard.classList.add(direction === 'next' ? 'exit-left' : 'exit-right');
             setTimeout(() => {
@@ -431,23 +431,23 @@ if (quizCard) {
         cardQuestion.textContent = q[1];
 
         cardOptions.innerHTML = '';
-        
+
         for (let v = 1; v <= 5; v++) {
             const btn = document.createElement('button');
             btn.className = 'btn-quiz-option' + (answers[idx] === v ? ' selected' : '');
-            btn.innerHTML = `<span style="font-weight:bold; font-size:1.2rem; margin-right:8px;">${v}</span> ${SCALE_LABELS[v-1]}`;
-            
+            btn.innerHTML = `<span style="font-weight:bold; font-size:1.2rem; margin-right:8px;">${v}</span> ${SCALE_LABELS[v - 1]}`;
+
             btn.addEventListener('click', () => {
                 // Ignore clicks if already animating
                 if (btn.classList.contains('selected')) return;
-                
+
                 answers[idx] = v;
                 localStorage.setItem('hobbybuddy_answers', JSON.stringify(answers));
-                
+
                 cardOptions.querySelectorAll('.btn-quiz-option').forEach(b => b.classList.remove('selected'));
                 btn.classList.add('selected');
                 updateUI();
-                
+
                 // Auto-advance
                 setTimeout(() => {
                     if (idx % 10 === 9 && idx < TOTAL - 1) {
@@ -468,10 +468,10 @@ if (quizCard) {
     function showUnlockScreen(traitIdx) {
         screenQuiz.style.display = 'none';
         screenUnlock.style.display = 'flex';
-        
+
         document.getElementById('unlock-icon').innerHTML = `<i class="fas ${TRAIT_ICONS[traitIdx]}"></i>`;
         document.getElementById('unlock-title').textContent = `🔓 Hai sbloccato: ${TRAIT_LABELS[traitIdx]}!`;
-        
+
         setTimeout(() => {
             screenUnlock.style.display = 'none';
             screenQuiz.style.display = 'block';
@@ -492,7 +492,7 @@ if (quizCard) {
         screenUnlock.style.display = 'flex'; // repurpose unlock screen temporarily as loader
         document.getElementById('unlock-icon').innerHTML = `<i class="fas fa-spinner fa-spin"></i>`;
         document.getElementById('unlock-title').textContent = `Analizzando il profilo...`;
-        
+
         const traitSums = [0, 0, 0, 0, 0];
         for (let i = 0; i < TOTAL; i++) {
             const traitIdx = QUESTIONS[i][0];
@@ -529,7 +529,7 @@ if (quizCard) {
         screenReveal.classList.add('active');
         const container = document.getElementById('reveal-traits-container');
         container.innerHTML = '';
-        
+
         for (let t = 0; t < 5; t++) {
             const score = traits[TRAIT_API_NAMES[t]];
             const barHTML = `
@@ -574,12 +574,12 @@ if (quizCard) {
                 };
                 if (navigator.share) {
                     try { await navigator.share(shareData); showToast('Vibe condiviso!', 'success'); }
-                    catch(e) { /* user cancelled */ }
+                    catch (e) { /* user cancelled */ }
                 } else {
                     try {
                         await navigator.clipboard.writeText(shareText + ' ' + shareData.url);
                         showToast('Testo copiato negli appunti!', 'success');
-                    } catch(e) {
+                    } catch (e) {
                         showToast('Non è stato possibile copiare il link.', 'error');
                     }
                 }
@@ -593,8 +593,8 @@ if (quizCard) {
             if (e.key >= '1' && e.key <= '5') {
                 const v = parseInt(e.key);
                 const buttons = cardOptions.querySelectorAll('.btn-quiz-option');
-                if (buttons && buttons[v-1]) {
-                    buttons[v-1].click();
+                if (buttons && buttons[v - 1]) {
+                    buttons[v - 1].click();
                 }
             }
         }
@@ -612,19 +612,19 @@ if (loginForm) {
     loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         console.log("Login form submit intercepted.");
-        
+
         const errorDiv = document.getElementById('login-error');
         if (errorDiv) errorDiv.style.display = 'none';
-        
+
         const emailInput = document.getElementById('login-email');
         const passwordInput = document.getElementById('login-password');
-        
+
         const email = emailInput ? emailInput.value.trim() : '';
         const password = passwordInput ? passwordInput.value.trim() : '';
-        
-        if (!email || !password) { 
+
+        if (!email || !password) {
             showToast('Please fill in all fields.', 'error');
-            return; 
+            return;
         }
 
         const btn = loginForm.querySelector('.btn-form-primary');
@@ -649,17 +649,17 @@ if (loginForm) {
             } else {
                 const data = await res.json();
                 console.log("Login success! Captured Data:", data);
-                
+
                 // Store unified keys
                 localStorage.setItem('jwt', data.token);
                 localStorage.setItem('userId', data.userId || data.id);
                 localStorage.setItem('userName', data.name);
                 localStorage.setItem('userEmail', data.email);
-                
+
                 showToast('Welcome back, ' + data.name + '!', 'success');
-                setTimeout(() => { 
+                setTimeout(() => {
                     console.log("Redirecting to /dashboard");
-                    window.location.href = '/dashboard'; 
+                    window.location.href = '/dashboard';
                 }, 800);
                 return;
             }
@@ -682,7 +682,7 @@ const btnFindBuddy = document.getElementById('btn-find-buddy');
 if (btnFindBuddy) {
     let userId = localStorage.getItem('userId');
     let userName = localStorage.getItem('userName');
-    
+
     // Auth Validation Check
     fetch(API_BASE_URL + '/api/users/me').then(async res => {
         if (!res.ok) {
@@ -694,7 +694,7 @@ if (btnFindBuddy) {
             localStorage.setItem('userId', data.id);
             localStorage.setItem('userName', data.name);
             localStorage.setItem('userEmail', data.email);
-            
+
             const userNameEl = document.getElementById('user-name');
             if (userNameEl) userNameEl.textContent = userName;
         }
@@ -728,13 +728,13 @@ if (btnFindBuddy) {
     function switchTab(activeNav, activeView) {
         // Reset Nav
         [navHome, navDiscover, navMessages, navEvents].forEach(n => {
-            if(n) n.classList.remove('active');
+            if (n) n.classList.remove('active');
         });
         // Reset Views
         [viewHome, viewDiscover, viewMessages, viewEvents].forEach(v => {
-            if(v) v.style.display = 'none';
+            if (v) v.style.display = 'none';
         });
-        
+
         if (activeNav) activeNav.classList.add('active');
         if (activeView) activeView.style.display = 'block';
     }
@@ -752,7 +752,7 @@ if (btnFindBuddy) {
             switchTab(navDiscover, viewDiscover);
             const grid = document.getElementById('discover-grid');
             if (!grid) return;
-            
+
             grid.innerHTML = `
                 <div style="grid-column: 1/-1; display:flex; justify-content:center;">
                     <div class="skeleton-card">
@@ -766,7 +766,7 @@ if (btnFindBuddy) {
                     </div>
                 </div>
             `;
-            
+
             let answers = JSON.parse(localStorage.getItem('hobbybuddy_answers') || '[]');
             let completeCount = answers.filter(a => a !== null).length;
             if (completeCount < 50) {
@@ -779,12 +779,12 @@ if (btnFindBuddy) {
                 </div>`;
                 return;
             }
-            
+
             try {
                 const res = await fetch(API_BASE_URL + `/api/users/${userId}/find-buddy`);
                 if (!res.ok) throw new Error('Failed to load matches');
                 let others = await res.json();
-                
+
                 if (others.length === 0) {
                     grid.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding: 60px 20px;"><i class="fas fa-ghost" style="font-size:4rem;color:var(--color-input-border);margin-bottom:20px;"></i><h2 style="font-size: 2rem; margin-bottom: 10px;">Nessun match trovato</h2><p style="color: var(--color-text-muted); margin-bottom: 20px;">Aggiorna la pagina o riprova.</p><button id="btn-refresh-match" class="btn-primary" style="padding:12px 24px; border-radius:50px;"><i class="fas fa-sync"></i> Refresh AI Match</button></div>';
                     setTimeout(() => {
@@ -793,18 +793,18 @@ if (btnFindBuddy) {
                     }, 100);
                     return;
                 }
-                
+
                 // Use the score returned by the AI Engine 
                 others = others.map(u => ({
                     ...u,
                     vibeScore: (u.matchVibeScore && u.matchVibeScore.length > 0) ? Math.round(u.matchVibeScore[0]) : 85
                 }));
-                
+
                 discoverQueue = others;
                 discoverIndex = 0;
-                
+
                 renderDiscoverCandidate(grid);
-                
+
             } catch (err) {
                 grid.innerHTML = `<div style="grid-column: 1/-1; text-align:center; color: var(--color-error);">${err.message}</div>`;
             }
@@ -843,15 +843,15 @@ if (btnFindBuddy) {
                     };
                     if (navigator.share) {
                         try { await navigator.share(shareData); showToast('Link condiviso!', 'success'); }
-                        catch(e) { /* user cancelled, nothing to do */ }
+                        catch (e) { /* user cancelled, nothing to do */ }
                     } else {
                         // Desktop fallback: copy link to clipboard
                         try {
                             await navigator.clipboard.writeText(shareData.text + ' ' + shareData.url);
                             showToast('Link copiato negli appunti!', 'success');
-                        } catch(e) {
+                        } catch (e) {
                             const fb = document.getElementById('invite-fallback');
-                            if(fb) { fb.style.display = 'block'; fb.textContent = 'Condividi questo link: ' + shareData.url; }
+                            if (fb) { fb.style.display = 'block'; fb.textContent = 'Condividi questo link: ' + shareData.url; }
                         }
                     }
                 });
@@ -861,7 +861,7 @@ if (btnFindBuddy) {
 
         const u = discoverQueue[discoverIndex];
         const matchLabel = getMatchLabel(u.vibeScore);
-        
+
         container.innerHTML = `
             <div style="grid-column: 1/-1; display:flex; justify-content:center; padding: 10px 0; animation: scaleIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
                 <div class="floating-card match-candidate-card" style="width: 100%; max-width: 480px; overflow: hidden; padding: 0; border: none; background: white;">
@@ -922,17 +922,17 @@ if (btnFindBuddy) {
             if (!isDragging) return;
             isDragging = false;
             card.classList.remove('moving');
-            
-            if (currentX > 100) { connectBtn.click(); } 
-            else if (currentX < -100) { passBtn.click(); } 
+
+            if (currentX > 100) { connectBtn.click(); }
+            else if (currentX < -100) { passBtn.click(); }
             else { card.style.transform = 'translate(0) rotate(0)'; }
             currentX = 0;
         };
 
         card.addEventListener('mousedown', handleDragStart);
-        card.addEventListener('touchstart', handleDragStart, {passive: true});
+        card.addEventListener('touchstart', handleDragStart, { passive: true });
         document.addEventListener('mousemove', handleDragMove);
-        document.addEventListener('touchmove', handleDragMove, {passive: true});
+        document.addEventListener('touchmove', handleDragMove, { passive: true });
         document.addEventListener('mouseup', handleDragEnd);
         document.addEventListener('touchend', handleDragEnd);
 
@@ -960,7 +960,7 @@ if (btnFindBuddy) {
     const btnCloseIb = document.getElementById('btn-close-ib');
     const btnSendIb = document.getElementById('btn-send-ib');
     let currentIbTarget = null;
-    
+
     // Simple prompt generator
     const HOBBY_PROMPTS = {
         'Photography': "What's your favorite lens to shoot with on a weekend?",
@@ -973,15 +973,15 @@ if (btnFindBuddy) {
     function openIcebreakerModal(user) {
         currentIbTarget = user;
         document.getElementById('ib-partner-name').textContent = user.name;
-        
+
         // Pick a random hobby for the prompt
         const hobbies = ['Photography', 'Hiking', 'Coffee', 'Board Games', 'Tech Startups'];
         const sharedHobby = hobbies[Math.floor(Math.random() * hobbies.length)];
-        
+
         document.getElementById('ib-hobby-tag').textContent = sharedHobby;
         document.getElementById('ib-prompt').textContent = `"${HOBBY_PROMPTS[sharedHobby]}"`;
         document.getElementById('ib-answer').value = '';
-        
+
         ibModal.classList.add('open');
     }
 
@@ -998,15 +998,15 @@ if (btnFindBuddy) {
                 showToast("You must answer the prompt to send a Vibe Check!", "error");
                 return;
             }
-            
+
             btnSendIb.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Locking Vibe...';
             btnSendIb.disabled = true;
-            
+
             setTimeout(async () => {
                 ibModal.classList.remove('open');
                 btnSendIb.innerHTML = '<i class="fas fa-paper-plane"></i> Send Vibe Check';
                 btnSendIb.disabled = false;
-                
+
                 // Real DB save
                 try {
                     await fetch(API_BASE_URL + '/api/messages', {
@@ -1019,15 +1019,15 @@ if (btnFindBuddy) {
                         })
                     });
                     showToast(`Vibe Check sent to ${currentIbTarget.name}!`, 'success');
-                } catch(err) {
+                } catch (err) {
                     showToast("Message send failed", "error");
                 }
-                
+
                 // Advance discover queue
                 discoverIndex++;
                 const container = document.getElementById('discover-grid');
                 if (container) renderDiscoverCandidate(container);
-                
+
                 // Add a mock incoming request to Messages tab to demonstrate the receiver experience
                 addMockIncomingRequest();
             }, 800);
@@ -1062,12 +1062,12 @@ if (btnFindBuddy) {
         `;
     }
 
-    window.approveIcebreaker = function(btnElem) {
+    window.approveIcebreaker = function (btnElem) {
         btnElem.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Unlocking...';
         setTimeout(() => {
             const card = btnElem.parentElement.parentElement;
             card.remove();
-            
+
             // Add to active chats
             const activeContainer = document.getElementById('active-chats-container');
             activeContainer.innerHTML = `
@@ -1080,12 +1080,12 @@ if (btnFindBuddy) {
                     <div style="width: 12px; height: 12px; background: var(--color-accent-rose); border-radius: 50%;"></div>
                 </div>
             `;
-            
+
             // Auto open the chat!
             openChat('mock1', 'Sara M.');
         }, 600);
     };
-    
+
     // ============================
     // EVENTS LOGIC
     // ============================
@@ -1094,10 +1094,10 @@ if (btnFindBuddy) {
         btnLoadEvents.addEventListener('click', () => {
             const feed = document.getElementById('events-feed-container');
             const spinner = document.getElementById('events-spinner');
-            
+
             feed.style.display = 'none';
             spinner.style.display = 'block';
-            
+
             if ("geolocation" in navigator) {
                 navigator.geolocation.getCurrentPosition(async (position) => {
                     try {
@@ -1108,7 +1108,7 @@ if (btnFindBuddy) {
                         const data = await res.json();
                         const city = data.address.city || data.address.town || data.address.village || data.address.county || "Your Area";
                         renderLocalEvents(city);
-                    } catch(e) {
+                    } catch (e) {
                         renderLocalEvents("Your Area");
                     }
                 }, () => renderLocalEvents("Your Area"));
@@ -1122,7 +1122,7 @@ if (btnFindBuddy) {
         const feed = document.getElementById('events-feed-container');
         document.getElementById('events-spinner').style.display = 'none';
         feed.style.display = 'block';
-        
+
         feed.innerHTML = `
             <div style="margin-bottom: 25px; padding: 10px 20px; background: rgba(139, 92, 246, 0.1); border-radius: 12px; font-weight: 700; color: var(--color-accent-violet); display: inline-block;">
                 <i class="fas fa-map-pin"></i> Showing live events near: <span style="text-transform: capitalize;">${city}</span>
@@ -1174,7 +1174,7 @@ if (btnFindBuddy) {
         return "New Friend";
     }
 
-    window.openChat = function(partnerId, partnerName) {
+    window.openChat = function (partnerId, partnerName) {
         const modal = document.getElementById('chat-modal');
         document.getElementById('chat-partner-name').textContent = partnerName;
         currentChatPartnerId = partnerId;
@@ -1195,7 +1195,7 @@ if (btnFindBuddy) {
         const matchesContainer = document.getElementById('matches-container');
         const errorEl = document.getElementById('dashboard-error');
         errorEl.style.display = 'none';
-        
+
         matchesContainer.innerHTML = `
             <div class="match-card-social" style="width: 100%; border-style: dashed; justify-content:center;">
                 <div class="spinner-border" style="margin-top:20px;"></div>
@@ -1275,7 +1275,7 @@ if (btnFindBuddy) {
                     showToast('New message received!', 'success');
                 }
             });
-        }, function(error) {
+        }, function (error) {
             console.error('STOMP error', error);
             stompClient = null;
             setTimeout(connectWebSocket, 5000); // retry
@@ -1296,7 +1296,7 @@ if (btnFindBuddy) {
             const res = await fetch(API_BASE_URL + `/api/messages/${userId}/${currentChatPartnerId}`);
             if (!res.ok) return;
             const messages = await res.json();
-            
+
             chatMessages.innerHTML = '';
             if (messages.length === 0) {
                 chatMessages.innerHTML = '<div style="text-align:center; font-size:0.8rem; color:var(--color-text-muted); margin-top:20px;">Say hi! This is the beginning of your conversation.</div>';
