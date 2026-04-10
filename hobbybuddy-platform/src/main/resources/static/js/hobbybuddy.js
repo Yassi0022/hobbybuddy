@@ -248,11 +248,30 @@ if (registerForm) {
 
         try {
             console.log("Submitting registration...");
-            const res = await fetch(API_BASE_URL + '/api/users', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(userData)
-            });
+            
+            let res;
+            let retryCount = 0;
+            const maxRetries = 2;
+            
+            while (retryCount <= maxRetries) {
+                try {
+                    res = await fetch(API_BASE_URL + '/api/users', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(userData)
+                    });
+                    break; // Request succeeded, break loop
+                } catch (fetchErr) {
+                    if (fetchErr.message === 'Failed to fetch' && retryCount < maxRetries) {
+                        retryCount++;
+                        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Server is waking up, please wait 30 seconds...';
+                        await new Promise(r => setTimeout(r, 10000)); // Wait 10 seconds and retry
+                    } else {
+                        throw fetchErr;
+                    }
+                }
+            }
+
             if (!res.ok) {
                 const errData = await res.json();
                 throw new Error(errData.error || 'Registration failed');
@@ -634,11 +653,29 @@ if (loginForm) {
 
         try {
             console.log("Sending AJAX POST to /api/users/login for: " + email);
-            const res = await fetch(API_BASE_URL + `/api/users/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password })
-            });
+            
+            let res;
+            let retryCount = 0;
+            const maxRetries = 2;
+
+            while (retryCount <= maxRetries) {
+                try {
+                    res = await fetch(API_BASE_URL + `/api/users/login`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email, password })
+                    });
+                    break;
+                } catch (fetchErr) {
+                    if (fetchErr.message === 'Failed to fetch' && retryCount < maxRetries) {
+                        retryCount++;
+                        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Server is waking up, please wait 30 seconds...';
+                        await new Promise(r => setTimeout(r, 10000)); // Wait 10 seconds and retry
+                    } else {
+                        throw fetchErr;
+                    }
+                }
+            }
 
             if (res.status === 401) {
                 console.warn("Login failed: 401 Unauthorized");

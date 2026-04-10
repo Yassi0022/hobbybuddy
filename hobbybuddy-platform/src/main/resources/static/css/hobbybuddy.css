@@ -1097,3 +1097,73 @@ input:focus {
     50% { box-shadow: 0 0 30px rgba(168, 85, 247, 0.5); transform: scale(1.05); }
     100% { box-shadow: var(--shadow-glow); }
 }
+
+/* =========================================================================
+   RESPONSIVE & DESKTOP ALIGNMENT FIXES
+========================================================================= */
+
+/* Ensure all buttons have a minimum touch target */
+button, .btn-form-primary, .btn-outline, .cta-button, .btn-secondary, .btn-primary, .btn-accent, .menu-item {
+    min-height: 44px;
+}
+
+/* Footer padding fix */
+.site-footer {
+    padding: 60px 20px;
+    text-align: center;
+}
+
+/* Desktop Issues */
+@media (min-width: 1280px) {
+    .hero-buttons {
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+    }
+    .steps-grid {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+    }
+}
+
+/* Mobile Responsive Issues (375px & generic mobile up to 768px) */
+@media (max-width: 768px) {
+    .hero {
+        padding: 120px 24px 60px; /* Hero padding minimum */
+    }
+    .hero-buttons {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        align-items: stretch;
+        gap: 12px;
+    }
+    .hero-buttons a {
+        width: 100%;
+        text-align: center;
+    }
+    .floating-card {
+        margin-top: 24px;
+        position: relative;
+        clear: both;
+    }
+    .hero-content {
+        display: flex;
+        flex-direction: column;
+        text-align: center;
+    }
+    .hero-text {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .hero-visual {
+        margin-top: 30px;
+    }
+    .bg-mesh .orb { /* make gradient feel more premium on mobile */
+        opacity: 0.4;
+        filter: blur(80px);
+    }
+}
