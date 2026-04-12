@@ -15,7 +15,7 @@ public class JwtUtil {
 
     // In a real app, inject this from properties or env
     private final SecretKey SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);
-    private final long EXPIRATION_TIME = 1000 * 60 * 60 * 10; // 10 hours
+    private final long EXPIRATION_TIME = 86400000L; // 24 hours
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);

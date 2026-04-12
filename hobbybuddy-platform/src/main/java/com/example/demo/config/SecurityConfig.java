@@ -62,10 +62,7 @@ public class SecurityConfig {
                 .permitAll()
             )
             .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-                .sessionFixation(sessionFixation -> sessionFixation.migrateSession())
-                .maximumSessions(1)
-                .maxSessionsPreventsLogin(false)
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             .userDetailsService(userDetailsService);
 

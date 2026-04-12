@@ -1,4 +1,25 @@
 // ============================
+// TOKEN STORAGE
+// ============================
+window._authToken = null;
+function saveToken(token) {
+    window._authToken = token;
+    try { saveToken(token); } catch(e) {}
+}
+function getToken() {
+    if (window._authToken) return window._authToken;
+    try { 
+        const t = getToken(); 
+        if (t) window._authToken = t; 
+        return t; 
+    } catch(e) { return null; }
+}
+function removeToken() {
+    window._authToken = null;
+    try { removeToken(); } catch(e) {}
+}
+
+// ============================
 // PWA: SERVICE WORKER REGISTRATION
 // ============================
 if ('serviceWorker' in navigator) {
@@ -120,7 +141,7 @@ const originalFetch = window.fetch;
 let _isRedirectingToLogin = false;
 window.fetch = async function (...args) {
     let [resource, config] = args;
-    const token = localStorage.getItem('jwt');
+    const token = getToken();
     if (token) {
         if (!config) config = {};
         if (!config.headers) config.headers = {};
@@ -134,7 +155,7 @@ window.fetch = async function (...args) {
         if (!url.includes('/login') && !url.includes('/register')) {
             _isRedirectingToLogin = true;
             showToast('Sessione scaduta. Effettua di nuovo il login.', 'error');
-            localStorage.removeItem('jwt');
+            removeToken();
             localStorage.removeItem('userId');
             localStorage.removeItem('userName');
             setTimeout(() => { window.location.href = '/login'; }, 2000);
@@ -166,7 +187,7 @@ if (btnLogout) {
         e.preventDefault();
         localStorage.removeItem('userId');
         localStorage.removeItem('userName');
-        localStorage.removeItem('jwt');
+        removeToken();
         window.location.href = '/login'; // Redirect to login
     });
 }
@@ -261,7 +282,7 @@ if (registerForm) {
             const data = await res.json();
             localStorage.setItem('userId', data.id);
             localStorage.setItem('userName', data.name);
-            if (data.token) localStorage.setItem('jwt', data.token);
+            if (data.token) saveToken(data.token);
             window.location.href = '/quiz';
         } catch (err) {
             showToast('Error: ' + err.message, 'error');
@@ -274,8 +295,11 @@ if (registerForm) {
 // ============================
 // IPIP BIG-FIVE QUIZ — Tinder-style
 // ============================
+document.addEventListener('DOMContentLoaded', () => {
 const quizCard = document.getElementById('quiz-card');
 if (quizCard) {
+    const token = getToken();
+    if (!token) { window.location.href = '/login'; return; }
     const userId = localStorage.getItem('userId');
     if (!userId || userId === 'undefined') { window.location.href = '/register'; }
     const TRAIT_LABELS = ['Extraversion', 'Agreeableness', 'Conscientiousness', 'Emotional Stability', 'Openness'];
@@ -591,7 +615,7 @@ if (quizCard) {
     });
 
 }
-
+});
 
 // ============================
 // LOGIN
@@ -639,7 +663,7 @@ if (loginForm) {
                 const data = await res.json();
                 localStorage.setItem('userId', data.id);
                 localStorage.setItem('userName', data.name);
-                if (data.token) localStorage.setItem('jwt', data.token);
+                if (data.token) saveToken(data.token);
                 window.location.href = '/dashboard';
                 return;
             }
@@ -658,8 +682,11 @@ if (loginForm) {
 // ============================
 // DASHBOARD & SOCIAL FEED
 // ============================
+document.addEventListener('DOMContentLoaded', () => {
 const btnFindBuddy = document.getElementById('btn-find-buddy');
 if (btnFindBuddy) {
+    const token = getToken();
+    if (!token) { window.location.href = '/login'; return; }
     const userId = localStorage.getItem('userId');
     const userName = localStorage.getItem('userName');
     if (!userId || userId === 'undefined') { window.location.href = '/login'; }
@@ -1205,7 +1232,7 @@ if (btnFindBuddy) {
 
     function connectWebSocket() {
         if (!userId || stompClient) return;
-        const token = localStorage.getItem('jwt') || '';
+        const token = getToken() || '';
         const socket = new SockJS(WS_BASE_URL + '/ws-chat?token=' + token);
         stompClient = Stomp.over(socket);
         stompClient.debug = null; // Disable debug logs in console
@@ -1299,3 +1326,4 @@ if (btnFindBuddy) {
         });
     }
 }
+});
