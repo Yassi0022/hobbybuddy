@@ -152,7 +152,10 @@ window.fetch = async function (...args) {
     if ((response.status === 401 || response.status === 403) && !_isRedirectingToLogin) {
         // Skip interception for login/register calls (they have their own handling)
         const url = typeof resource === 'string' ? resource : resource.url;
-        if (!url.includes('/login') && !url.includes('/register')) {
+        const isInternal = url.startsWith('/') || url.includes(window.location.hostname);
+        
+        if (!url.includes('/login') && !url.includes('/register') && isInternal) {
+            console.log('Redirecting to login due to 401/403. URL:', url, 'Status:', response.status);
             _isRedirectingToLogin = true;
             showToast('Sessione scaduta. Effettua di nuovo il login.', 'error');
             removeToken();
@@ -371,21 +374,9 @@ if (quizCard) {
     const TOTAL = QUESTIONS.length;
     let currentIdx = 0;
 
-    // Load answers from localStorage or create new array
-    let savedAnswers = localStorage.getItem('hobbybuddy_answers');
-    const answers = savedAnswers ? JSON.parse(savedAnswers) : new Array(TOTAL).fill(null);
-
-    // Find the first unanswered question
-    for (let i = 0; i < TOTAL; i++) {
-        if (answers[i] === null) {
-            currentIdx = i;
-            break;
-        }
-    }
-    // If all answered
-    if (currentIdx === 0 && answers[TOTAL - 1] !== null) {
-        currentIdx = TOTAL;
-    }
+    // Reset quiz state on load, do not resume
+    localStorage.removeItem('hobbybuddy_answers');
+    const answers = new Array(TOTAL).fill(null);
 
     const screenSplash = document.getElementById('screen-splash');
     const screenQuiz = document.getElementById('screen-quiz');
@@ -442,9 +433,6 @@ if (quizCard) {
         cardTrait.className = 'quiz-card-trait badge ' + TRAIT_CLASSES[traitIdx];
         cardQuestion.textContent = q[1];
 
-        const navCounter = document.getElementById('nav-counter');
-        if (navCounter) navCounter.textContent = `${idx + 1} / 50`;
-
         cardOptions.innerHTML = '';
 
         for (let v = 1; v <= 5; v++) {
@@ -495,12 +483,14 @@ if (quizCard) {
     }
 
     function updateUI() {
-        // Calculate percentage out of 50
-        let completed = answers.filter(a => a !== null).length;
-        const pct = Math.round((completed / TOTAL) * 100);
+        // Calculate percentage out of 50 based on currentIdx (source of truth)
+        const pct = Math.round((currentIdx / TOTAL) * 100);
 
         if (topFill) topFill.style.width = pct + '%';
         if (narrativeProgress) narrativeProgress.textContent = `Discovering your personality... ${pct}% complete`;
+        
+        const navCounter = document.getElementById('nav-counter');
+        if (navCounter) navCounter.textContent = `${Math.min(currentIdx + 1, TOTAL)} / ${TOTAL}`;
     }
 
     async function submitTraits() {
