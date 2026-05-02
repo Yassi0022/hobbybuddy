@@ -246,11 +246,17 @@ if (registerForm) {
         btn.disabled = true;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
 
+        const urlParams = new URLSearchParams(window.location.search);
+        const refId = urlParams.get('ref') || sessionStorage.getItem('hobbybuddy_ref');
+        
         const userData = {
             name: document.getElementById('reg-name').value.trim(),
             email: document.getElementById('reg-email').value.trim(),
             password: document.getElementById('reg-password').value.trim()
         };
+        if (refId) {
+            userData.referredBy = parseInt(refId);
+        }
 
         if (!userData.name || !userData.email || !userData.password) {
             showToast('Please fill in all fields.', 'error');
@@ -397,7 +403,7 @@ if (quizCard) {
 
             if (currentIdx >= TOTAL) {
                 // Already finished
-                submitTraits();
+                showHobbiesScreen();
             } else {
                 screenQuiz.style.display = 'block';
                 screenQuiz.classList.add('active');
@@ -458,7 +464,7 @@ if (quizCard) {
                     } else if (idx < TOTAL - 1) {
                         renderQuestion(idx + 1, 'next');
                     } else {
-                        submitTraits();
+                        showHobbiesScreen();
                     }
                 }, 300);
             });
@@ -509,10 +515,11 @@ if (quizCard) {
 
         const traits = {};
         for (let t = 0; t < 5; t++) {
-            // max score per trait is 50 (10 questions * 5). Min is 10.
-            // (score - min) / (max - min) * 100
             traits[TRAIT_API_NAMES[t]] = Math.round(((traitSums[t] - 10) / 40) * 100);
         }
+        
+        // Add selected hobbies
+        traits['hobbies'] = Array.from(selectedHobbies).join(',');
 
         try {
             await fetch(API_BASE_URL + `/api/users/${userId}/traits`, {
@@ -564,36 +571,159 @@ if (quizCard) {
 
         // --- VIRAL: Share Your Vibe button ---
         const shareVibeBtn = document.getElementById('btn-share-vibe');
+        const vibeModal = document.getElementById('vibe-modal');
+        const btnCloseModal = document.getElementById('btn-close-modal');
+        const btnDownloadVibe = document.getElementById('btn-download-vibe');
+        const btnCopyLink = document.getElementById('btn-copy-link');
+
         if (shareVibeBtn) {
             shareVibeBtn.style.opacity = '0';
             shareVibeBtn.style.animation = `fadeIn 1s ease forwards 2s`;
+            
             shareVibeBtn.addEventListener('click', async () => {
-                // Find the user's dominant trait
-                let maxTrait = 'Openness';
-                let maxScore = 0;
+                shareVibeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+                shareVibeBtn.disabled = true;
+
+                // Populate Hidden Render Div
+                const userName = localStorage.getItem('userName') || 'Buddy';
+                document.getElementById('vibe-card-name').textContent = userName;
+                
+                const traitsContainer = document.getElementById('vibe-card-traits');
+                traitsContainer.innerHTML = '';
                 for (let t = 0; t < 5; t++) {
                     const score = traits[TRAIT_API_NAMES[t]];
-                    if (score > maxScore) { maxScore = score; maxTrait = TRAIT_LABELS[t]; }
+                    traitsContainer.innerHTML += `
+                        <div style="text-align: left;">
+                            <div style="display:flex; justify-content:space-between; margin-bottom:10px; font-weight:700; font-size:1.6rem;">
+                                <span>${TRAIT_LABELS[t]}</span>
+                                <span>${score}%</span>
+                            </div>
+                            <div style="height:20px; background:rgba(255,255,255,0.2); border-radius:10px; overflow:hidden;">
+                                <div style="height:100%; width:${score}%; background:white; border-radius:10px;"></div>
+                            </div>
+                        </div>
+                    `;
                 }
-                const shareText = `Ho appena scoperto di avere un'aura di ${maxTrait} al ${maxScore}% su HobbyBuddy! \uD83C\uDF1F Fai il quiz e scopri la tua personalità:`;
-                const shareData = {
-                    title: 'Il mio Vibe su HobbyBuddy',
-                    text: shareText,
-                    url: window.location.origin + '/register'
-                };
-                if (navigator.share) {
-                    try { await navigator.share(shareData); showToast('Vibe condiviso!', 'success'); }
-                    catch (e) { /* user cancelled */ }
-                } else {
-                    try {
-                        await navigator.clipboard.writeText(shareText + ' ' + shareData.url);
-                        showToast('Testo copiato negli appunti!', 'success');
-                    } catch (e) {
-                        showToast('Non è stato possibile copiare il link.', 'error');
-                    }
+
+                const hobbiesContainer = document.getElementById('vibe-card-hobbies');
+                hobbiesContainer.innerHTML = '';
+                Array.from(selectedHobbies).slice(0, 3).forEach(hobby => {
+                    hobbiesContainer.innerHTML += `<span style="background:rgba(255,255,255,0.2); padding:10px 24px; border-radius:100px; font-weight:700; font-size:1.4rem;">${hobby}</span>`;
+                });
+
+                // Render Canvas
+                try {
+                    const renderTarget = document.getElementById('vibe-card-render');
+                    renderTarget.style.top = '0'; // Bring into view briefly for rendering
+                    renderTarget.style.zIndex = '-100';
+
+                    const canvas = await html2canvas(renderTarget, { scale: 1, backgroundColor: null });
+                    renderTarget.style.top = '-9999px'; // Hide again
+
+                    // Show Modal
+                    const previewContainer = document.getElementById('vibe-preview-container');
+                    previewContainer.innerHTML = '';
+                    canvas.style.width = '100%';
+                    canvas.style.height = 'auto';
+                    canvas.style.display = 'block';
+                    previewContainer.appendChild(canvas);
+
+                    vibeModal.style.display = 'flex';
+                    vibeModal.style.animation = 'fadeIn 0.3s ease forwards';
+                    
+                    shareVibeBtn.innerHTML = '<i class="fas fa-share-alt"></i> Share Your Vibe';
+                    shareVibeBtn.disabled = false;
+
+                    // Setup Download
+                    btnDownloadVibe.onclick = () => {
+                        const link = document.createElement('a');
+                        link.download = \`hobbybuddy-vibe-\${userName}.png\`;
+                        link.href = canvas.toDataURL('image/png');
+                        link.click();
+                    };
+
+                    // Setup Copy Link
+                    btnCopyLink.onclick = () => {
+                        const inviteUrl = window.location.origin + '/register?ref=' + localStorage.getItem('userId');
+                        navigator.clipboard.writeText(\`Join me on HobbyBuddy! Find your hobby twin: \${inviteUrl}\`)
+                            .then(() => {
+                                btnCopyLink.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                                setTimeout(() => btnCopyLink.innerHTML = '<i class="fas fa-link"></i> Copy Invite Link', 2000);
+                            })
+                            .catch(() => showToast('Failed to copy', 'error'));
+                    };
+
+                } catch (err) {
+                    console.error("Vibe card generation failed:", err);
+                    showToast('Failed to generate card', 'error');
+                    shareVibeBtn.innerHTML = '<i class="fas fa-share-alt"></i> Share Your Vibe';
+                    shareVibeBtn.disabled = false;
                 }
             });
+            
+            btnCloseModal.onclick = () => { vibeModal.style.display = 'none'; };
         }
+    }
+
+    const HOBBIES_LIST = ['Photography 📷', 'Hiking 🥾', 'Coding 💻', 'Running 🏃', 'Gaming 🎮', 'Music 🎵', 'Cooking 🍳', 'Travel ✈️', 'Reading 📚', 'Art 🎨', 'Fitness 💪', 'Board Games 🎲', 'Cinema 🎬', 'Dancing 💃', 'Yoga 🧘', 'Writing ✍️', 'Football ⚽', 'Tennis 🎾', 'Cycling 🚴', 'Volunteering 🤝'];
+    const selectedHobbies = new Set();
+
+    function showHobbiesScreen() {
+        const screenQuiz = document.getElementById('screen-quiz');
+        const screenHobbies = document.getElementById('screen-hobbies');
+        if (screenQuiz) {
+            screenQuiz.classList.add('exit-left');
+            setTimeout(() => {
+                screenQuiz.style.display = 'none';
+                screenHobbies.style.display = 'block';
+                screenHobbies.classList.add('enter');
+            }, 300);
+        } else {
+            screenHobbies.style.display = 'block';
+        }
+
+        const grid = document.getElementById('hobbies-grid');
+        grid.innerHTML = '';
+        HOBBIES_LIST.forEach(hobby => {
+            const btn = document.createElement('button');
+            btn.className = 'btn-secondary';
+            btn.style.margin = '4px';
+            btn.style.borderRadius = '100px';
+            btn.textContent = hobby;
+            btn.onclick = () => toggleHobby(btn, hobby);
+            grid.appendChild(btn);
+        });
+    }
+
+    function toggleHobby(btn, hobby) {
+        if (selectedHobbies.has(hobby)) {
+            selectedHobbies.delete(hobby);
+            btn.classList.remove('btn-primary');
+            btn.classList.add('btn-secondary');
+        } else {
+            if (selectedHobbies.size >= 5) {
+                showToast('You can select a maximum of 5 hobbies', 'error');
+                return;
+            }
+            selectedHobbies.add(hobby);
+            btn.classList.remove('btn-secondary');
+            btn.classList.add('btn-primary');
+        }
+
+        const submitBtn = document.getElementById('btn-submit-hobbies');
+        if (selectedHobbies.size >= 3) {
+            submitBtn.disabled = false;
+        } else {
+            submitBtn.disabled = true;
+        }
+    }
+
+    const btnSubmitHobbies = document.getElementById('btn-submit-hobbies');
+    if (btnSubmitHobbies) {
+        btnSubmitHobbies.addEventListener('click', () => {
+            document.getElementById('screen-hobbies').style.display = 'none';
+            submitTraits();
+        });
     }
 
     // Keyboard shortcuts
@@ -712,6 +842,16 @@ if (btnFindBuddy) {
     const viewDiscover = document.getElementById('view-discover');
     const viewMessages = document.getElementById('view-messages');
     const viewEvents = document.getElementById('view-events');
+
+    // Dead buttons fix
+    document.querySelectorAll('.btn-outline').forEach(btn => {
+        if (btn.textContent.includes('Edit Profile') || btn.textContent.includes('View All Topics')) {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                showToast('Feature coming soon!', 'success');
+            });
+        }
+    });
 
     function switchTab(activeNav, activeView) {
         // Reset Nav
@@ -1099,47 +1239,125 @@ if (btnFindBuddy) {
         document.getElementById('events-spinner').style.display = 'none';
         feed.style.display = 'block';
 
-        feed.innerHTML = `
-            <div style="margin-bottom: 25px; padding: 10px 20px; background: rgba(139, 92, 246, 0.1); border-radius: 12px; font-weight: 700; color: var(--color-accent-violet); display: inline-block;">
-                <i class="fas fa-map-pin"></i> Showing live events near: <span style="text-transform: capitalize;">${city}</span>
-            </div>
-            
-            <div class="post-card" style="border-left: 5px solid var(--color-accent-violet); animation: slideUpFade 0.5s ease forwards;">
-                <div class="post-header" style="justify-content: space-between;">
-                    <div class="post-meta">
-                        <h4>Urban Photography Walk</h4>
-                        <span>Organized by Elena G.</span>
+        const badge = document.getElementById('event-city-badge');
+        if (badge) badge.innerHTML = `<i class="fas fa-map-marker-alt"></i> ${city}`;
+
+        fetchEvents(city);
+    }
+
+    async function fetchEvents(city) {
+        const feed = document.getElementById('events-feed-container');
+        try {
+            const res = await fetch(API_BASE_URL + '/api/events?city=' + encodeURIComponent(city));
+            if (!res.ok) throw new Error('Failed to fetch events');
+            const events = await res.json();
+
+            if (events.length === 0) {
+                feed.innerHTML = `
+                    <div class="post-card" style="text-align:center; padding: 50px 20px;">
+                        <i class="fas fa-calendar-times" style="font-size: 3.5rem; color: var(--color-input-border); margin-bottom: 20px;"></i>
+                        <h3 style="margin-bottom: 10px; font-size: 1.8rem;">No events in ${city} yet</h3>
+                        <p style="color: var(--color-text-muted); font-size: 1.05rem;">Be the first to create a HobbyBuddy event in your area!</p>
                     </div>
-                    <div class="badge">Tomorrow, 06:30 AM</div>
-                </div>
-                <div class="post-content">Meet at the main square fountain in ${city} to catch the sunrise around the historical center. Bring your favorite prime lens!</div>
-                <button class="btn-outline" style="padding: 6px 16px; font-size: 0.85rem;"><i class="fas fa-check"></i> I'm going</button>
-            </div>
-            
-            <div class="post-card" style="border-left: 5px solid var(--color-accent-teal); animation: slideUpFade 0.5s ease forwards; animation-delay: 0.2s; opacity: 0;">
-                <div class="post-header" style="justify-content: space-between;">
-                    <div class="post-meta">
-                        <h4>Weekend Trail Run (15k)</h4>
-                        <span>Organized by Marco R.</span>
+                `;
+                return;
+            }
+
+            feed.innerHTML = '';
+            events.forEach((event, idx) => {
+                const date = new Date(event.date).toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                feed.innerHTML += `
+                    <div class="post-card" style="border-left: 5px solid var(--color-accent-violet); animation: slideUpFade 0.5s ease forwards; animation-delay: ${idx * 0.1}s; opacity: 0;">
+                        <div class="post-header" style="justify-content: space-between;">
+                            <div class="post-meta">
+                                <h4>${event.title} <span class="badge" style="background:var(--color-input-bg); color:var(--color-text-main); font-size:0.7rem;">${event.hobbyCategory}</span></h4>
+                                <span>Organized by ${event.createdBy.name}</span>
+                            </div>
+                            <div class="badge">${date}</div>
+                        </div>
+                        <div class="post-content">${event.description || 'No description provided.'}</div>
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-size:0.85rem; color:var(--color-text-muted);"><i class="fas fa-users"></i> ${event.participants.length} / ${event.maxParticipants} going</span>
+                            <button class="btn-outline btn-join-event" data-id="${event.id}" style="padding: 6px 16px; font-size: 0.85rem;"><i class="fas fa-check"></i> Join Event</button>
+                        </div>
                     </div>
-                    <div class="badge success">Sunday, 08:00 AM</div>
-                </div>
-                <div class="post-content">Medium difficulty trail just outside ${city}. We will keep a steady pace of ~6:00/km. Coffee afterwards!</div>
-                <button class="btn-outline" style="padding: 6px 16px; font-size: 0.85rem;"><i class="fas fa-check"></i> I'm going</button>
-            </div>
-            
-            <div class="post-card" style="border-left: 5px solid var(--color-accent-rose); animation: slideUpFade 0.5s ease forwards; animation-delay: 0.4s; opacity: 0;">
-                <div class="post-header" style="justify-content: space-between;">
-                    <div class="post-meta">
-                        <h4>Indie Game Dev Meetup</h4>
-                        <span>Organized by Tech ${city}</span>
-                    </div>
-                    <div class="badge" style="background:#fef3c7; color:#d97706;">Next Friday, 19:00</div>
-                </div>
-                <div class="post-content">Showcasing early builds and drinking beer. Open to developers, artists, and gamers in ${city}!</div>
-                <button class="btn-outline" style="padding: 6px 16px; font-size: 0.85rem;"><i class="fas fa-check"></i> I'm going</button>
-            </div>
-        `;
+                `;
+            });
+
+            // Join event handlers
+            document.querySelectorAll('.btn-join-event').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const eventId = e.target.closest('button').dataset.id;
+                    try {
+                        const r = await fetch(API_BASE_URL + '/api/events/' + eventId + '/join', {
+                            method: 'POST',
+                            headers: { 'Authorization': 'Bearer ' + getToken() }
+                        });
+                        if (!r.ok) {
+                            const err = await r.json();
+                            throw new Error(err.error || 'Failed to join');
+                        }
+                        showToast('Joined successfully!', 'success');
+                        fetchEvents(city); // reload
+                    } catch (err) {
+                        showToast(err.message, 'error');
+                    }
+                });
+            });
+
+        } catch (err) {
+            feed.innerHTML = `<div class="form-error" style="display:block;"><i class="fas fa-exclamation-triangle"></i> Error loading events: ${err.message}</div>`;
+        }
+    }
+
+    const formCreateEvent = document.getElementById('form-create-event');
+    if (formCreateEvent) {
+        // Populate hobby options from user's selected hobbies if we have them, else from list
+        const eventHobbySelect = document.getElementById('event-hobby');
+        HOBBIES_LIST.forEach(hobby => {
+            const cleanHobby = hobby.replace(/[^a-zA-Z ]/g, '').trim(); // Remove emojis
+            const opt = document.createElement('option');
+            opt.value = cleanHobby;
+            opt.textContent = hobby;
+            eventHobbySelect.appendChild(opt);
+        });
+
+        formCreateEvent.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = formCreateEvent.querySelector('button[type="submit"]');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Publishing...';
+            btn.disabled = true;
+
+            const newEvent = {
+                title: document.getElementById('event-title').value,
+                hobbyCategory: document.getElementById('event-hobby').value,
+                date: document.getElementById('event-date').value,
+                location: document.getElementById('event-location').value,
+                maxParticipants: parseInt(document.getElementById('event-max').value),
+                description: document.getElementById('event-desc').value
+            };
+
+            try {
+                const res = await fetch(API_BASE_URL + '/api/events', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + getToken()
+                    },
+                    body: JSON.stringify(newEvent)
+                });
+                if (!res.ok) throw new Error('Failed to create event');
+                
+                showToast('Event created successfully!', 'success');
+                formCreateEvent.reset();
+                renderLocalEvents(newEvent.location);
+            } catch (err) {
+                showToast(err.message, 'error');
+            }
+
+            btn.innerHTML = '<i class="fas fa-paper-plane"></i> Publish Event';
+            btn.disabled = false;
+        });
     }
 
     function getMatchLabel(score) {

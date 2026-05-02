@@ -29,8 +29,18 @@ public class User {
     private int extraversion;
     @Column
     private int agreeableness;
+
     @Column
     private int neuroticism;
+
+    @Column(nullable = true)
+    private Long referredBy;
+
+    @Column(nullable = false)
+    private int referralCount = 0;
+
+    @Column(columnDefinition = "TEXT")
+    private String hobbies;
 
     public User() {
 
@@ -128,5 +138,29 @@ public class User {
 
     public void setNeuroticism(int neuroticism) {
         this.neuroticism = neuroticism;
+    }
+
+    public Long getReferredBy() {
+        return referredBy;
+    }
+
+    public void setReferredBy(Long referredBy) {
+        this.referredBy = referredBy;
+    }
+
+    public int getReferralCount() {
+        return referralCount;
+    }
+
+    public void setReferralCount(int referralCount) {
+        this.referralCount = referralCount;
+    }
+
+    public String getHobbies() {
+        return hobbies;
+    }
+
+    public void setHobbies(String hobbies) {
+        this.hobbies = hobbies;
     }
 }

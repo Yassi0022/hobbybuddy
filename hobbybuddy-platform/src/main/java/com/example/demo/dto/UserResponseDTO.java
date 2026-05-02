@@ -12,6 +12,10 @@ public class UserResponseDTO {
     private List<String> sharedStrengths = new ArrayList<>();
     private List<String> complementaryTraits = new ArrayList<>();
 
+    private Long referredBy;
+    private int referralCount = 0;
+    private String hobbies;
+
     public UserResponseDTO() {
     }
 
@@ -70,5 +74,29 @@ public class UserResponseDTO {
     
     public void setToken(String token) {
         this.token = token;
+    }
+
+    public Long getReferredBy() {
+        return referredBy;
+    }
+
+    public void setReferredBy(Long referredBy) {
+        this.referredBy = referredBy;
+    }
+
+    public int getReferralCount() {
+        return referralCount;
+    }
+
+    public void setReferralCount(int referralCount) {
+        this.referralCount = referralCount;
+    }
+
+    public String getHobbies() {
+        return hobbies;
+    }
+
+    public void setHobbies(String hobbies) {
+        this.hobbies = hobbies;
     }
 }

@@ -60,6 +60,15 @@ public class UserController {
         logger.info("[DEBUG-AUTH] Registration attempt: " + user.getEmail());
         try {
             userService.saveUser(user);
+            
+            // Handle referral
+            if (user.getReferredBy() != null) {
+                userRepository.findById(user.getReferredBy()).ifPresent(referrer -> {
+                    referrer.setReferralCount(referrer.getReferralCount() + 1);
+                    userRepository.save(referrer);
+                });
+            }
+
             String token = jwtUtil.generateToken(user.getEmail());
             addJwtCookie(response, token);
             
@@ -111,7 +120,9 @@ public class UserController {
                 "id", user.getId(),
                 "email", user.getEmail(),
                 "name", user.getName(),
-                "quizCompleted", user.isQuizCompleted()
+                "quizCompleted", user.isQuizCompleted(),
+                "hobbies", user.getHobbies() != null ? user.getHobbies() : "",
+                "referralCount", user.getReferralCount()
             ));
         } catch (org.springframework.security.core.AuthenticationException e) {
             logger.warn("[DEBUG-AUTH] Auth failed for: " + email);
@@ -141,7 +152,9 @@ public class UserController {
         return ResponseEntity.ok(Map.of(
             "id", user.getId(),
             "email", user.getEmail(),
-            "name", user.getName()
+            "name", user.getName(),
+            "hobbies", user.getHobbies() != null ? user.getHobbies() : "",
+            "referralCount", user.getReferralCount()
         ));
     }
 
@@ -162,22 +175,24 @@ public class UserController {
     }
 
     @PutMapping("/{id}/traits")
-    public ResponseEntity<?> updateTraits(@PathVariable("id") java.lang.Long id, @RequestBody Map<String, Integer> traits) {
+    public ResponseEntity<?> updateTraits(@PathVariable("id") java.lang.Long id, @RequestBody Map<String, Object> payload) {
         Optional<User> userOpt = userRepository.findById(java.util.Objects.requireNonNull(id));
         if (userOpt.isEmpty()) {
             return ResponseEntity.status(404).body("{\"error\":\"User not found\"}");
         }
         User user = userOpt.get();
-        if (traits.containsKey("openness")) user.setOpenness(traits.get("openness"));
-        if (traits.containsKey("conscientiousness")) user.setConscientiousness(traits.get("conscientiousness"));
-        if (traits.containsKey("extraversion")) user.setExtraversion(traits.get("extraversion"));
-        if (traits.containsKey("agreeableness")) user.setAgreeableness(traits.get("agreeableness"));
-        if (traits.containsKey("neuroticism")) user.setNeuroticism(traits.get("neuroticism"));
+        if (payload.containsKey("openness")) user.setOpenness((Integer) payload.get("openness"));
+        if (payload.containsKey("conscientiousness")) user.setConscientiousness((Integer) payload.get("conscientiousness"));
+        if (payload.containsKey("extraversion")) user.setExtraversion((Integer) payload.get("extraversion"));
+        if (payload.containsKey("agreeableness")) user.setAgreeableness((Integer) payload.get("agreeableness"));
+        if (payload.containsKey("neuroticism")) user.setNeuroticism((Integer) payload.get("neuroticism"));
+        if (payload.containsKey("hobbies")) user.setHobbies((String) payload.get("hobbies"));
         userRepository.save(user);
 
         UserResponseDTO dto = new UserResponseDTO();
         dto.setId(user.getId());
         dto.setName(user.getName());
+        dto.setHobbies(user.getHobbies());
         return ResponseEntity.ok(dto);
     }
 }
