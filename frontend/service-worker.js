@@ -37,18 +37,32 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
     const url = new URL(event.request.url);
 
-    // Never cache API calls or WebSocket upgrades — always go to network
-    if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/ws-chat')) {
+    // Only cache GET requests. Never call cache.put() on POST, PUT, PATCH, DELETE.
+    if (event.request.method !== 'GET') {
         event.respondWith(fetch(event.request));
         return;
     }
 
-    // For everything else: try network first, fall back to cache
+    // Exclude dynamic routes and auth-related requests from caching entirely
+    if (
+        url.pathname.startsWith('/api/') || 
+        url.pathname.startsWith('/ws-chat') ||
+        url.pathname === '/login' ||
+        url.pathname === '/register' ||
+        url.pathname === '/quiz/submit' ||
+        url.pathname === '/dashboard' ||
+        url.pathname === '/quiz'
+    ) {
+        event.respondWith(fetch(event.request));
+        return;
+    }
+
+    // For static assets: try network first, fall back to cache
     event.respondWith(
         fetch(event.request)
             .then((response) => {
                 // Clone and store successful responses in cache
-                if (response && response.status === 200) {
+                if (response && response.status === 200 && response.type === 'basic') {
                     const responseClone = response.clone();
                     caches.open(CACHE_NAME).then((cache) => {
                         cache.put(event.request, responseClone);

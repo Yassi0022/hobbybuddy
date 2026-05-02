@@ -637,7 +637,7 @@ if (quizCard) {
                     // Setup Download
                     btnDownloadVibe.onclick = () => {
                         const link = document.createElement('a');
-                        link.download = \`hobbybuddy-vibe-\${userName}.png\`;
+                        link.download = `hobbybuddy-vibe-${userName}.png`;
                         link.href = canvas.toDataURL('image/png');
                         link.click();
                     };
@@ -645,7 +645,7 @@ if (quizCard) {
                     // Setup Copy Link
                     btnCopyLink.onclick = () => {
                         const inviteUrl = window.location.origin + '/register?ref=' + localStorage.getItem('userId');
-                        navigator.clipboard.writeText(\`Join me on HobbyBuddy! Find your hobby twin: \${inviteUrl}\`)
+                        navigator.clipboard.writeText(`Join me on HobbyBuddy! Find your hobby twin: ${inviteUrl}`)
                             .then(() => {
                                 btnCopyLink.innerHTML = '<i class="fas fa-check"></i> Copied!';
                                 setTimeout(() => btnCopyLink.innerHTML = '<i class="fas fa-link"></i> Copy Invite Link', 2000);
