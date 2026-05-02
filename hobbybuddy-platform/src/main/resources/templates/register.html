@@ -10,7 +10,8 @@
     <link rel="manifest" th:href="@{/manifest.json}">
     <link rel="apple-touch-icon" th:href="@{/images/icon-192.png}">
     <title>HobbyBuddy - Join Now</title>
-    <link rel="stylesheet" th:href="@{/css/hobbybuddy.css(v=10)}">
+    <meta name="description" content="Join HobbyBuddy for free. Create your profile and unlock the IPIP Big-Five personality quiz to find your perfect hobby companion.">
+    <link rel="stylesheet" th:href="@{/css/hobbybuddy.css(v=11)}">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -25,9 +26,9 @@
     <div class="auth-page">
         <div class="auth-container">
             <div class="auth-card">
-                <div class="auth-icon" style="font-size: 3.5rem; color: var(--color-accent-violet); margin-bottom: 15px; text-shadow: var(--shadow-glow);"><i class="fas fa-user-astronaut"></i></div>
-                <h2 class="auth-title" style="font-size: 2.2rem; font-weight: 800; margin-bottom: 10px; color: var(--color-text-main);">Join the Community</h2>
-                <p class="auth-subtitle" style="font-size: 1.05rem; color: var(--color-text-muted); margin-bottom: 30px;">Create your secure profile and unlock the personality test.</p>
+                <div class="auth-icon"><i class="fas fa-user-astronaut"></i></div>
+                <h1 class="auth-title">Join the Community</h1>
+                <p class="auth-subtitle">Create your secure profile and unlock the personality test.</p>
                 <form id="register-form">
                     <div class="form-group">
                         <label for="reg-name"><i class="fas fa-user"></i> Name</label>
@@ -58,6 +59,6 @@
     </script>
     <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
-    <script th:src="@{/js/hobbybuddy.js(v=7)}"></script>
+    <script th:src="@{/js/hobbybuddy.js(v=11)}"></script>
 </body>
 </html>

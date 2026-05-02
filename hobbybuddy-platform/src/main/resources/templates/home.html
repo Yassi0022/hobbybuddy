@@ -8,8 +8,9 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" th:href="@{/manifest.json}">
     <link rel="apple-touch-icon" th:href="@{/images/icon-192.png}">
-    <title>HobbyBuddy - Find your adventure companion</title>
-    <link rel="stylesheet" th:href="@{/css/hobbybuddy.css(v=10)}">
+    <meta name="description" content="HobbyBuddy — Find your perfect hobby companion in under 5 minutes using scientifically-backed IPIP Big-Five personality matching powered by AI.">
+    <title>HobbyBuddy — Find Your Perfect Hobby Companion</title>
+    <link rel="stylesheet" th:href="@{/css/hobbybuddy.css(v=11)}">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -26,7 +27,7 @@
                     <li><a href="#social-proof">Community</a></li>
                     <li><a th:href="@{/login}" class="cta-button">Sign In</a></li>
                 </ul>
-                <div class="hamburger"><span></span><span></span><span></span></div>
+                <button class="hamburger" id="hamburger" aria-label="Open navigation menu"><span></span><span></span><span></span></button>
             </div>
         </nav>
 
@@ -49,17 +50,19 @@
                 </div>
             </div>
             <div class="hero-visual" style="display: flex; justify-content: center; align-items: center;">
-                <div class="floating-card" style="width: 100%; max-width: 320px; padding: 30px 20px;">
-                    <div class="user-preview" style="text-align:center;">
-                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&h=150" alt="HobbyBuddy User" style="width: 140px; height: 140px; border-radius: 50%; object-fit: cover; box-shadow: var(--shadow-glow); border: 4px solid white; margin: 0 auto;">
-                        <h3 style="margin-top:20px; font-size:1.5rem;">Alex T.</h3>
-                        <div style="margin-bottom:20px;">
-                            <span class="badge success" style="font-size: 0.95rem; padding: 8px 16px;"><i class="fas fa-heart"></i> Soulmate</span>
-                        </div>
-                        <div class="tags" style="display:flex; justify-content:center; gap:8px; flex-wrap:wrap;">
-                            <span class="tag" style="background:var(--color-input-bg); padding:6px 14px; border-radius:12px; font-size:0.9rem; font-weight:600;">Photography</span>
-                            <span class="tag" style="background:var(--color-input-bg); padding:6px 14px; border-radius:12px; font-size:0.9rem; font-weight:600;">Hiking</span>
-                            <span class="tag" style="background:var(--color-input-bg); padding:6px 14px; border-radius:12px; font-size:0.9rem; font-weight:600;">Coffee</span>
+                <div class="floating-card" style="width: 100%; max-width: 340px; padding: 0; overflow: hidden;">
+                    <img th:src="@{/images/hero-buddy.png}" alt="Two people discovering a shared hobby on HobbyBuddy" style="width: 100%; height: 240px; object-fit: cover; display: block;">
+                    <div style="padding: 20px 24px 20px;">
+                        <div class="user-preview" style="text-align:center;">
+                            <h3 style="margin-top:0; font-size:1.35rem;">Alex &amp; Sofia</h3>
+                            <div style="margin-bottom:14px;">
+                                <span class="badge success" style="font-size: 0.9rem; padding: 7px 16px;"><i class="fas fa-heart"></i> Soulmate — 94% Match</span>
+                            </div>
+                            <div class="tags" style="display:flex; justify-content:center; gap:8px; flex-wrap:wrap;">
+                                <span class="tag" style="padding:6px 14px; font-size:0.85rem; font-weight:600;">Photography</span>
+                                <span class="tag" style="padding:6px 14px; font-size:0.85rem; font-weight:600;">Hiking</span>
+                                <span class="tag" style="padding:6px 14px; font-size:0.85rem; font-weight:600;">Coffee</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -166,6 +169,6 @@
     </script>
     <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
     
-    <script th:src="@{/js/hobbybuddy.js(v=9)}"></script>
+    <script th:src="@{/js/hobbybuddy.js(v=11)}"></script>
 </body>
 </html>
