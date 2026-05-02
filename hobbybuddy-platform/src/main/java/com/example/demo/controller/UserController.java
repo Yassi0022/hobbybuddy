@@ -110,7 +110,8 @@ public class UserController {
                 "userId", user.getId(),
                 "id", user.getId(),
                 "email", user.getEmail(),
-                "name", user.getName()
+                "name", user.getName(),
+                "quizCompleted", user.isQuizCompleted()
             ));
         } catch (org.springframework.security.core.AuthenticationException e) {
             logger.warn("[DEBUG-AUTH] Auth failed for: " + email);
@@ -145,8 +146,19 @@ public class UserController {
     }
 
     @GetMapping("/{id}/find-buddy")
-    public List<UserResponseDTO> findBuddyForUser(@PathVariable("id") java.lang.Long id) {
-        return userService.findBestBuddy(java.util.Objects.requireNonNull(id));
+    public ResponseEntity<?> findBuddyForUser(@PathVariable("id") java.lang.Long id) {
+        User targetUser = userRepository.findById(java.util.Objects.requireNonNull(id)).orElseThrow();
+        if (!targetUser.isQuizCompleted()) {
+            return ResponseEntity.ok(Map.of("message", "Complete the quiz to discover your matches!", "matches", java.util.Collections.emptyList()));
+        }
+        try {
+            return ResponseEntity.ok(Map.of("matches", userService.findBestBuddy(id)));
+        } catch (RuntimeException e) {
+            if (e.getMessage() != null && (e.getMessage().contains("Nessun altro utente") || e.getMessage().contains("No other"))) {
+                return ResponseEntity.ok(Map.of("message", "No other users yet. Invite friends to join!", "matches", java.util.Collections.emptyList()));
+            }
+            throw e;
+        }
     }
 
     @PutMapping("/{id}/traits")

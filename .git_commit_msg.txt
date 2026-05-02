@@ -1,0 +1,12 @@
+fix: apply all frontend polish to Thymeleaf templates
+
+The previous commit only updated static HTML files and Spring Boot
+static resources. Spring Boot actually serves Thymeleaf templates
+for all routes (/login, /register, /quiz, /dashboard, /). This
+commit applies identical fixes to all 5 templates:
+
+- home.html: v=11, meta desc, branded hero-buddy.png, hamburger div->button
+- login.html: v=11, meta desc, fix auth-icon inline overrides, h2->h1
+- register.html: v=11, meta desc, fix auth-icon inline overrides, h2->h1
+- quiz.html: v=11, meta desc, fix reveal screen layout, fix Italian share button text
+- dashboard.html: v=11, meta desc, fix fa-sparkles -> fa-star

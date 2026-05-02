@@ -442,6 +442,9 @@ if (quizCard) {
         cardTrait.className = 'quiz-card-trait badge ' + TRAIT_CLASSES[traitIdx];
         cardQuestion.textContent = q[1];
 
+        const navCounter = document.getElementById('nav-counter');
+        if (navCounter) navCounter.textContent = `${idx + 1} / 50`;
+
         cardOptions.innerHTML = '';
 
         for (let v = 1; v <= 5; v++) {
@@ -666,7 +669,11 @@ if (loginForm) {
                 localStorage.setItem('userId', data.id);
                 localStorage.setItem('userName', data.name);
                 if (data.token) saveToken(data.token);
-                window.location.href = '/dashboard';
+                if (data.quizCompleted === false) {
+                    window.location.href = '/quiz';
+                } else {
+                    window.location.href = '/dashboard';
+                }
                 return;
             }
         } catch (err) {
@@ -761,10 +768,15 @@ if (btnFindBuddy) {
             try {
                 const res = await fetch(API_BASE_URL + `/api/users/${userId}/find-buddy`);
                 if (!res.ok) throw new Error('Failed to load matches');
-                let others = await res.json();
+                const responseData = await res.json();
+                let others = responseData.matches || [];
 
                 if (others.length === 0) {
-                    grid.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding: 60px 20px;"><i class="fas fa-ghost" style="font-size:4rem;color:var(--color-input-border);margin-bottom:20px;"></i><h2 style="font-size: 2rem; margin-bottom: 10px;">Nobody is here!</h2><p style="color: var(--color-text-muted);">Invite your friends to take the personality test.</p></div>';
+                    if (responseData.message) {
+                        grid.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding: 60px 20px;"><i class="fas fa-clipboard-list" style="font-size:4rem;color:var(--color-input-border);margin-bottom:20px;"></i><h2 style="font-size: 2rem; margin-bottom: 10px;">Let's go!</h2><p style="color: var(--color-text-muted);">${responseData.message}</p></div>`;
+                    } else {
+                        grid.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding: 60px 20px;"><i class="fas fa-ghost" style="font-size:4rem;color:var(--color-input-border);margin-bottom:20px;"></i><h2 style="font-size: 2rem; margin-bottom: 10px;">Nobody is here!</h2><p style="color: var(--color-text-muted);">Invite your friends to take the personality test.</p></div>';
+                    }
                     return;
                 }
 
@@ -1141,11 +1153,10 @@ if (btnFindBuddy) {
     }
 
     function getMatchLabel(score) {
-        if (score >= 90) return "Soulmate";
-        if (score >= 80) return "Perfect Match";
-        if (score >= 70) return "Great Buddy";
-        if (score >= 60) return "Good Potential";
-        return "New Friend";
+        if (score >= 85) return "Top Match 🔥";
+        if (score >= 70) return "Great Match ✨";
+        if (score >= 55) return "Good Match 👍";
+        return "Compatible";
     }
 
     window.openChat = function (partnerId, partnerName) {
@@ -1181,7 +1192,18 @@ if (btnFindBuddy) {
         try {
             const res = await fetch(API_BASE_URL + `/api/users/${userId}/find-buddy`);
             if (!res.ok) { const t = await res.text(); throw new Error(t || 'Failed'); }
-            const data = await res.json();
+            const responseData = await res.json();
+            let dataList = responseData.matches || [];
+            if (dataList.length === 0) {
+                if (responseData.message) {
+                    matchesContainer.innerHTML = `<div class="match-card-social" style="width: 100%; border-style: dashed; justify-content:center;"><i class="fas fa-clipboard-list" style="font-size:2rem;color:var(--color-primary);margin-bottom:10px;"></i><p>${responseData.message}</p></div>`;
+                } else {
+                    matchesContainer.innerHTML = `<div class="match-card-social" style="width: 100%; border-style: dashed; justify-content:center;"><i class="fas fa-ghost" style="font-size:2rem;color:var(--color-text-muted);margin-bottom:10px;"></i><p>Nobody is here! Invite your friends.</p></div>`;
+                }
+                btnFindBuddy.disabled = false;
+                return;
+            }
+            const data = dataList[0];
 
             const scoreRaw = data.matchVibeScore && data.matchVibeScore.length > 0 ? data.matchVibeScore[0] : 85;
             const label = getMatchLabel(scoreRaw);

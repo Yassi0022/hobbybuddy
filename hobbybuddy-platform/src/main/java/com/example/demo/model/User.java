@@ -54,6 +54,10 @@ public class User {
         this.neuroticism = neuroticism;
     }
 
+    public boolean isQuizCompleted() {
+        return openness > 0 || conscientiousness > 0 || extraversion > 0 || agreeableness > 0 || neuroticism > 0;
+    }
+
     public Long getId() {
         return id;
     }

@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#6366f1">
+    <meta name="description" content="Take the IPIP Big-Five personality quiz on HobbyBuddy — 50 questions, 5 dimensions, instant AI matching.">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="manifest" th:href="@{/manifest.json}">
-    <link rel="apple-touch-icon" th:href="@{/images/icon-192.png}">
-    <meta name="description" content="Take the IPIP Big-Five personality quiz on HobbyBuddy — 50 questions, 5 dimensions, instant AI matching.">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/images/icon-192.png">
     <title>HobbyBuddy - Personality Quiz</title>
-    <link rel="stylesheet" th:href="@{/css/hobbybuddy.css(v=11)}">
+    <link rel="stylesheet" href="/css/hobbybuddy.css?v=12">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -19,7 +19,7 @@
 
     <nav class="navbar navbar-solid">
         <div class="nav-container">
-            <a th:href="@{/}" class="logo"><i class="fas fa-users"></i><span>HobbyBuddy</span></a>
+            <a href="/" class="logo"><i class="fas fa-users"></i><span>HobbyBuddy</span></a>
             <ul class="nav-menu">
                 <li><span class="quiz-counter" id="nav-counter">1 / 50</span></li>
             </ul>
@@ -27,28 +27,31 @@
     </nav>
 
     <!-- SCREEN 1: Splash -->
-    <div id="screen-splash" class="gamified-screen active">
+    <div id="screen-splash" class="gamified-screen active" style="justify-content:center; align-items:center; flex-direction:column; text-align:center; padding: 20px; min-height: 100vh;">
         <h1 class="splash-title animate-in">Discover who you really are</h1>
         <p class="splash-subtitle animate-in delay-1">
-            <i class="fas fa-stopwatch" style="color: var(--color-accent-teal);"></i> Just 4 minutes &bull; 
-            <i class="fas fa-list-ol" style="color: var(--color-accent-violet);"></i> 50 questions &bull; 
+            <i class="fas fa-stopwatch" style="color: var(--color-accent-teal);"></i> Just 4 minutes &bull;
+            <i class="fas fa-list-ol" style="color: var(--color-accent-violet);"></i> 50 questions &bull;
             <i class="fas fa-microscope" style="color: var(--color-accent-rose);"></i> Scientific backend
         </p>
     </div>
 
     <!-- SCREEN 2: The Quiz (5 Rounds of 10) -->
-    <div id="screen-quiz" class="gamified-screen" style="display: none;">
-        <div class="quiz-top-progress" style="background:var(--color-input-bg); height: 8px; border-radius:4px; margin: 20px;">
-            <div class="quiz-top-progress-fill" id="quiz-top-fill" style="background:var(--gradient-primary); height:100%; width:0%; border-radius:4px; transition: width 0.3s ease;"></div>
+    <div id="screen-quiz" class="gamified-screen" style="display: none; flex-direction: column; min-height: 100vh; padding-top: 70px;">
+        <!-- Progress bar -->
+        <div style="padding: 0 20px; margin-top: 16px;">
+            <div class="quiz-top-progress" style="position:relative; top:auto; left:auto; right:auto;" role="progressbar" aria-label="Quiz progress" aria-valuemin="0" aria-valuemax="100">
+                <div class="quiz-top-progress-fill" id="quiz-top-fill"></div>
+            </div>
         </div>
-        <div style="text-align:center; font-size:0.9rem; color:var(--color-text-light); margin-bottom: 20px; font-weight:500;" id="quiz-narrative-progress">
+        <div style="text-align:center; font-size:0.9rem; color:var(--color-text-light); margin: 12px 0 0; font-weight:500;" id="quiz-narrative-progress">
             Discovering your personality... 0% complete
         </div>
 
         <div class="quiz-card-container">
             <div class="quiz-card" id="quiz-card">
                 <div class="quiz-card-trait badge" id="quiz-card-trait" style="margin-bottom:20px; font-size:0.8rem; padding:6px 14px;">Round 1: ...</div>
-                <p class="quiz-card-question" id="quiz-card-question" style="font-size: 1.6rem; line-height:1.4; font-weight:700; color:var(--color-text);">Loading...</p>
+                <p class="quiz-card-question" id="quiz-card-question">Loading...</p>
                 <div class="quiz-card-options btn-group-horizontal" id="quiz-card-options" style="display:flex; flex-direction:row; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:30px;">
                     <!-- JS Injected Buttons -->
                 </div>
@@ -56,11 +59,11 @@
         </div>
     </div>
 
-    <!-- SCREEN 3: Round Unlock -->
-    <div id="screen-unlock" class="gamified-screen" style="display: none; justify-content:center; align-items:center; flex-direction:column; padding: 20px;">
+    <!-- SCREEN 3: Round Unlock / Loading -->
+    <div id="screen-unlock" class="gamified-screen" style="display: none; justify-content:center; align-items:center; flex-direction:column; padding: 20px; min-height: 100vh;">
         <div id="unlock-icon" style="font-size: 5rem; margin-bottom: 20px; animation: bounceIn 0.5s ease; color:var(--color-accent-violet);"><i class="fas fa-unlock"></i></div>
-        <h2 id="unlock-title" style="font-size: 2.5rem; margin-bottom: 20px; text-align: center;">Your psychological profile is ready!</h2>
-        <p id="unlock-subtitle" style="color:var(--color-text-muted); max-width: 500px; margin: 0 auto; margin-bottom: 30px; text-align: center;">Our AI has successfully analyzed your 50 responses.</p>
+        <h2 id="unlock-title" style="font-size: 2.2rem; margin-bottom: 16px; text-align: center; font-weight: 800;">Trait unlocked!</h2>
+        <p id="unlock-subtitle" style="color:var(--color-text-muted); max-width: 440px; margin: 0 auto; text-align: center; font-size: 1.05rem;">Our AI is building your personality map...</p>
     </div>
 
     <!-- SCREEN 4: Final Reveal -->
@@ -84,7 +87,7 @@
         </div>
     </div>
 
-    <!-- Google Translate Widget for Auto-localization -->
+    <!-- Google Translate Widget -->
     <div id="google_translate_element" style="position:fixed; bottom:20px; left:20px; z-index:9999;"></div>
     <script type="text/javascript">
         function googleTranslateElementInit() {
@@ -93,6 +96,6 @@
     </script>
     <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
-    <script th:src="@{/js/hobbybuddy.js(v=11)}"></script>
+    <script src="/js/hobbybuddy.js?v=12"></script>
 </body>
 </html>

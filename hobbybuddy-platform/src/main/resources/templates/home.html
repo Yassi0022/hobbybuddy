@@ -1,76 +1,82 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#6366f1">
+    <meta name="description" content="HobbyBuddy — Find your perfect hobby companion in under 5 minutes using scientifically-backed IPIP Big-Five personality matching powered by AI.">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="manifest" th:href="@{/manifest.json}">
-    <link rel="apple-touch-icon" th:href="@{/images/icon-192.png}">
-    <meta name="description" content="HobbyBuddy — Find your perfect hobby companion in under 5 minutes using scientifically-backed IPIP Big-Five personality matching powered by AI.">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/images/icon-192.png">
     <title>HobbyBuddy — Find Your Perfect Hobby Companion</title>
-    <link rel="stylesheet" th:href="@{/css/hobbybuddy.css(v=11)}">
+    <link rel="stylesheet" href="/css/hobbybuddy.css?v=12">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <div class="bg-mesh"><div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div></div>
 
-    <header class="hero">
-        <nav class="navbar">
-            <div class="nav-container">
-                <a th:href="@{/}" class="logo"><i class="fas fa-users"></i><span>HobbyBuddy</span></a>
-                <ul class="nav-menu">
-                    <li><a href="#features">Features</a></li>
-                    <li><a href="#how-it-works">How It Works</a></li>
-                    <li><a href="#social-proof">Community</a></li>
-                    <li><a th:href="@{/login}" class="cta-button">Sign In</a></li>
-                </ul>
-                <button class="hamburger" id="hamburger" aria-label="Open navigation menu"><span></span><span></span><span></span></button>
-            </div>
-        </nav>
+    <!-- NAVIGATION -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="logo"><i class="fas fa-users"></i><span>HobbyBuddy</span></a>
+            <ul class="nav-menu" id="nav-menu">
+                <li><a href="#features">Features</a></li>
+                <li><a href="#how-it-works">How It Works</a></li>
+                <li><a href="#social-proof">Community</a></li>
+                <li><a href="/login" class="cta-button">Sign In</a></li>
+            </ul>
+            <button class="hamburger" id="hamburger" aria-label="Open navigation menu">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </nav>
 
-        <div class="hero-content">
-            <div class="hero-text">
-                <div class="hero-tag" style="margin-bottom: 20px;">
-                    <span class="pulse-dot"></span>
-                    AI-Powered IPIP-50 Match
+    <!-- HERO -->
+    <section class="hero" id="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <div class="hero-tag">
+                        <span class="pulse-dot"></span>
+                        AI-Powered IPIP-50 Match
+                    </div>
+                    <h1 class="hero-title">
+                        Discover the <span class="gradient-text">Perfect Buddy</span><br>
+                        for your passions
+                    </h1>
+                    <p class="hero-subtitle">
+                        Complete the scientific psychological test in 4 minutes. Our AI instantly analyzes your profile to connect you with real, holistically compatible people.
+                    </p>
+                    <div class="hero-buttons">
+                        <a href="/register" class="btn-primary btn-large" id="cta-start-free"><i class="fas fa-rocket"></i> Start Free Now</a>
+                        <a href="#how-it-works" class="btn-secondary btn-large">How It Works</a>
+                    </div>
                 </div>
-                <h1 class="hero-title" style="font-size: 4rem; line-height: 1.1; margin-bottom: 24px; letter-spacing: -0.03em;">
-                    Discover the <span class="gradient-text">Perfect Buddy</span><br>
-                    for your passions
-                </h1>
-                <p class="hero-subtitle" style="font-size: 1.25rem; margin-bottom: 40px; color: var(--color-text-muted); max-width: 95%;">
-                    Complete the scientific psychological test in 4 minutes. Our AI will instantly analyze your profile to connect you with real, holistically compatible people.
-                </p>
-                <div class="hero-buttons">
-                    <a th:href="@{/register}" class="btn-primary btn-large" style="padding: 16px 36px; font-size: 1.15rem;"><i class="fas fa-rocket"></i> Start Free Now</a>
-                    <a href="#how-it-works" class="btn-secondary btn-large" style="padding: 16px 36px; font-size: 1.15rem;">How It Works</a>
-                </div>
-            </div>
-            <div class="hero-visual" style="display: flex; justify-content: center; align-items: center;">
-                <div class="floating-card" style="width: 100%; max-width: 340px; padding: 0; overflow: hidden;">
-                    <img th:src="@{/images/hero-buddy.png}" alt="Two people discovering a shared hobby on HobbyBuddy" style="width: 100%; height: 240px; object-fit: cover; display: block;">
-                    <div style="padding: 20px 24px 20px;">
-                        <div class="user-preview" style="text-align:center;">
-                            <h3 style="margin-top:0; font-size:1.35rem;">Alex &amp; Sofia</h3>
-                            <div style="margin-bottom:14px;">
-                                <span class="badge success" style="font-size: 0.9rem; padding: 7px 16px;"><i class="fas fa-heart"></i> Soulmate — 94% Match</span>
-                            </div>
-                            <div class="tags" style="display:flex; justify-content:center; gap:8px; flex-wrap:wrap;">
-                                <span class="tag" style="padding:6px 14px; font-size:0.85rem; font-weight:600;">Photography</span>
-                                <span class="tag" style="padding:6px 14px; font-size:0.85rem; font-weight:600;">Hiking</span>
-                                <span class="tag" style="padding:6px 14px; font-size:0.85rem; font-weight:600;">Coffee</span>
+                <div class="hero-visual">
+                    <div class="floating-card" style="width: 100%; max-width: 340px; padding: 0; overflow: hidden;">
+                        <img src="/images/hero-buddy.png" alt="Two people discovering a shared hobby on HobbyBuddy" style="width: 100%; height: 260px; object-fit: cover; display: block;">
+                        <div style="padding: 24px 24px 20px;">
+                            <div class="user-preview" style="text-align:center;">
+                                <h3 style="margin-top:0; font-size:1.35rem;">Alex &amp; Sofia</h3>
+                                <div style="margin-bottom:16px;">
+                                    <span class="badge success" style="font-size: 0.9rem; padding: 7px 16px;"><i class="fas fa-heart"></i> Soulmate — Top Match 🔥</span>
+                                </div>
+                                <div class="tags" style="display:flex; justify-content:center; gap:8px; flex-wrap:wrap;">
+                                    <span class="tag" style="padding:6px 14px; font-size:0.85rem; font-weight:600;">Photography</span>
+                                    <span class="tag" style="padding:6px 14px; font-size:0.85rem; font-weight:600;">Hiking</span>
+                                    <span class="tag" style="padding:6px 14px; font-size:0.85rem; font-weight:600;">Coffee</span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </header>
+    </section>
 
-    <!-- Features -->
+    <!-- FEATURES -->
     <section id="features" class="features">
         <div class="container">
             <h2 class="section-title">Built on real science</h2>
@@ -95,7 +101,7 @@
         </div>
     </section>
 
-    <!-- How It Works -->
+    <!-- HOW IT WORKS -->
     <section id="how-it-works" class="how-it-works">
         <div class="container">
             <h2 class="section-title">Three steps to your buddy</h2>
@@ -120,7 +126,7 @@
         </div>
     </section>
 
-    <!-- Social Proof & Stats -->
+    <!-- SOCIAL PROOF & STATS -->
     <section id="social-proof" class="social-proof">
         <div class="container">
             <h2 class="section-title">Trusted by curious people</h2>
@@ -148,19 +154,19 @@
                     <span class="cta-badge"><i class="fas fa-lock"></i> Privacy-first</span>
                     <span class="cta-badge"><i class="fas fa-clock"></i> 5 min quiz</span>
                 </div>
-                <a th:href="@{/register}" class="btn-accent"><i class="fas fa-arrow-right"></i> Start the Quiz</a>
+                <a href="/register" class="btn-accent btn-large" id="cta-start-quiz"><i class="fas fa-arrow-right"></i> Start the Quiz</a>
             </div>
         </div>
     </section>
 
-    <!-- Footer -->
+    <!-- FOOTER -->
     <footer class="site-footer">
         <div class="container">
             <p>&copy; 2026 HobbyBuddy &mdash; Personality matching powered by IPIP Big-Five &amp; AI</p>
         </div>
     </footer>
 
-    <!-- Google Translate Widget for Auto-localization -->
+    <!-- Google Translate Widget -->
     <div id="google_translate_element" style="position:fixed; bottom:20px; left:20px; z-index:9999;"></div>
     <script type="text/javascript">
         function googleTranslateElementInit() {
@@ -168,7 +174,7 @@
         }
     </script>
     <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
-    
-    <script th:src="@{/js/hobbybuddy.js(v=11)}"></script>
+
+    <script src="/js/hobbybuddy.js?v=12"></script>
 </body>
 </html>
