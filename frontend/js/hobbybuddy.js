@@ -4,19 +4,19 @@
 window._authToken = null;
 function saveToken(token) {
     window._authToken = token;
-    try { saveToken(token); } catch(e) {}
+    try { localStorage.setItem('hb_token', token); } catch(e) {}
 }
 function getToken() {
     if (window._authToken) return window._authToken;
-    try { 
-        const t = getToken(); 
-        if (t) window._authToken = t; 
-        return t; 
+    try {
+        const t = localStorage.getItem('hb_token');
+        if (t) window._authToken = t;
+        return t;
     } catch(e) { return null; }
 }
 function removeToken() {
     window._authToken = null;
-    try { removeToken(); } catch(e) {}
+    try { localStorage.removeItem('hb_token'); } catch(e) {}
 }
 
 // ============================
@@ -482,7 +482,7 @@ if (quizCard) {
         screenUnlock.style.display = 'flex';
 
         document.getElementById('unlock-icon').innerHTML = `<i class="fas ${TRAIT_ICONS[traitIdx]}"></i>`;
-        document.getElementById('unlock-title').textContent = `🔓 Hai sbloccato: ${TRAIT_LABELS[traitIdx]}!`;
+        document.getElementById('unlock-title').textContent = `🔓 Unlocked: ${TRAIT_LABELS[traitIdx]}!`;
 
         setTimeout(() => {
             screenUnlock.style.display = 'none';
@@ -493,19 +493,18 @@ if (quizCard) {
 
     function updateUI() {
         // Calculate percentage out of 50
-        // currentIdx is the index of the current question. If answers[currentIdx] is set, we add 1.
         let completed = answers.filter(a => a !== null).length;
         const pct = Math.round((completed / TOTAL) * 100);
 
         if (topFill) topFill.style.width = pct + '%';
-        if (narrativeProgress) narrativeProgress.textContent = `Stai scoprendo la tua personalità... ${pct}% completato`;
+        if (narrativeProgress) narrativeProgress.textContent = `Discovering your personality... ${pct}% complete`;
     }
 
     async function submitTraits() {
         screenQuiz.style.display = 'none';
         screenUnlock.style.display = 'flex'; // repurpose unlock screen temporarily as loader
         document.getElementById('unlock-icon').innerHTML = `<i class="fas fa-spinner fa-spin"></i>`;
-        document.getElementById('unlock-title').textContent = `Analizzando il profilo...`;
+        document.getElementById('unlock-title').textContent = `Analyzing your profile...`;
 
         const traitSums = [0, 0, 0, 0, 0];
         for (let i = 0; i < TOTAL; i++) {
@@ -534,7 +533,10 @@ if (quizCard) {
                 showFinalReveal(traits);
             }, 1000);
         } catch (err) {
-            showToast('Error saving traits: ' + err.message, 'error');
+            const msg = err.message === 'Failed to fetch'
+                ? 'Connection error. Please check your internet and try again.'
+                : 'Error saving results: ' + err.message;
+            showToast(msg, 'error');
         }
     }
 
@@ -848,8 +850,8 @@ if (btnFindBuddy) {
                         
                         <div style="margin-bottom: 35px;">
                             <div class="tags" style="display:flex; flex-wrap:wrap; gap: 10px; justify-content:center;">
-                                <span class="tag" style="background:var(--color-bg); padding:10px 18px; border-radius:20px; font-weight:700; color:var(--color-text-main);"><i class="fas fa-camera" style="margin-right:6px; opacity:0.6;"></i> Photography</span>
-                                <span class="tag" style="background:var(--color-bg); padding:10px 18px; border-radius:20px; font-weight:700; color:var(--color-text-main);"><i class="fas fa-mountain" style="margin-right:6px; opacity:0.6;"></i> Hiking</span>
+                                <span class="tag" style="background:var(--color-bg-base); padding:10px 18px; border-radius:20px; font-weight:700; color:var(--color-text-main);"><i class="fas fa-camera" style="margin-right:6px; opacity:0.6;"></i> Photography</span>
+                                <span class="tag" style="background:var(--color-bg-base); padding:10px 18px; border-radius:20px; font-weight:700; color:var(--color-text-main);"><i class="fas fa-mountain" style="margin-right:6px; opacity:0.6;"></i> Hiking</span>
                             </div>
                         </div>
 
@@ -1213,9 +1215,13 @@ if (btnFindBuddy) {
                 </div>
             `;
             const errorText = document.getElementById('error-text');
-            errorText.textContent = err.message.includes('Nessun altro utente')
-                ? 'No other users yet. Invite friends to join!'
-                : 'Could not find a buddy right now. Try again later.';
+            const isNetworkError = err.message === 'Failed to fetch';
+            const isNoUsers = err.message.includes('Nessun altro utente') || err.message.includes('No other');
+            errorText.textContent = isNetworkError
+                ? 'Connection error — the AI engine may be starting up. Please try again in 30 seconds.'
+                : isNoUsers
+                    ? 'No other users yet. Invite friends to join!'
+                    : 'Could not find a buddy right now. Try again later.';
             errorEl.style.display = 'block';
         }
         btnFindBuddy.disabled = false;
@@ -1224,6 +1230,7 @@ if (btnFindBuddy) {
     // ============================
     // CHAT LOGIC (STOMP WebSockets)
     // ============================
+    // Declare these at the top of the dashboard block so openChat (exposed on window) can close over them
     let currentChatPartnerId = null;
     let stompClient = null;
     const chatForm = document.getElementById('chat-form');

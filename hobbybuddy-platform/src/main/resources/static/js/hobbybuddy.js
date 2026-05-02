@@ -4,19 +4,19 @@
 window._authToken = null;
 function saveToken(token) {
     window._authToken = token;
-    try { saveToken(token); } catch(e) {}
+    try { localStorage.setItem('hb_token', token); } catch(e) {}
 }
 function getToken() {
     if (window._authToken) return window._authToken;
-    try { 
-        const t = getToken(); 
-        if (t) window._authToken = t; 
-        return t; 
+    try {
+        const t = localStorage.getItem('hb_token');
+        if (t) window._authToken = t;
+        return t;
     } catch(e) { return null; }
 }
 function removeToken() {
     window._authToken = null;
-    try { removeToken(); } catch(e) {}
+    try { localStorage.removeItem('hb_token'); } catch(e) {}
 }
 
 // ============================
@@ -148,32 +148,21 @@ window.fetch = async function (...args) {
         config.headers['Authorization'] = 'Bearer ' + token;
     }
     const response = await originalFetch(resource, config);
-
-    const url = typeof resource === 'string' ? resource : resource.url || '';
-
-    // Ignore server error statuses
-    if (response.status >= 500) return response;
-
-    // Ignore external API endpoints
-    if (url.includes('google') || url.includes('translate') || !url.includes('/api/')) {
-        return response;
-    }
-
-    // Intercept expired / invalid token responses only
-    if (response.status === 401 || response.status === 403) {
-        // ONLY redirect on global level if the explicit session check fails
-        if (url.includes('/api/users/me') && !_isRedirectingToLogin) {
+    // Intercept expired / invalid token responses
+    if ((response.status === 401 || response.status === 403) && !_isRedirectingToLogin) {
+        // Skip interception for login/register calls (they have their own handling)
+        const url = typeof resource === 'string' ? resource : resource.url;
+        if (!url.includes('/login') && !url.includes('/register')) {
             _isRedirectingToLogin = true;
-            console.warn("Session check failed (401/403). Redirecting to /login.");
+            showToast('Sessione scaduta. Effettua di nuovo il login.', 'error');
             removeToken();
             localStorage.removeItem('userId');
             localStorage.removeItem('userName');
-            localStorage.removeItem('userEmail');
-            window.location.href = '/login';
+            setTimeout(() => { window.location.href = '/login'; }, 2000);
         }
     }
     return response;
-};
+}; // End of fetch override
 
 // ============================
 // NAVIGATION
@@ -268,44 +257,32 @@ if (registerForm) {
         }
 
         try {
-            console.log("Submitting registration...");
-            
+            const maxRetries = 2;
             let res;
             let retryCount = 0;
-            const maxRetries = 2;
-            
-            while (retryCount <= maxRetries) {
+            while(retryCount <= maxRetries) {
                 try {
                     res = await fetch(API_BASE_URL + '/api/users', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(userData)
                     });
-                    break; // Request succeeded, break loop
-                } catch (fetchErr) {
-                    if (fetchErr.message === 'Failed to fetch' && retryCount < maxRetries) {
+                    break;
+                } catch(err) {
+                    if (err.message === 'Failed to fetch' && retryCount < maxRetries) {
                         retryCount++;
                         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Server is waking up, please wait 30 seconds...';
-                        await new Promise(r => setTimeout(r, 10000)); // Wait 10 seconds and retry
+                        await new Promise(r => setTimeout(r, 10000));
                     } else {
-                        throw fetchErr;
+                        throw err;
                     }
                 }
             }
-
-            if (!res.ok) {
-                const errData = await res.json();
-                throw new Error(errData.error || 'Registration failed');
-            }
+            if (!res.ok) throw new Error('Registration failed');
             const data = await res.json();
-            console.log("Registration OK:", data);
-
-            // Unified keys
-            localStorage.setItem('userId', data.id || data.userId || data.id);
+            localStorage.setItem('userId', data.id);
             localStorage.setItem('userName', data.name);
-            localStorage.setItem('userEmail', data.email || userData.email);
             if (data.token) saveToken(data.token);
-
             window.location.href = '/quiz';
         } catch (err) {
             showToast('Error: ' + err.message, 'error');
@@ -323,16 +300,8 @@ const quizCard = document.getElementById('quiz-card');
 if (quizCard) {
     const token = getToken();
     if (!token) { window.location.href = '/login'; return; }
-    let userId = localStorage.getItem('userId');
-    // Verify auth correctly with backend
-    fetch(API_BASE_URL + '/api/users/me').then(async res => {
-        if (!res.ok) { window.location.href = '/login'; }
-        else {
-            const data = await res.json();
-            userId = data.id;
-            localStorage.setItem('userId', data.id);
-        }
-    }).catch(() => { window.location.href = '/login'; });
+    const userId = localStorage.getItem('userId');
+    if (!userId || userId === 'undefined') { window.location.href = '/register'; }
     const TRAIT_LABELS = ['Extraversion', 'Agreeableness', 'Conscientiousness', 'Emotional Stability', 'Openness'];
     const TRAIT_ICONS = ['fa-fire', 'fa-handshake', 'fa-tasks', 'fa-leaf', 'fa-lightbulb'];
     const TRAIT_CLASSES = ['extraversion', 'agreeableness', 'conscientiousness', 'neuroticism', 'openness'];
@@ -513,7 +482,7 @@ if (quizCard) {
         screenUnlock.style.display = 'flex';
 
         document.getElementById('unlock-icon').innerHTML = `<i class="fas ${TRAIT_ICONS[traitIdx]}"></i>`;
-        document.getElementById('unlock-title').textContent = `🔓 Hai sbloccato: ${TRAIT_LABELS[traitIdx]}!`;
+        document.getElementById('unlock-title').textContent = `🔓 Unlocked: ${TRAIT_LABELS[traitIdx]}!`;
 
         setTimeout(() => {
             screenUnlock.style.display = 'none';
@@ -523,18 +492,19 @@ if (quizCard) {
     }
 
     function updateUI() {
+        // Calculate percentage out of 50
         let completed = answers.filter(a => a !== null).length;
-        const navCounter = document.getElementById('nav-counter');
-        if (navCounter) navCounter.textContent = `${completed}/50`;
-        if (topFill) topFill.style.width = `${(completed / 50) * 100}%`;
-        if (narrativeProgress) narrativeProgress.textContent = `Round ${Math.floor(completed / 10) + 1} - ${Math.round((completed / 50) * 100)}%`;
+        const pct = Math.round((completed / TOTAL) * 100);
+
+        if (topFill) topFill.style.width = pct + '%';
+        if (narrativeProgress) narrativeProgress.textContent = `Discovering your personality... ${pct}% complete`;
     }
 
     async function submitTraits() {
         screenQuiz.style.display = 'none';
         screenUnlock.style.display = 'flex'; // repurpose unlock screen temporarily as loader
         document.getElementById('unlock-icon').innerHTML = `<i class="fas fa-spinner fa-spin"></i>`;
-        document.getElementById('unlock-title').textContent = `Analizzando il profilo...`;
+        document.getElementById('unlock-title').textContent = `Analyzing your profile...`;
 
         const traitSums = [0, 0, 0, 0, 0];
         for (let i = 0; i < TOTAL; i++) {
@@ -563,7 +533,10 @@ if (quizCard) {
                 showFinalReveal(traits);
             }, 1000);
         } catch (err) {
-            showToast('Error saving traits: ' + err.message, 'error');
+            const msg = err.message === 'Failed to fetch'
+                ? 'Connection error. Please check your internet and try again.'
+                : 'Error saving results: ' + err.message;
+            showToast(msg, 'error');
         }
     }
 
@@ -647,42 +620,27 @@ if (quizCard) {
 });
 
 // ============================
-// LOGIN (AJAX Handler for JWT Storage)
+// LOGIN
 // ============================
 const loginForm = document.getElementById('login-form');
 if (loginForm) {
-    console.log("Login form detected. Attaching AJAX handler.");
     loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        console.log("Login form submit intercepted.");
-
         const errorDiv = document.getElementById('login-error');
-        if (errorDiv) errorDiv.style.display = 'none';
-
-        const emailInput = document.getElementById('login-email');
-        const passwordInput = document.getElementById('login-password');
-
-        const email = emailInput ? emailInput.value.trim() : '';
-        const password = passwordInput ? passwordInput.value.trim() : '';
-
-        if (!email || !password) {
-            showToast('Please fill in all fields.', 'error');
-            return;
-        }
+        errorDiv.style.display = 'none';
+        const email = document.getElementById('login-email').value.trim();
+        const password = document.getElementById('login-password').value.trim();
+        if (!email || !password) { errorDiv.textContent = 'Please fill in all fields.'; errorDiv.style.display = 'block'; return; }
 
         const btn = loginForm.querySelector('.btn-form-primary');
-        const originalBtnHtml = btn.innerHTML;
         btn.disabled = true;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing in...';
 
         try {
-            console.log("Sending AJAX POST to /api/users/login for: " + email);
-            
+            const maxRetries = 2;
             let res;
             let retryCount = 0;
-            const maxRetries = 2;
-
-            while (retryCount <= maxRetries) {
+            while(retryCount <= maxRetries) {
                 try {
                     res = await fetch(API_BASE_URL + `/api/users/login`, {
                         method: 'POST',
@@ -690,46 +648,33 @@ if (loginForm) {
                         body: JSON.stringify({ email, password })
                     });
                     break;
-                } catch (fetchErr) {
-                    if (fetchErr.message === 'Failed to fetch' && retryCount < maxRetries) {
+                } catch(err) {
+                    if (err.message === 'Failed to fetch' && retryCount < maxRetries) {
                         retryCount++;
                         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Server is waking up, please wait 30 seconds...';
-                        await new Promise(r => setTimeout(r, 10000)); // Wait 10 seconds and retry
+                        await new Promise(r => setTimeout(r, 10000));
                     } else {
-                        throw fetchErr;
+                        throw err;
                     }
                 }
             }
-
-            if (res.status === 401) {
-                console.warn("Login failed: 401 Unauthorized");
-                showToast('Invalid email or password.', 'error');
-            } else if (!res.ok) {
-                const text = await res.text();
-                throw new Error(text || 'Login failed');
-            } else {
+            if (res.status === 404) { errorDiv.textContent = 'No account found with this email.'; errorDiv.style.display = 'block'; }
+            else if (res.status === 401) { errorDiv.textContent = 'Wrong password.'; errorDiv.style.display = 'block'; }
+            else if (!res.ok) { throw new Error('Login failed'); }
+            else {
                 const data = await res.json();
-                console.log("Login success! Captured Data:", data);
-
-                // Store unified keys
-                saveToken(data.token);
-                localStorage.setItem('userId', data.userId || data.id);
+                localStorage.setItem('userId', data.id);
                 localStorage.setItem('userName', data.name);
-                localStorage.setItem('userEmail', data.email);
-
-                showToast('Welcome back, ' + data.name + '!', 'success');
-                setTimeout(() => {
-                    console.log("Redirecting to /dashboard");
-                    window.location.href = '/dashboard';
-                }, 800);
+                if (data.token) saveToken(data.token);
+                window.location.href = '/dashboard';
                 return;
             }
         } catch (err) {
-            console.error("AJAX Login error:", err);
-            showToast('Error: ' + err.message, 'error');
+            errorDiv.textContent = 'Error: ' + err.message;
+            errorDiv.style.display = 'block';
         }
         btn.disabled = false;
-        btn.innerHTML = originalBtnHtml;
+        btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In';
     });
 }
 
@@ -744,30 +689,12 @@ const btnFindBuddy = document.getElementById('btn-find-buddy');
 if (btnFindBuddy) {
     const token = getToken();
     if (!token) { window.location.href = '/login'; return; }
-    let userId = localStorage.getItem('userId');
-    let userName = localStorage.getItem('userName');
-
-    // Auth Validation Check
-    fetch(API_BASE_URL + '/api/users/me').then(async res => {
-        if (!res.ok) {
-            window.location.href = '/login';
-        } else {
-            const data = await res.json();
-            userId = data.id;
-            userName = data.name;
-            localStorage.setItem('userId', data.id);
-            localStorage.setItem('userName', data.name);
-            localStorage.setItem('userEmail', data.email);
-
-            const userNameEl = document.getElementById('user-name');
-            if (userNameEl) userNameEl.textContent = userName;
-        }
-    }).catch(() => {
-        window.location.href = '/login';
-    });
+    const userId = localStorage.getItem('userId');
+    const userName = localStorage.getItem('userName');
+    if (!userId || userId === 'undefined') { window.location.href = '/login'; }
 
     const userNameEl = document.getElementById('user-name');
-    if (userNameEl && userName && userName !== 'undefined') userNameEl.textContent = userName;
+    if (userNameEl && userName) userNameEl.textContent = userName;
 
     const btnLogout = document.getElementById('btn-logout');
     if (btnLogout) {
@@ -831,30 +758,13 @@ if (btnFindBuddy) {
                 </div>
             `;
 
-            let answers = JSON.parse(localStorage.getItem('hobbybuddy_answers') || '[]');
-            let completeCount = answers.filter(a => a !== null).length;
-            if (completeCount < 50) {
-                grid.innerHTML = `
-                <div style="grid-column: 1/-1; text-align:center; padding: 60px 20px;">
-                    <i class="fas fa-clipboard-list" style="font-size:4rem;color:var(--color-input-border);margin-bottom:20px;"></i>
-                    <h2 style="font-size: 2rem; margin-bottom: 10px;">Profilo incompleto</h2>
-                    <p style="color: var(--color-text-muted); margin-bottom:20px;">Rispondi a tutte le 50 domande per sbloccare i match AI.</p>
-                    <a href="/quiz" class="btn-primary" style="padding:12px 24px; text-decoration:none; border-radius:50px;"><i class="fas fa-play"></i> Completa Quiz</a>
-                </div>`;
-                return;
-            }
-
             try {
                 const res = await fetch(API_BASE_URL + `/api/users/${userId}/find-buddy`);
                 if (!res.ok) throw new Error('Failed to load matches');
                 let others = await res.json();
 
                 if (others.length === 0) {
-                    grid.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding: 60px 20px;"><i class="fas fa-ghost" style="font-size:4rem;color:var(--color-input-border);margin-bottom:20px;"></i><h2 style="font-size: 2rem; margin-bottom: 10px;">Nessun match trovato</h2><p style="color: var(--color-text-muted); margin-bottom: 20px;">Aggiorna la pagina o riprova.</p><button id="btn-refresh-match" class="btn-primary" style="padding:12px 24px; border-radius:50px;"><i class="fas fa-sync"></i> Refresh AI Match</button></div>';
-                    setTimeout(() => {
-                        const btnRefresh = document.getElementById('btn-refresh-match');
-                        if (btnRefresh) btnRefresh.addEventListener('click', () => navDiscover.click());
-                    }, 100);
+                    grid.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding: 60px 20px;"><i class="fas fa-ghost" style="font-size:4rem;color:var(--color-input-border);margin-bottom:20px;"></i><h2 style="font-size: 2rem; margin-bottom: 10px;">Nobody is here!</h2><p style="color: var(--color-text-muted);">Invite your friends to take the personality test.</p></div>';
                     return;
                 }
 
@@ -940,8 +850,8 @@ if (btnFindBuddy) {
                         
                         <div style="margin-bottom: 35px;">
                             <div class="tags" style="display:flex; flex-wrap:wrap; gap: 10px; justify-content:center;">
-                                <span class="tag" style="background:var(--color-bg); padding:10px 18px; border-radius:20px; font-weight:700; color:var(--color-text-main);"><i class="fas fa-camera" style="margin-right:6px; opacity:0.6;"></i> Photography</span>
-                                <span class="tag" style="background:var(--color-bg); padding:10px 18px; border-radius:20px; font-weight:700; color:var(--color-text-main);"><i class="fas fa-mountain" style="margin-right:6px; opacity:0.6;"></i> Hiking</span>
+                                <span class="tag" style="background:var(--color-bg-base); padding:10px 18px; border-radius:20px; font-weight:700; color:var(--color-text-main);"><i class="fas fa-camera" style="margin-right:6px; opacity:0.6;"></i> Photography</span>
+                                <span class="tag" style="background:var(--color-bg-base); padding:10px 18px; border-radius:20px; font-weight:700; color:var(--color-text-main);"><i class="fas fa-mountain" style="margin-right:6px; opacity:0.6;"></i> Hiking</span>
                             </div>
                         </div>
 
@@ -1305,9 +1215,13 @@ if (btnFindBuddy) {
                 </div>
             `;
             const errorText = document.getElementById('error-text');
-            errorText.textContent = err.message.includes('Nessun altro utente')
-                ? 'No other users yet. Invite friends to join!'
-                : 'Could not find a buddy right now. Try again later.';
+            const isNetworkError = err.message === 'Failed to fetch';
+            const isNoUsers = err.message.includes('Nessun altro utente') || err.message.includes('No other');
+            errorText.textContent = isNetworkError
+                ? 'Connection error — the AI engine may be starting up. Please try again in 30 seconds.'
+                : isNoUsers
+                    ? 'No other users yet. Invite friends to join!'
+                    : 'Could not find a buddy right now. Try again later.';
             errorEl.style.display = 'block';
         }
         btnFindBuddy.disabled = false;
@@ -1316,6 +1230,7 @@ if (btnFindBuddy) {
     // ============================
     // CHAT LOGIC (STOMP WebSockets)
     // ============================
+    // Declare these at the top of the dashboard block so openChat (exposed on window) can close over them
     let currentChatPartnerId = null;
     let stompClient = null;
     const chatForm = document.getElementById('chat-form');
