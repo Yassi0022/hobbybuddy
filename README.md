@@ -161,6 +161,8 @@ Open `frontend/index.html` locally or deploy to Vercel with `vercel --prod`.
 
 MIT License — open source, free to use and modify.
 
-<p align="center">
-  <sub>Built by <a href="https://github.com/Yassi0022">Yassine Hatouf</a></sub>
-</p>
+***
+
+## 👤 Author
+
+**Yassine Hatouf** · [GitHub](https://github.com/Yassi0022) · [LinkedIn](https://linkedin.com/in/yassine-hatouf)
