@@ -1,7 +1,7 @@
-# 🎯 HobbyBuddy — AI-Powered Social Matching PWA
+# 🎯 HobbyBuddy — Personality-Based Social Matching PWA
 
 <p align="center">
-  <strong>The next-generation social platform connecting people through deep psychological compatibility, powered by AI and built for viral scalability.</strong>
+  <strong>A full-stack social platform that matches users through Big Five personality compatibility, built with a decoupled microservice architecture and deployed on the cloud.</strong>
 </p>
 
 <p align="center">
@@ -12,93 +12,164 @@
   <img src="https://img.shields.io/badge/MySQL-Cloud-4479A1?style=for-the-badge&logo=mysql&logoColor=white" alt="MySQL"/>
 </p>
 
----
+***
 
-## 📖 Mission
-HobbyBuddy transforms how we form connections. By moving beyond superficial swipes, it utilizes the **IPIP Big Five personality model** and a custom **AI Cosine-Similarity engine** to match individuals on a scientific level. Our **Progressive Web App (PWA)** architecture ensures a native-like mobile experience with zero-friction onboarding—no app stores, just one link to find your vibe.
+## 📖 About
 
----
+HobbyBuddy connects people based on **personality compatibility** rather than superficial preferences. Users complete a **50-question IPIP Big Five questionnaire**; their answers are stored as five normalized trait scores (`openness`, `conscientiousness`, `extraversion`, `agreeableness`, `neuroticism`). A dedicated Python microservice ranks potential matches using **cosine similarity** on those personality vectors, returning a scored and sorted list in real time.
 
-## ✨ Enterprise-Grade Features
+The platform is built as a **Progressive Web App (PWA)** — installable on mobile, no app store required.
 
-- 🔐 **JWT Stateless Authentication**: Secure, scalable session management with automatic 401/403 interception and token-based protection.
-- 💬 **STOMP WebSockets Chat**: Low-latency, real-time messaging with message persistence and automatic UI sync.
-- 🧠 **ML Big Five Personality Engine**: A Python-based microservice that processes 50 validated psychometric points into high-precision compatibility rankings.
-- 🎴 **Tinder-style Swipe UI**: Responsive, gesture-based interface with physics animations, debounce protection, and skeleton loading states.
-- 🚀 **Viral Share Loops**: Native **Web Share API** integration allowing users to share personality "vibes" and invite friends directly from the mobile OS share sheet.
+***
 
----
+## 🧠 Matching Engine
 
-## 🏗️ Decoupled Serverless Architecture
+The matching logic is a standalone **FastAPI** microservice (`matching-engine/`), decoupled from the main backend.
 
-To achieve **infinite scalability with zero initial overhead**, HobbyBuddy utilizes a modern, distributed architecture:
+Each user is represented as a 5-dimensional personality vector. When a match request arrives, the engine computes cosine similarity between the requesting user and all candidates, then returns a sorted list with similarity scores.
 
-```text
-    ┌───────────────────────────┐
-    │       MOBILE PWA          │  Hosted on Vercel Edge CDN
-    │  (HTML5, CSS3, ES6+)      │  (Zero-latency global delivery)
-    └─────────────┬─────────────┘
-                  │
-        ┌─────────┴─────────┐
-        │  RENDER CLOUD     │  Microservices Layer
-        │  (Java & Python)  │  (Independent horizontal scaling)
-        └─────────┬─────────┘
-                  │
-        ┌─────────┴─────────┐
-        │   AIVEN CLOUD     │  Managed Storage
-        │   (MySQL 8.0)     │  (Production-grade persistence)
-        └───────────────────┘
+```python
+# matching-engine/main.py
+target_vector = np.array([[openness, conscientiousness, extraversion, agreeableness, neuroticism]])
+
+for buddy in potential_matches:
+    buddy_vector = np.array([[buddy.openness, buddy.conscientiousness,
+                              buddy.extraversion, buddy.agreeableness, buddy.neuroticism]])
+    score = float(cosine_similarity(target_vector, buddy_vector)[0][0])
+    matches.append(MatchResponse(best_match_id=buddy.id, similarity_score=score))
+
+matches.sort(key=lambda x: x.similarity_score, reverse=True)
 ```
 
-*   **Frontend (Vercel):** Lightning-fast asset delivery via global CDN.
-*   **Backend (Render):** Spring Boot handles business logic and security; FastAPI handles AI computations.
-*   **Persistence (Aiven):** Cloud-native MySQL ensures high availability and secure backups.
+**Why cosine similarity?** Trait scores are normalized values on the same scale. Cosine similarity measures the directional alignment between two personality profiles, making it more robust than Euclidean distance when all dimensions carry different psychological weight.
 
----
+***
+
+## 🏗️ Architecture
+
+```
+┌──────────────────────────────────┐
+│         MOBILE PWA               │  Vercel Edge CDN
+│   Vanilla JS · HTML/CSS · SW     │
+└───────────────┬──────────────────┘
+                │ REST + STOMP/WebSocket
+┌───────────────▼──────────────────┐
+│      hobbybuddy-platform         │  Render
+│   Spring Boot 3.3 · Java         │
+│   JWT Auth · JPA · WebSocket     │
+└──────────┬────────────┬──────────┘
+           │ JDBC       │ HTTP POST /calculate-match
+┌──────────▼───────┐  ┌─▼──────────────────────────┐
+│  Aiven MySQL     │  │  matching-engine             │  Render
+│  Cloud DB        │  │  FastAPI · scikit-learn      │
+└──────────────────┘  └────────────────────────────┘
+```
+
+***
+
+## ✨ Features
+
+- 🔐 **JWT Authentication** — stateless session management with Spring Security; automatic 401/403 interception; token stored in `HttpOnly` cookie
+- 💬 **Real-time Chat** — STOMP over SockJS WebSocket, message persistence on MySQL, automatic UI sync
+- 🧠 **Personality Matching** — 50-question IPIP questionnaire → Big Five vector → cosine similarity ranking via FastAPI microservice
+- 🎴 **Swipe UI** — gesture-based match feed with skeleton loading states
+- 🔗 **Referral System** — `referredBy` / `referralCount` fields on the User entity; native Web Share API integration
+- 📱 **PWA** — `manifest.json` + `service-worker.js` for offline caching and mobile installability
+
+***
 
 ## 🛠️ Tech Stack
 
-- **Backend:** Java 21, Spring Boot 3.3, Spring Security (JWT), Spring WebSocket.
-- **AI Engine:** Python 3.11, FastAPI, scikit-learn, NumPy (Cosine Similarity).
-- **Communication:** STOMP over SockJS (WebSockets).
-- **Frontend:** Vanilla JS (ES6+), CSS3 (Custom Design System), HTML5.
-- **DevOps:** Docker, Docker Compose, GitHub Actions, Vercel CLI.
+| Layer | Technology |
+|---|---|
+| Frontend | Vanilla JS (ES6+), HTML5/CSS3, PWA (manifest + service worker) |
+| Backend | Java 21, Spring Boot 3.3, Spring Security, JWT (jjwt 0.11.5), Spring WebSocket (STOMP) |
+| Matching Engine | Python 3.11, FastAPI 0.115, scikit-learn 1.5.2, NumPy 2.1, Pydantic 2.11 |
+| Database | MySQL 8 (Aiven cloud) — JPA/Hibernate, Spring Data JPA |
+| Containerization | Docker, docker-compose |
+| Deployment | Vercel (frontend), Render (Spring Boot + FastAPI), Aiven (DB) |
 
----
+***
 
-## 🚀 Quickstart (Local Development)
+## 📁 Project Structure
 
-Get HobbyBuddy running on your machine in under 2 minutes using Docker:
-
-### 1. Prerequisites
-- Docker & Docker Compose
-- Java 21 + Maven (for builds)
-
-### 2. Implementation
-```bash
-# 1. Clone the repository
-git clone https://github.com/Yassi0022/hobbybuddy.git
-cd hobbybuddy
-
-# 2. Build the Spring Boot JAR
-cd hobbybuddy-platform
-mvn clean package -DskipTests
-cd ..
-
-# 3. Spin up the cluster
-docker-compose up -d --build
+```
+hobbybuddy/
+├── hobbybuddy-platform/          # Spring Boot backend (Java)
+│   └── src/main/java/com/example/demo/
+│       ├── config/               # CORS, Security, WebSocket, DB cleanup
+│       ├── controller/           # UserController, MessageController, EventController
+│       ├── model/                # User, Message, Hobby, Event (JPA entities)
+│       ├── dto/                  # LoginRequestDTO, UserResponseDTO
+│       ├── repository/           # Spring Data JPA repositories
+│       ├── security/             # JwtUtil, JWT filters
+│       └── service/              # UserService, business logic
+├── matching-engine/              # FastAPI microservice (Python)
+│   ├── main.py                   # /calculate-match endpoint
+│   └── requirements.txt
+├── frontend/                     # PWA (static, served via Vercel)
+│   ├── index.html / login.html / register.html
+│   ├── quiz.html                 # 50-question Big Five questionnaire
+│   ├── dashboard.html            # Match feed + swipe UI
+│   ├── manifest.json
+│   └── service-worker.js
+├── docker-compose.yml
+└── seed.sql                      # Sample users with trait scores
 ```
 
-### 3. Access
-- **Application:** `http://localhost:8080`
-- **AI Matching Engine:** `http://localhost:8001`
-- **Database:** `localhost:3306`
+***
 
----
+## 🚀 Local Setup
+
+### Prerequisites
+- Docker & docker-compose
+- Java 21 + Maven
+
+### 1. Environment variables
+
+Create a `.env` file in the project root:
+
+```env
+AIVEN_URL=jdbc:mysql://<host>:<port>/<db>?ssl-mode=REQUIRED
+AIVEN_USER=your_user
+AIVEN_PASSWORD=your_password
+```
+
+### 2. Run with Docker
+
+```bash
+git clone https://github.com/Yassi0022/hobbybuddy.git
+cd hobbybuddy
+cd hobbybuddy-platform && mvn clean package -DskipTests && cd ..
+docker-compose up --build
+```
+
+- **Backend**: `http://localhost:8080`
+- **Matching engine**: `http://localhost:8001` (or remote Render URL)
+
+### 3. Seed sample data
+
+```bash
+mysql -u <user> -p hobbybuddy_db < seed.sql
+```
+
+### 4. Frontend
+
+Open `frontend/index.html` locally or deploy to Vercel with `vercel --prod`.
+
+***
+
+## 🌐 Live Demo
+
+- **App**: [hobbybuddy.vercel.app](https://hobbybuddy.vercel.app)
+- **API**: deployed on Render *(cold start ~30s on free tier)*
+
+***
 
 ## 📄 License
-This project is open-source and available under the **MIT License**.
+
+MIT License — open source, free to use and modify.
 
 <p align="center">
-  <sub>Built with ❤️ by Yassi and Antigravity AI</sub>
+  <sub>Built by <a href="https://github.com/Yassi0022">Yassine Hatouf</a></sub>
 </p>
