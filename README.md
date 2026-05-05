@@ -26,22 +26,13 @@ The platform is built as a **Progressive Web App (PWA)** — installable on mobi
 
 The matching logic is a standalone **FastAPI** microservice (`matching-engine/`), decoupled from the main backend.
 
-Each user is represented as a 5-dimensional personality vector. When a match request arrives, the engine computes cosine similarity between the requesting user and all candidates, then returns a sorted list with similarity scores.
+Each user is represented as a 5-dimensional personality vector derived from their Big Five trait scores. When a match request arrives, the engine computes a compatibility score between the requesting user and all candidates, returning a ranked list sorted by affinity.
 
-```python
-# matching-engine/main.py
-target_vector = np.array([[openness, conscientiousness, extraversion, agreeableness, neuroticism]])
+The Spring Boot backend calls /calculate-match via HTTP POST, passing the target user and the pool of candidates. Results are returned in milliseconds and rendered directly in the match feed.
 
-for buddy in potential_matches:
-    buddy_vector = np.array([[buddy.openness, buddy.conscientiousness,
-                              buddy.extraversion, buddy.agreeableness, buddy.neuroticism]])
-    score = float(cosine_similarity(target_vector, buddy_vector)[0][0])
-    matches.append(MatchResponse(best_match_id=buddy.id, similarity_score=score))
+Implementation details of the scoring algorithm are kept private.
 
-matches.sort(key=lambda x: x.similarity_score, reverse=True)
-```
 
-**Why cosine similarity?** Trait scores are normalized values on the same scale. Cosine similarity measures the directional alignment between two personality profiles, making it more robust than Euclidean distance when all dimensions carry different psychological weight.
 
 ***
 
