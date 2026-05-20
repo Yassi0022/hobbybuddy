@@ -1,0 +1,14 @@
+{
+  "name": "hobbybuddy",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "minify-js": "terser frontend/js/**/*.js -c -m -o dist/js/app.min.js",
+    "minify-css": "cleancss -o dist/css/hobbybuddy.min.css frontend/css/**/*.css",
+    "build": "mkdir -p dist/js && mkdir -p dist/css && npm run minify-js && npm run minify-css"
+  },
+  "devDependencies": {
+    "terser": "^5.19.0",
+    "clean-css-cli": "^5.6.3"
+  }
+}

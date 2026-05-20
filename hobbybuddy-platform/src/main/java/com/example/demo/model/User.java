@@ -19,19 +19,20 @@ public class User {
     private String name;
     @Column
     private String password;
-    @Column(unique = true)
+    @Column(nullable = false, unique = true)
     private String email;
     @Column
-    private int openness;
+    private Double openness;
     @Column
-    private int conscientiousness;
+    private Double conscientiousness;
     @Column
-    private int extraversion;
+    private Double extraversion;
     @Column
-    private int agreeableness;
-
+    private Double agreeableness;
     @Column
-    private int neuroticism;
+    private Double neuroticism;
+    @Column
+    private String archetype;
 
     @Column(nullable = true)
     private Long referredBy;
@@ -41,6 +42,25 @@ public class User {
 
     @Column(columnDefinition = "TEXT")
     private String hobbies;
+
+    @Column(columnDefinition = "TEXT")
+    private String prompt1;
+    @Column(columnDefinition = "TEXT")
+    private String prompt2;
+    @Column(columnDefinition = "TEXT")
+    private String prompt3;
+
+    @Column
+    private String city;
+
+    @Column
+    private Integer age;
+
+    @Column
+    private String personalityTagline;
+
+    @Column(columnDefinition = "TEXT")
+    private String photosJson; // Stored as JSON array of URLs
 
     public User() {
 
@@ -52,8 +72,8 @@ public class User {
         this.email = email;
     }
 
-    public User(String name, String password, String email, int openness, int conscientiousness, int extraversion,
-            int agreeableness, int neuroticism) {
+    public User(String name, String password, String email, Double openness, Double conscientiousness, Double extraversion,
+            Double agreeableness, Double neuroticism) {
         this.name = name;
         this.password = password;
         this.email = email;
@@ -65,7 +85,7 @@ public class User {
     }
 
     public boolean isQuizCompleted() {
-        return openness > 0 || conscientiousness > 0 || extraversion > 0 || agreeableness > 0 || neuroticism > 0;
+        return archetype != null;
     }
 
     public Long getId() {
@@ -100,44 +120,52 @@ public class User {
         this.email = email;
     }
 
-    public int getOpenness() {
+    public Double getOpenness() {
         return openness;
     }
 
-    public void setOpenness(int openness) {
+    public void setOpenness(Double openness) {
         this.openness = openness;
     }
 
-    public int getConscientiousness() {
+    public Double getConscientiousness() {
         return conscientiousness;
     }
 
-    public void setConscientiousness(int conscientiousness) {
+    public void setConscientiousness(Double conscientiousness) {
         this.conscientiousness = conscientiousness;
     }
 
-    public int getExtraversion() {
+    public Double getExtraversion() {
         return extraversion;
     }
 
-    public void setExtraversion(int extraversion) {
+    public void setExtraversion(Double extraversion) {
         this.extraversion = extraversion;
     }
 
-    public int getAgreeableness() {
+    public Double getAgreeableness() {
         return agreeableness;
     }
 
-    public void setAgreeableness(int agreeableness) {
+    public void setAgreeableness(Double agreeableness) {
         this.agreeableness = agreeableness;
     }
 
-    public int getNeuroticism() {
+    public Double getNeuroticism() {
         return neuroticism;
     }
 
-    public void setNeuroticism(int neuroticism) {
+    public void setNeuroticism(Double neuroticism) {
         this.neuroticism = neuroticism;
+    }
+
+    public String getArchetype() {
+        return archetype;
+    }
+
+    public void setArchetype(String archetype) {
+        this.archetype = archetype;
     }
 
     public Long getReferredBy() {
@@ -162,5 +190,61 @@ public class User {
 
     public void setHobbies(String hobbies) {
         this.hobbies = hobbies;
+    }
+
+    public String getPrompt1() {
+        return prompt1;
+    }
+
+    public void setPrompt1(String prompt1) {
+        this.prompt1 = prompt1;
+    }
+
+    public String getPrompt2() {
+        return prompt2;
+    }
+
+    public void setPrompt2(String prompt2) {
+        this.prompt2 = prompt2;
+    }
+
+    public String getPrompt3() {
+        return prompt3;
+    }
+
+    public void setPrompt3(String prompt3) {
+        this.prompt3 = prompt3;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public Integer getAge() {
+        return age;
+    }
+
+    public void setAge(Integer age) {
+        this.age = age;
+    }
+
+    public String getPersonalityTagline() {
+        return personalityTagline;
+    }
+
+    public void setPersonalityTagline(String personalityTagline) {
+        this.personalityTagline = personalityTagline;
+    }
+
+    public String getPhotosJson() {
+        return photosJson;
+    }
+
+    public void setPhotosJson(String photosJson) {
+        this.photosJson = photosJson;
     }
 }

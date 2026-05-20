@@ -12,4 +12,5 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     @Query("SELECT e FROM Event e WHERE (:city IS NULL OR e.location = :city) AND (:hobby IS NULL OR e.hobbyCategory = :hobby) ORDER BY e.date ASC")
     List<Event> findByFilters(@Param("city") String city, @Param("hobby") String hobby);
 
+    void deleteByCreatedBy(com.example.demo.model.User user);
 }

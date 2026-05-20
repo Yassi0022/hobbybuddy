@@ -43,7 +43,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/users/login", "/api/users/register", "/api/users/**").permitAll()
                 .requestMatchers("/ws-chat/**").permitAll()
-                .requestMatchers("/", "/login", "/register", "/quiz").permitAll()
+                .requestMatchers("/", "/login", "/register", "/quiz", "/privacy", "/terms").permitAll()
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form
@@ -78,9 +78,12 @@ public class SecurityConfig {
                 "/css/**",
                 "/js/**",
                 "/images/**",
+                "/assets/**",
                 "/manifest.json",
                 "/service-worker.js",
                 "/favicon.ico",
+                "/favicon.svg",
+                "/icons.svg",
                 "/error"
             );
     }

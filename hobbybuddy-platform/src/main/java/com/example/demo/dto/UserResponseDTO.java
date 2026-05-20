@@ -3,6 +3,10 @@ package com.example.demo.dto;
 import java.util.ArrayList;
 import java.util.List;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
 public class UserResponseDTO {
 
     private Long id;
@@ -15,6 +19,11 @@ public class UserResponseDTO {
     private Long referredBy;
     private int referralCount = 0;
     private String hobbies;
+    private String bio;
+    private String city;
+    private Integer age;
+    private String personalityTagline;
+    private String photosJson;
 
     public UserResponseDTO() {
     }
@@ -98,5 +107,45 @@ public class UserResponseDTO {
 
     public void setHobbies(String hobbies) {
         this.hobbies = hobbies;
+    }
+
+    public String getBio() {
+        return bio;
+    }
+
+    public void setBio(String bio) {
+        this.bio = bio;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public Integer getAge() {
+        return age;
+    }
+
+    public void setAge(Integer age) {
+        this.age = age;
+    }
+
+    public String getPersonalityTagline() {
+        return personalityTagline;
+    }
+
+    public void setPersonalityTagline(String personalityTagline) {
+        this.personalityTagline = personalityTagline;
+    }
+
+    public String getPhotosJson() {
+        return photosJson;
+    }
+
+    public void setPhotosJson(String photosJson) {
+        this.photosJson = photosJson;
     }
 }

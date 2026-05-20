@@ -1,31 +1,26 @@
 package com.example.demo.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 public class MatchResponseDTO {
+    private String name;
+    private String archetype;
+    private String hobbies;
+    private int compatibilityPercentage;
 
-    @JsonProperty("best_match_id")
-    private Long best_match_id;
+    public MatchResponseDTO() {}
 
-    @JsonProperty("similarity_score")
-    private double similarity_score;
-
-    public MatchResponseDTO() {
+    public MatchResponseDTO(String name, String archetype, String hobbies, int compatibilityPercentage) {
+        this.name = name;
+        this.archetype = archetype;
+        this.hobbies = hobbies;
+        this.compatibilityPercentage = compatibilityPercentage;
     }
 
-    public Long getBest_match_id() {
-        return best_match_id;
-    }
-
-    public void setBest_match_id(Long best_match_id) {
-        this.best_match_id = best_match_id;
-    }
-
-    public double getSimilarity_score() {
-        return similarity_score;
-    }
-
-    public void setSimilarity_score(double similarity_score) {
-        this.similarity_score = similarity_score;
-    }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    public String getArchetype() { return archetype; }
+    public void setArchetype(String archetype) { this.archetype = archetype; }
+    public String getHobbies() { return hobbies; }
+    public void setHobbies(String hobbies) { this.hobbies = hobbies; }
+    public int getCompatibilityPercentage() { return compatibilityPercentage; }
+    public void setCompatibilityPercentage(int compatibilityPercentage) { this.compatibilityPercentage = compatibilityPercentage; }
 }

@@ -1,0 +1,118 @@
+/* =========================================================================
+   REDESIGN OVERRIDES — Minimal overrides that complement the main styles
+   ========================================================================= */
+
+/* Ensure cards have consistent styling */
+.feature-card, .step-card, .floating-card, .post-card, .match-card, .match-card-social, .quiz-card, .auth-card {
+    background: var(--color-bg-base-alt);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-soft);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.feature-card:hover, .floating-card:hover, .post-card:hover, .match-card:hover, .match-card-social:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-hover);
+}
+
+/* Button consistency */
+.btn-primary, .btn-form-primary, .btn-accent {
+    background: var(--gradient-primary) !important;
+    color: white !important;
+    border: none;
+    transition: var(--transition-fast);
+}
+
+.btn-primary:hover, .btn-form-primary:hover, .btn-accent:hover {
+    box-shadow: var(--shadow-glow);
+    filter: brightness(1.05);
+}
+
+.btn-secondary, .btn-outline {
+    background: white;
+    border: 1px solid var(--color-primary) !important;
+    color: var(--color-primary) !important;
+    border-radius: var(--radius-full);
+}
+
+.btn-ghost {
+    background: transparent;
+    color: var(--color-text-muted);
+}
+
+/* Dashboard Sidebar Glassmorphism */
+.dashboard-sidebar {
+    background: rgba(255,255,255,0.9);
+    backdrop-filter: blur(8px);
+    border-right: 1px solid var(--color-border);
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.nav-item.active {
+    background: rgba(255,107,74,0.1);
+    color: var(--color-primary) !important;
+    border-right: 3px solid var(--color-primary);
+}
+.nav-item.active i {
+    color: var(--color-primary) !important;
+}
+
+/* Bounce in animation for match cards */
+@keyframes bounceIn {
+    0% { transform: scale(0.95); opacity: 0; }
+    50% { transform: scale(1.02); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.match-candidate-card, .match-card-social {
+    animation: bounceIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important;
+}
+
+.btn-quiz-option.selected {
+    box-shadow: 0 0 0 2px var(--color-primary), var(--shadow-glow);
+    transform: scale(1.02);
+    border-color: var(--color-primary);
+}
+
+.progress-fill {
+    transition: width 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+}
+
+/* Skeleton Loaders */
+.skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #f8f8f8 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s infinite;
+    border-radius: 4px;
+}
+
+@keyframes skeleton-loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+.skeleton-text { height: 1rem; margin-bottom: 0.5rem; width: 100%; }
+.skeleton-title { height: 1.5rem; margin-bottom: 1rem; width: 60%; }
+.skeleton-avatar { width: 50px; height: 50px; border-radius: 50%; }
+.skeleton-card { height: 200px; border-radius: 16px; }
+
+/* Post action buttons */
+.post-actions span {
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 10px;
+    border-radius: var(--radius-sm);
+    transition: var(--transition-fast);
+    font-weight: 500;
+}
+.post-actions span:hover {
+    background: rgba(99, 102, 241, 0.06);
+    color: var(--color-accent-violet);
+}
+.post-actions span:active {
+    transform: scale(0.95);
+}

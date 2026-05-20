@@ -1,2 +1,0 @@
-"\"docker ps\"" non Š riconosciuto come comando interno o esterno,
- un programma eseguibile o un file batch.

@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: hobbybuddy
+    runtime: java
+    buildCommand: cd frontend_v2 && npm install && npm run build && cd ../hobbybuddy-platform && mvn package -DskipTests
+    startCommand: java -jar hobbybuddy-platform/target/demo-0.0.1-SNAPSHOT.jar
+    envVars:
+      - key: SPRING_DATASOURCE_URL
+        sync: false
+      - key: SPRING_DATASOURCE_USERNAME
+        sync: false
+      - key: SPRING_DATASOURCE_PASSWORD
+        sync: false
+      - key: FASTAPI_URL
+        sync: false
+      - key: PORT
+        value: 8080
+    healthCheckPath: /api/health
+    plan: free

@@ -1,180 +1,67 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="theme-color" content="#6366f1">
-    <meta name="description" content="HobbyBuddy — Find your perfect hobby companion in under 5 minutes using scientifically-backed IPIP Big-Five personality matching powered by AI.">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="manifest" href="/manifest.json">
-    <link rel="apple-touch-icon" href="/images/icon-192.png">
-    <title>HobbyBuddy — Find Your Perfect Hobby Companion</title>
-    <link rel="stylesheet" href="/css/hobbybuddy.css?v=12">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#6366f1" />
+    <meta name="description" content="Find your perfect hobby buddy with AI-powered personality matching. Take the free Big-Five quiz and connect with locals who share your passions." />
+    <meta name="keywords" content="hobby, buddy, friendship, personality matching, Big Five, social, meetup, local events, hobby groups" />
+    <meta name="author" content="HobbyBuddy" />
+    <meta name="robots" content="index, follow" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/images/icon-192.png" />
+    <link rel="apple-touch-icon" href="/images/icon-192.png" />
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:title" content="HobbyBuddy — Find Your Hobby Twin" />
+    <meta property="og:description" content="AI-powered personality matching. Take the free Big-Five quiz and find your perfect hobby buddy. No swiping, just authentic connections." />
+    <meta property="og:image" content="/images/og-card.svg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="HobbyBuddy — Find Your Hobby Twin" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="HobbyBuddy" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="HobbyBuddy — Find Your Hobby Twin" />
+    <meta name="twitter:description" content="AI-powered personality matching. Take the free Big-Five quiz and find your perfect hobby buddy." />
+    <meta name="twitter:image" content="/images/og-card.svg" />
+    <meta name="twitter:image:alt" content="HobbyBuddy — Find Your Hobby Twin" />
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "HobbyBuddy",
+        "description": "Find your perfect hobby buddy with AI-powered personality matching based on the Big-Five model.",
+        "url": "https://hobbybuddy.app",
+        "applicationCategory": "SocialNetworking",
+        "operatingSystem": "Web",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        }
+    }
+    </script>
+
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <title>HobbyBuddy — Find Your Hobby Twin | AI Personality Matching</title>
+  <script type="module" crossorigin src="/assets/index-DJg_whi6.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-TCiPkND3.css">
 </head>
 <body>
-    <div class="bg-mesh"><div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div></div>
-
-    <!-- NAVIGATION -->
-    <nav class="navbar">
-        <div class="nav-container">
-            <a href="/" class="logo"><i class="fas fa-users"></i><span>HobbyBuddy</span></a>
-            <ul class="nav-menu" id="nav-menu">
-                <li><a href="#features">Features</a></li>
-                <li><a href="#how-it-works">How It Works</a></li>
-                <li><a href="#social-proof">Community</a></li>
-                <li><a href="/login" class="cta-button">Sign In</a></li>
-            </ul>
-            <button class="hamburger" id="hamburger" aria-label="Open navigation menu">
-                <span></span><span></span><span></span>
-            </button>
-        </div>
-    </nav>
-
-    <!-- HERO -->
-    <section class="hero" id="hero">
-        <div class="container">
-            <div class="hero-content">
-                <div class="hero-text">
-                    <div class="hero-tag">
-                        <span class="pulse-dot"></span>
-                        Science-Backed IPIP-50 Match
-                    </div>
-                    <h1 class="hero-title">
-                        Discover the <span class="gradient-text">Perfect Buddy</span><br>
-                        for your passions
-                    </h1>
-                    <p class="hero-subtitle">
-                        Complete the scientific psychological test in 4 minutes. Our algorithm instantly computes your personality vector to connect you with psychologically compatible people in your city.
-                    </p>
-                    <div class="hero-buttons">
-                        <a href="/register" class="btn-primary btn-large" id="cta-start-free"><i class="fas fa-rocket"></i> Start Free Now</a>
-                        <a href="#how-it-works" class="btn-secondary btn-large">How It Works</a>
-                    </div>
-                </div>
-                <div class="hero-visual">
-                    <div class="floating-card" style="width: 100%; max-width: 340px; padding: 0; overflow: hidden;">
-                        <img src="/images/hero-buddy.png" alt="Two people discovering a shared hobby on HobbyBuddy" style="width: 100%; height: 260px; object-fit: cover; display: block;">
-                        <div style="padding: 24px 24px 20px;">
-                            <div class="user-preview" style="text-align:center;">
-                                <h3 style="margin-top:0; font-size:1.35rem;">Alex &amp; Sofia</h3>
-                                <div style="margin-bottom:16px;">
-                                    <span class="badge success" style="font-size: 0.9rem; padding: 7px 16px;"><i class="fas fa-heart"></i> Soulmate — Top Match 🔥</span>
-                                </div>
-                                <div class="tags" style="display:flex; justify-content:center; gap:8px; flex-wrap:wrap;">
-                                    <span class="tag" style="padding:6px 14px; font-size:0.85rem; font-weight:600;">Photography</span>
-                                    <span class="tag" style="padding:6px 14px; font-size:0.85rem; font-weight:600;">Hiking</span>
-                                    <span class="tag" style="padding:6px 14px; font-size:0.85rem; font-weight:600;">Coffee</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- FEATURES -->
-    <section id="features" class="features">
-        <div class="container">
-            <h2 class="section-title">Built on real science</h2>
-            <p class="section-subtitle">The same psychological model used by researchers worldwide, powered by AI</p>
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-brain"></i></div>
-                    <h3>IPIP Big-Five Model</h3>
-                    <p>50 validated questions from Goldberg's International Personality Item Pool measuring 5 core personality dimensions.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
-                    <h3>Privacy First</h3>
-                    <p>Your raw personality data is never shared. We only compute and show compatibility scores between matched users.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-bolt"></i></div>
-                    <h3>Instant AI Matching</h3>
-                    <p>Cosine similarity engine processes personality vectors in real-time, giving you accurate match results in seconds.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- HOW IT WORKS -->
-    <section id="how-it-works" class="how-it-works">
-        <div class="container">
-            <h2 class="section-title">Three steps to your buddy</h2>
-            <p class="section-subtitle">From sign-up to matched in under five minutes</p>
-            <div class="steps-grid">
-                <div class="step-card">
-                    <div class="step-number-circle">1</div>
-                    <h3>Create Account</h3>
-                    <p>Quick sign-up with your name and email. No friction, no credit card needed.</p>
-                </div>
-                <div class="step-card">
-                    <div class="step-number-circle">2</div>
-                    <h3>Take the Quiz</h3>
-                    <p>Answer 50 personality questions, one at a time, in a Tinder-like experience. Our scoring engine does the rest.</p>
-                </div>
-                <div class="step-card">
-                    <div class="step-number-circle">3</div>
-                    <h3>Meet Your Buddy</h3>
-                    <p>Get matched with the most compatible person, with detailed shared strengths and complementary traits.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- SOCIAL PROOF & STATS -->
-    <section id="social-proof" class="social-proof">
-        <div class="container">
-            <h2 class="section-title">Trusted by curious people</h2>
-            <p class="section-subtitle">Growing every day with personality-driven connections</p>
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-number purple">50</div>
-                    <div class="stat-label">IPIP validated questions</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number green">5</div>
-                    <div class="stat-label">Core personality dimensions</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number cyan"><i class="fas fa-bolt"></i></div>
-                    <div class="stat-label">Open source model</div>
-                </div>
-            </div>
-
-            <div class="cta-final">
-                <h2>Ready to discover who you really are?</h2>
-                <p>Join HobbyBuddy today. Take the scientifically-backed personality quiz and let AI connect you with your most compatible hobby companion.</p>
-                <div class="cta-badges">
-                    <span class="cta-badge"><i class="fas fa-check-circle"></i> Free forever</span>
-                    <span class="cta-badge"><i class="fas fa-lock"></i> Privacy-first</span>
-                    <span class="cta-badge"><i class="fas fa-clock"></i> 5 min quiz</span>
-                </div>
-                <a href="/register" class="btn-accent btn-large" id="cta-start-quiz"><i class="fas fa-arrow-right"></i> Start the Quiz</a>
-            </div>
-        </div>
-    </section>
-
-    <!-- FOOTER -->
-    <footer class="site-footer">
-        <div class="container">
-            <p>&copy; 2026 HobbyBuddy &mdash; Personality matching powered by the IPIP Big-Five model</p>
-        </div>
-    </footer>
-
-    <!-- Google Translate Widget -->
-    <div id="google_translate_element" style="position:fixed; bottom:20px; left:20px; z-index:9999;"></div>
-    <script type="text/javascript">
-        function googleTranslateElementInit() {
-            new google.translate.TranslateElement({pageLanguage: 'en', layout: google.translate.TranslateElement.InlineLayout.SIMPLE}, 'google_translate_element');
-        }
-    </script>
-    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
-
-    <script src="/js/hobbybuddy.js?v=12"></script>
+    <div id="root"></div>
 </body>
 </html>

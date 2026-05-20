@@ -1,22 +1,19 @@
 package com.example.demo.controller;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
+import org.springframework.web.bind.annotation.*;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseCookie;
-import org.springframework.http.ResponseEntity;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.dao.DataIntegrityViolationException;
 
 import com.example.demo.dto.LoginRequestDTO;
@@ -26,7 +23,10 @@ import com.example.demo.repository.UserRepository;
 import com.example.demo.service.UserService;
 import com.example.demo.security.JwtUtil;
 
+import org.springframework.validation.annotation.Validated;
+
 @RestController
+@Validated
 @RequestMapping("/api/users")
 public class UserController {
 
@@ -43,6 +43,9 @@ public class UserController {
 
     @Autowired
     private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private com.example.demo.service.ArchetypeService archetypeService;
 
     private void addJwtCookie(HttpServletResponse response, String token) {
         jakarta.servlet.http.Cookie cookie = new jakarta.servlet.http.Cookie("jwt", token);
@@ -79,9 +82,19 @@ public class UserController {
                 "name", user.getName()
             ));
         } catch (DataIntegrityViolationException e) {
+            logger.warn("[DEBUG-AUTH] Registration conflict: email {} already exists", user.getEmail());
             return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", "Email already registered"));
+        } catch (RuntimeException e) {
+            if ("Email already exists".equals(e.getMessage())) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", "Email already registered"));
+            }
+            throw e; // Rethrow others
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "Registration failed"));
+            logger.error("[DEBUG-AUTH] Registration CRITICAL FAILURE for {}: ", user.getEmail(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                "error", "Server connectivity error. Please try again in a few moments.",
+                "details", e.getMessage()
+            ));
         }
     }
 
@@ -114,16 +127,24 @@ public class UserController {
             String token = jwtUtil.generateToken(user.getEmail());
             addJwtCookie(response, token);
 
-            return ResponseEntity.ok(Map.of(
-                "token", token,
-                "userId", user.getId(),
-                "id", user.getId(),
-                "email", user.getEmail(),
-                "name", user.getName(),
-                "quizCompleted", user.isQuizCompleted(),
-                "hobbies", user.getHobbies() != null ? user.getHobbies() : "",
-                "referralCount", user.getReferralCount()
-            ));
+            Map<String, Object> resp = new HashMap<>();
+            resp.put("token", token);
+            resp.put("userId", user.getId());
+            resp.put("id", user.getId());
+            resp.put("email", user.getEmail());
+            resp.put("name", user.getName());
+            resp.put("quizCompleted", user.isQuizCompleted());
+            resp.put("archetype", user.getArchetype() != null ? user.getArchetype() : "");
+            resp.put("hobbies", user.getHobbies() != null ? user.getHobbies() : "");
+            resp.put("prompt1", user.getPrompt1() != null ? user.getPrompt1() : "");
+            resp.put("prompt2", user.getPrompt2() != null ? user.getPrompt2() : "");
+            resp.put("prompt3", user.getPrompt3() != null ? user.getPrompt3() : "");
+            resp.put("city", user.getCity() != null ? user.getCity() : "");
+            resp.put("age", user.getAge() != null ? user.getAge() : "");
+            resp.put("personalityTagline", user.getPersonalityTagline() != null ? user.getPersonalityTagline() : "");
+            resp.put("photosJson", user.getPhotosJson() != null ? user.getPhotosJson() : "[]");
+            resp.put("referralCount", user.getReferralCount());
+            return ResponseEntity.ok(resp);
         } catch (org.springframework.security.core.AuthenticationException e) {
             logger.warn("[DEBUG-AUTH] Auth failed for: " + email);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid credentials"));
@@ -134,7 +155,7 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerLegacy(@RequestBody User user, HttpServletResponse response) {
+    public ResponseEntity<?> register(@RequestBody User user, HttpServletResponse response) {
         return createUser(user, response);
     }
 
@@ -149,50 +170,85 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "User not found"));
         }
         User user = userOpt.get();
-        return ResponseEntity.ok(Map.of(
-            "id", user.getId(),
-            "email", user.getEmail(),
-            "name", user.getName(),
-            "hobbies", user.getHobbies() != null ? user.getHobbies() : "",
-            "referralCount", user.getReferralCount()
-        ));
+        Map<String, Object> resp = new HashMap<>();
+        resp.put("id", user.getId());
+        resp.put("email", user.getEmail());
+        resp.put("name", user.getName());
+        resp.put("archetype", user.getArchetype() != null ? user.getArchetype() : "");
+        resp.put("hobbies", user.getHobbies() != null ? user.getHobbies() : "");
+        resp.put("prompt1", user.getPrompt1() != null ? user.getPrompt1() : "");
+        resp.put("prompt2", user.getPrompt2() != null ? user.getPrompt2() : "");
+        resp.put("prompt3", user.getPrompt3() != null ? user.getPrompt3() : "");
+        resp.put("city", user.getCity() != null ? user.getCity() : "");
+        resp.put("age", user.getAge() != null ? user.getAge() : "");
+        resp.put("personalityTagline", user.getPersonalityTagline() != null ? user.getPersonalityTagline() : "");
+        resp.put("photosJson", user.getPhotosJson() != null ? user.getPhotosJson() : "[]");
+        resp.put("referralCount", user.getReferralCount());
+        return ResponseEntity.ok(resp);
     }
 
-    @GetMapping("/{id}/find-buddy")
-    public ResponseEntity<?> findBuddyForUser(@PathVariable("id") java.lang.Long id) {
-        User targetUser = userRepository.findById(java.util.Objects.requireNonNull(id)).orElseThrow();
-        if (!targetUser.isQuizCompleted()) {
-            return ResponseEntity.ok(Map.of("message", "Complete the quiz to discover your matches!", "matches", java.util.Collections.emptyList()));
-        }
-        try {
-            return ResponseEntity.ok(Map.of("matches", userService.findBestBuddy(id)));
-        } catch (RuntimeException e) {
-            if (e.getMessage() != null && (e.getMessage().contains("Nessun altro utente") || e.getMessage().contains("No other"))) {
-                return ResponseEntity.ok(Map.of("message", "No other users yet. Invite friends to join!", "matches", java.util.Collections.emptyList()));
-            }
-            throw e;
-        }
-    }
-
-    @PutMapping("/{id}/traits")
-    public ResponseEntity<?> updateTraits(@PathVariable("id") java.lang.Long id, @RequestBody Map<String, Object> payload) {
+    @PutMapping("/{id}/profile")
+    public ResponseEntity<?> updateProfile(@PathVariable("id") java.lang.Long id, @RequestBody Map<String, Object> payload) {
         Optional<User> userOpt = userRepository.findById(java.util.Objects.requireNonNull(id));
         if (userOpt.isEmpty()) {
-            return ResponseEntity.status(404).body("{\"error\":\"User not found\"}");
+            return ResponseEntity.status(404).body(Map.of("error", "User not found"));
         }
         User user = userOpt.get();
-        if (payload.containsKey("openness")) user.setOpenness((Integer) payload.get("openness"));
-        if (payload.containsKey("conscientiousness")) user.setConscientiousness((Integer) payload.get("conscientiousness"));
-        if (payload.containsKey("extraversion")) user.setExtraversion((Integer) payload.get("extraversion"));
-        if (payload.containsKey("agreeableness")) user.setAgreeableness((Integer) payload.get("agreeableness"));
-        if (payload.containsKey("neuroticism")) user.setNeuroticism((Integer) payload.get("neuroticism"));
+        
+        if (payload.containsKey("name")) user.setName((String) payload.get("name"));
+        if (payload.containsKey("prompt1")) user.setPrompt1((String) payload.get("prompt1"));
+        if (payload.containsKey("prompt2")) user.setPrompt2((String) payload.get("prompt2"));
+        if (payload.containsKey("prompt3")) user.setPrompt3((String) payload.get("prompt3"));
+        if (payload.containsKey("city")) user.setCity((String) payload.get("city"));
+        if (payload.containsKey("age")) user.setAge((Integer) payload.get("age"));
+        if (payload.containsKey("personalityTagline")) user.setPersonalityTagline((String) payload.get("personalityTagline"));
         if (payload.containsKey("hobbies")) user.setHobbies((String) payload.get("hobbies"));
+        if (payload.containsKey("photosJson")) user.setPhotosJson((String) payload.get("photosJson"));
+        
         userRepository.save(user);
+        return ResponseEntity.ok(Map.of("message", "Profile updated successfully"));
+    }
 
-        UserResponseDTO dto = new UserResponseDTO();
-        dto.setId(user.getId());
-        dto.setName(user.getName());
-        dto.setHobbies(user.getHobbies());
-        return ResponseEntity.ok(dto);
+    @PostMapping("/{id}/quiz-submit")
+    @Transactional
+    public ResponseEntity<?> submitQuiz(@PathVariable("id") java.lang.Long id, @RequestBody Map<String, Object> payload) {
+        if (!payload.containsKey("gdprConsent") || !(Boolean) payload.get("gdprConsent")) {
+            return ResponseEntity.status(400).body(Map.of("error", "GDPR consent required"));
+        }
+        Optional<User> userOpt = userRepository.findById(java.util.Objects.requireNonNull(id));
+        if (userOpt.isEmpty()) return ResponseEntity.status(404).body(Map.of("error", "User not found"));
+        User user = userOpt.get();
+        
+        Double o = Double.valueOf(payload.get("openness").toString());
+        Double c = Double.valueOf(payload.get("conscientiousness").toString());
+        Double e = Double.valueOf(payload.get("extraversion").toString());
+        Double a = Double.valueOf(payload.get("agreeableness").toString());
+        Double n = Double.valueOf(payload.get("neuroticism").toString());
+        
+        user.setOpenness(o);
+        user.setConscientiousness(c);
+        user.setExtraversion(e);
+        user.setAgreeableness(a);
+        user.setNeuroticism(n);
+        
+        String archetype = archetypeService.calculateArchetype(o, c, e, a, n);
+        user.setArchetype(archetype);
+        if (payload.containsKey("hobbies")) user.setHobbies((String) payload.get("hobbies"));
+        
+        userRepository.save(user);
+        System.out.println("[QUIZ] Archetype persisted for user " + id + ": " + user.getArchetype());
+        return ResponseEntity.ok(Map.of("message", "Quiz results saved", "archetype", user.getArchetype()));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteUser(@PathVariable("id") java.lang.Long id) {
+        logger.info("[DEBUG-AUTH] Deletion request for user id: " + id);
+        try {
+            userService.deleteUser(id);
+            return ResponseEntity.ok(Map.of("message", "User and all associated data deleted successfully"));
+        } catch (Exception e) {
+            logger.error("[DEBUG-AUTH] Deletion failed: ", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "Failed to delete user"));
+        }
     }
 }
