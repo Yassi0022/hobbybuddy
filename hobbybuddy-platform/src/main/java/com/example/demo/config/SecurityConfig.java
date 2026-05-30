@@ -69,6 +69,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/health").permitAll()
                 .requestMatchers("/api/users/login", "/api/users/register", "/api/users").permitAll()
                 .requestMatchers("/ws-chat/**", "/uploads/**", "/api/photos/file/**").permitAll()
                 .requestMatchers("/api/**").authenticated()
