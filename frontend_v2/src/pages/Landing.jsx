@@ -1,60 +1,132 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import styles from '../styles/landing.module.css';
 
 export default function Landing() {
   const navbarRef = useRef(null);
   const [searchParams] = useSearchParams();
+  const [scrollY, setScrollY] = useState(0);
+  const [visibleSections, setVisibleSections] = useState(new Set());
+  const sectionRefs = useRef([]);
 
+  /* ── Referral param persistence ── */
   useEffect(() => {
-    // Track referral from URL
     const ref = searchParams.get('ref');
-    if (ref) {
-      sessionStorage.setItem('hobbybuddy_ref', ref);
-    }
+    if (ref) sessionStorage.setItem('hobbybuddy_ref', ref);
+  }, [searchParams]);
 
+  /* ── Navbar scroll state ── */
+  useEffect(() => {
     const handleScroll = () => {
+      setScrollY(window.scrollY);
       if (navbarRef.current) {
-        navbarRef.current.classList.toggle('scrolled', window.scrollY > 80);
+        navbarRef.current.classList.toggle('scrolled', window.scrollY > 60);
       }
     };
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [searchParams]);
+  }, []);
+
+  /* ── Section visibility observer ── */
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setVisibleSections((prev) => new Set([...prev, entry.target.dataset.section]));
+          }
+        });
+      },
+      { threshold: 0.1, rootMargin: '0px 0px -50px 0px' }
+    );
+    sectionRefs.current.forEach((ref) => {
+      if (ref) observer.observe(ref);
+    });
+    return () => observer.disconnect();
+  }, []);
+
+  const isVisible = (section) => visibleSections.has(section);
+
 
   return (
     <>
-      <nav className="navbar" ref={navbarRef}>
-        <Link to="/" className="logo"><i className="fas fa-users"></i><span>HobbyBuddy</span></Link>
-        <div className="nav-links">
-          <Link to="/login" className="btn-pill btn-filled" style={{ padding: '12px 24px', fontSize: '0.9rem' }}>Sign In</Link>
+      {/* ═══════════ NAVBAR ═══════════ */}
+      <nav className={styles.landingNav} ref={navbarRef}>
+        <div className={styles.navInner}>
+          <Link to="/" className={styles.navLogo}>
+            <i className="fas fa-users"></i>
+            <span>HobbyBuddy</span>
+          </Link>
+          <div className={styles.navActions}>
+            <Link to="/login" className={styles.navSignIn}>Sign In</Link>
+            <Link to="/register" className={styles.navCta}>
+              Get Started
+            </Link>
+          </div>
         </div>
       </nav>
 
       <main>
-        <section className="hero">
-          <div className="hero-content">
-            <div className="hero-text-cont">
-              <span className="hero-tag" style={{ background: 'rgba(255, 107, 53, 0.1)', color: '#ff6b35', fontWeight: 800, padding: '10px 20px', borderRadius: '100px', fontSize: '0.95rem', marginBottom: '24px', display: 'inline-block', letterSpacing: '0.02em' }}>
-                <span className="pulse-dot"></span> Over 10,000 buddies connected
-              </span>
-              <h1 className="hero-title">Find your <span className="animated-gradient-text">Perfect Buddy</span>.</h1>
-              <p className="hero-subtitle">Stop swiping on faces, start connecting over passions. We use smart algorithms behind the scenes to find locals who actually vibe with your energy.</p>
-              <div className="hero-actions">
-                <Link to="/register" className="btn-pill btn-filled">Start Free Now</Link>
-                <a href="#science" className="btn-pill btn-ghost">How It Works</a>
+
+        {/* ═══════════ HERO ═══════════ */}
+        <section className={styles.heroSection}>
+
+          <div className={styles.heroGrid}>
+
+            {/* Left — Text content */}
+            <div className={styles.heroContent}>
+              <div className={styles.heroTag}>
+                <span className={styles.heroTagDot}></span>
+                Friendships start here
+              </div>
+
+              <h1 className={styles.heroTitle}>
+                Find your people.
+                <span className={styles.heroTitleAccent}>Your vibe attracts your tribe.</span>
+              </h1>
+
+              <p className={styles.heroCopy}>
+                Finding people who actually get you shouldn't be this hard. HobbyBuddy connects you with locals who share your interests, energy, and sense of fun.
+              </p>
+
+              <div className={styles.heroCtas}>
+                <Link to="/register" className={styles.heroCtaPrimary}>
+                  <span>Join Free</span>
+                  <i className="fas fa-arrow-right"></i>
+                </Link>
+                <a href="#how" className={styles.heroCtaSecondary}>
+                  How it works <i className="fas fa-angle-down" style={{ fontSize: '0.75rem' }}></i>
+                </a>
+              </div>
+
+              <div className={styles.heroSocialProof}>
+                <div className={styles.starsRow}>
+                  {[...Array(5)].map((_, i) => (
+                    <i key={i} className="fas fa-star"></i>
+                  ))}
+                </div>
+                <div className={styles.reviewText}>
+                  People are already connecting in your city
+                </div>
               </div>
             </div>
-          </div>
-          <div className="hero-visual">
-            <div className="vibe-card-3d" style={{ backgroundImage: "url('/images/hero-buddy.png')" }}>
-              <div className="vibe-badge">Perfect Vibe ⚡</div>
-              <div className="card-overlay-content">
-                <div className="card-bottom">
-                  <h2 style={{ color: 'white', fontSize: '3.2rem', marginBottom: '20px', fontWeight: 800, textShadow: '0 10px 20px rgba(0,0,0,0.4)' }}>Sofia & Alex</h2>
-                  <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                    <span className="glass-badge">#Reading</span>
-                    <span className="glass-badge">#Running</span>
-                    <span className="glass-badge">#Photography</span>
+
+            {/* Right — Visual card */}
+            <div className={styles.heroCardWrap}>
+              <div className={styles.heroCard} style={{
+                backgroundImage: 'url(https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&q=80)',
+              }}>
+                <div className={styles.heroCardBadge}>
+                  ✨ New Match
+                </div>
+                <div className={styles.heroCardOverlay}>
+                  <div>
+                    <h2 className={styles.heroCardNames}>Sofia &amp; Alex</h2>
+                    <div className={styles.heroCardChips}>
+                      <span className={styles.heroCardChip}>📷 Photography</span>
+                      <span className={styles.heroCardChip}>🏃 Running</span>
+                      <span className={styles.heroCardChip}>☕ Coffee</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -62,111 +134,243 @@ export default function Landing() {
           </div>
         </section>
 
-        <section className="science" id="science">
-          <span className="section-tag" style={{ background: 'rgba(99, 102, 241, 0.1)', color: '#6366f1', fontWeight: 800, padding: '10px 20px', borderRadius: '100px', fontSize: '0.95rem', marginBottom: '24px', display: 'inline-block' }}>The matching logic</span>
-          <h2 className="section-title">The Vibe Engine</h2>
-          <p style={{ fontSize: '1.3rem', color: 'var(--color-text-body)', maxWidth: '800px', marginBottom: '60px', lineHeight: 1.6 }}>We match you based on who you actually are, not just what you look like. Our smart engine connects you through the traits that define your personality.</p>
-          <div className="glass-grid">
-            {[
-              { icon: 'fa-lightbulb', gradient: 'linear-gradient(135deg, #fff1eb 0%, #ff8c66 100%)', color: '#ff6b35', title: 'Curiosity', desc: "Whether you're always seeking new adventures or prefer the comfort of the familiar." },
-              { icon: 'fa-tasks', gradient: 'linear-gradient(135deg, #e0e7ff 0%, #818cf8 100%)', color: '#6366f1', title: 'Drive', desc: 'How you organize your life and stay committed to your goals and hobbies.' },
-              { icon: 'fa-comments', gradient: 'linear-gradient(135deg, #fae8ff 0%, #d946ef 100%)', color: '#c026d3', title: 'Social Energy', desc: 'Your preference for deep one-on-one chats or the high energy of large groups.' },
-              { icon: 'fa-handshake', gradient: 'linear-gradient(135deg, #ecfeff 0%, #22d3ee 100%)', color: '#0891b2', title: 'Kindness', desc: 'Your natural tendency to be cooperative, empathetic, and supportive of others.' },
-              { icon: 'fa-leaf', gradient: 'linear-gradient(135deg, #f0fdf4 0%, #4ade80 100%)', color: '#16a34a', title: 'Balance', desc: 'The ability to stay cool and collected when things get intense or exciting.' },
-            ].map((trait, i) => (
-              <div className="glass-card" key={i}>
-                <div className="trait-icon" style={{ background: trait.gradient, color: trait.color }}><i className={`fas ${trait.icon}`}></i></div>
-                <h3>{trait.title}</h3>
-                <p>{trait.desc}</p>
+        {/* ═══════════ VIBE ENGINE ═══════════ */}
+        <section
+          ref={(el) => (sectionRefs.current[0] = el)}
+          data-section="science"
+          id="science"
+          className={styles.sectionVibe}
+          style={{
+            opacity: isVisible('science') ? 1 : 0,
+            transform: isVisible('science') ? 'translateY(0)' : 'translateY(40px)',
+          }}
+        >
+          <div className={styles.sectionVibeInner}>
+            <span className={`${styles.sectionLabel} ${styles.sectionLabelVibe}`}>
+              How matching works
+            </span>
+
+            <h2 className={styles.sectionTitle}>Made for real connections</h2>
+
+            <p className={styles.sectionSubtitle}>
+              We look at what you enjoy, how you connect, and what makes you — you. Then we introduce you to locals who just click.
+            </p>
+
+            {/* Row 1 — 3 cards */}
+            <div className={styles.traitsRow}>
+              {[
+                { icon: 'fa-lightbulb', color: '#ff6b35', title: 'Curiosity', desc: 'Adventure seeker or homebody — find someone with the same spark.' },
+                { icon: 'fa-fire', color: '#6366f1', title: 'Energy', desc: 'How fired up you get about the things you love.' },
+                { icon: 'fa-comments', color: '#c026d3', title: 'Social style', desc: 'Deep one-on-one chats or electric group hangouts — your call.' },
+              ].map((trait, i) => (
+                <div
+                  key={i}
+                  className={styles.traitCard}
+                  style={{
+                    opacity: isVisible('science') ? 1 : 0,
+                    transform: isVisible('science') ? 'translateY(0)' : 'translateY(30px)',
+                    transition: `all 0.55s cubic-bezier(0.16, 1, 0.3, 1) ${i * 0.09}s`,
+                  }}
+                >
+                  <div className={styles.traitIcon} style={{ color: trait.color }}>
+                    <i className={`fas ${trait.icon}`}></i>
+                  </div>
+                  <h3>{trait.title}</h3>
+                  <p>{trait.desc}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Row 2 — 2 cards, centered */}
+            <div className={styles.traitsRowBottom}>
+              {[
+                { icon: 'fa-heart', color: '#e11d48', title: 'Warmth', desc: 'The kindness and generosity you bring to every friendship.' },
+                { icon: 'fa-wind', color: '#16a34a', title: 'Chill factor', desc: 'Keeping calm and easygoing when life gets busy.' },
+              ].map((trait, i) => (
+                <div
+                  key={i}
+                  className={styles.traitCard}
+                  style={{
+                    opacity: isVisible('science') ? 1 : 0,
+                    transform: isVisible('science') ? 'translateY(0)' : 'translateY(30px)',
+                    transition: `all 0.55s cubic-bezier(0.16, 1, 0.3, 1) ${(i + 3) * 0.09}s`,
+                  }}
+                >
+                  <div className={styles.traitIcon} style={{ color: trait.color }}>
+                    <i className={`fas ${trait.icon}`}></i>
+                  </div>
+                  <h3>{trait.title}</h3>
+                  <p>{trait.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ═══════════ WHY PEOPLE CHOOSE US ═══════════ */}
+        <section
+          ref={(el) => (sectionRefs.current[1] = el)}
+          data-section="stats"
+          className={styles.sectionStats}
+          style={{
+            opacity: isVisible('stats') ? 1 : 0,
+            transform: isVisible('stats') ? 'translateY(0)' : 'translateY(40px)',
+          }}
+        >
+          <div className={styles.statsInner}>
+            <span className={`${styles.sectionLabel} ${styles.sectionLabelStats}`}>
+              Why people choose us
+            </span>
+
+            <h2 className={styles.sectionTitle}>Built for real friendships</h2>
+
+            <p className={styles.sectionSubtitle}>
+              No swiping. No games. Just people who actually want to show up.
+            </p>
+
+            <div className={styles.statsList}>
+              {[
+                { icon: 'fa-calendar-check', label: 'Real events & hangouts', desc: 'Show up together, not just scroll', color: '#6366f1' },
+                { icon: 'fa-shield-halved', label: 'Profiles you can trust', desc: 'Real people, real interests — no games', color: '#10b981' },
+                { icon: 'fa-location-dot', label: 'Right in your neighborhood', desc: 'Meet locals who are just around the corner', color: '#f43f5e' },
+              ].map((stat, i) => (
+                <div
+                  key={i}
+                  className={styles.statItem}
+                  style={{
+                    opacity: isVisible('stats') ? 1 : 0,
+                    transform: isVisible('stats') ? 'translateX(0)' : 'translateX(-20px)',
+                    transition: `all 0.5s cubic-bezier(0.16, 1, 0.3, 1) ${i * 0.1}s`,
+                  }}
+                >
+                  <div className={styles.statIcon} style={{ color: stat.color }}>
+                    <i className={`fas ${stat.icon}`}></i>
+                  </div>
+                  <div className={styles.statText}>
+                    <div className={styles.statLabel}>{stat.label}</div>
+                    <div className={styles.statDesc}>{stat.desc}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ═══════════ HOW IT WORKS ═══════════ */}
+        <section
+          ref={(el) => (sectionRefs.current[2] = el)}
+          data-section="how"
+          id="how"
+          className={styles.sectionHow}
+          style={{
+            opacity: isVisible('how') ? 1 : 0,
+            transform: isVisible('how') ? 'translateY(0)' : 'translateY(40px)',
+          }}
+        >
+          <div className={styles.stepsInner}>
+            <h2 className={styles.sectionTitle}>Three steps to your next real friendship</h2>
+            <p className={styles.sectionSubtitle}>
+              It's quick, free, and actually fun.
+            </p>
+
+            <div className={styles.stepsGrid}>
+              {[
+                { num: '1', title: 'Take the Quiz', desc: 'A quick 15-question vibe check that takes about 2 minutes. Genuinely fun — promise.', icon: 'fa-brain', color: '#6366f1' },
+                { num: '2', title: 'Get Matched', desc: 'Our Vibe Engine finds locals who share your energy, interests, and vibe.', icon: 'fa-heart', color: '#ec4899' },
+                { num: '3', title: 'Show Up & Connect', desc: 'Join local events, grab coffee, or start a hobby together. Real life starts here.', icon: 'fa-calendar-days', color: '#10b981' },
+              ].map((step, i) => (
+                <div
+                  key={i}
+                  className={styles.stepCard}
+                  style={{
+                    opacity: isVisible('how') ? 1 : 0,
+                    transform: isVisible('how') ? 'translateY(0)' : 'translateY(30px)',
+                    transition: `all 0.55s cubic-bezier(0.16, 1, 0.3, 1) ${i * 0.14}s`,
+                  }}
+                >
+                  <div className={styles.stepNumber} style={{ background: step.color }}>{step.num}</div>
+                  <div className={styles.stepIcon} style={{ color: step.color }}>
+                    <i className={`fas ${step.icon}`}></i>
+                  </div>
+                  <h3>{step.title}</h3>
+                  <p>{step.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ═══════════ FINAL CTA ═══════════ */}
+        <section
+          ref={(el) => (sectionRefs.current[3] = el)}
+          data-section="cta"
+          className={styles.sectionCta}
+          style={{
+            opacity: isVisible('cta') ? 1 : 0,
+            transform: isVisible('cta') ? 'translateY(0)' : 'translateY(40px)',
+          }}
+        >
+          <div className={styles.ctaBox}>
+            <h2 className={styles.ctaTitle}>
+              Your next great friendship<br />is one signup away.
+            </h2>
+            <p className={styles.ctaCopy}>
+              Come find them — they're already looking for you.
+            </p>
+            <Link to="/register" className={styles.ctaButton}>
+              <span>Join Free</span>
+              <i className="fas fa-arrow-right"></i>
+            </Link>
+            <div className={styles.ctaBadges}>
+              {[
+                { text: 'Free Forever' },
+                { text: 'Private & Secure' },
+                { text: 'Cancel Anytime' },
+              ].map((badge, i) => (
+                <span key={i} className={styles.ctaBadge}>
+                  {badge.text}
+                </span>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ═══════════ FOOTER ═══════════ */}
+        <footer className={styles.footer}>
+          <div className={styles.footerInner}>
+            <div className={styles.footerBrand}>
+              <Link to="/" className={styles.navLogo}>
+                <i className="fas fa-users"></i>
+                <span>HobbyBuddy</span>
+              </Link>
+              <p className={styles.footerBrandText}>
+                Making it easier for adults to make real friends through shared passions. No swiping. No games. Just people.
+              </p>
+            </div>
+            <div className={styles.footerLinks}>
+              <div className={styles.footerCol}>
+                <h4 className={styles.footerColTitle}>Platform</h4>
+                <ul>
+                  <li><Link to="/login">Sign In</Link></li>
+                  <li><Link to="/register">Create Account</Link></li>
+                  <li><Link to="/quiz">Personality Quiz</Link></li>
+                </ul>
               </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Social Proof Section */}
-        <section className="social-proof" style={{ padding: '80px 24px', textAlign: 'center' }}>
-          <span className="section-tag" style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', fontWeight: 800, padding: '10px 20px', borderRadius: '100px', fontSize: '0.95rem', marginBottom: '24px', display: 'inline-block' }}>Join the movement</span>
-          <h2 className="section-title">Loved by thousands</h2>
-          <div className="stats-grid" style={{ maxWidth: '800px', margin: '40px auto 0' }}>
-            <div className="stat-card">
-              <div className="stat-number purple">10K+</div>
-              <div className="stat-label">Active Buddies</div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-number green">95%</div>
-              <div className="stat-label">Match Satisfaction</div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-number cyan">50+</div>
-              <div className="stat-label">Hobbies Supported</div>
+              <div className={styles.footerCol}>
+                <h4 className={styles.footerColTitle}>Legal</h4>
+                <ul>
+                  <li><Link to="/privacy">Privacy Policy</Link></li>
+                  <li><Link to="/terms">Terms of Service</Link></li>
+                  <li><a href="mailto:hello@hobbybuddy.app">Contact</a></li>
+                </ul>
+              </div>
             </div>
           </div>
-        </section>
-
-        {/* How it works */}
-        <section className="how-it-works" style={{ padding: '80px 24px', textAlign: 'center' }}>
-          <h2 className="section-title">How It Works</h2>
-          <p style={{ fontSize: '1.2rem', color: 'var(--color-text-muted)', maxWidth: '600px', margin: '0 auto 60px' }}>Three simple steps to find your perfect hobby buddy</p>
-          <div className="steps-grid" style={{ maxWidth: '900px', margin: '0 auto' }}>
-            <div className="step-card">
-              <div className="step-number-circle">1</div>
-              <h3>Take the Quiz</h3>
-              <p>Complete our 50-question Big-Five personality assessment in just 4 minutes.</p>
-            </div>
-            <div className="step-card">
-              <div className="step-number-circle">2</div>
-              <h3>Get Matched</h3>
-              <p>Our AI finds locals with compatible personalities and shared hobbies.</p>
-            </div>
-            <div className="step-card">
-              <div className="step-number-circle">3</div>
-              <h3>Start Vibing</h3>
-              <p>Chat, join events, and build real friendships over shared passions.</p>
-            </div>
+          <div className={styles.footerBottom}>
+            &copy; {new Date().getFullYear()} HobbyBuddy. For entertainment purposes only — not a psychological or diagnostic tool.
           </div>
-        </section>
-
-        <section className="final-cta" style={{ textAlign: 'center', background: '#fff1eb', borderRadius: '40px', margin: '0 5% 100px', padding: '120px 40px' }}>
-          <h2 style={{ fontSize: '4rem', marginBottom: '24px', fontWeight: 900 }}>Stop searching, start vibing.</h2>
-          <p style={{ marginBottom: '48px', fontSize: '1.4rem', color: 'var(--color-text-body)', maxWidth: '600px', marginLeft: 'auto', marginRight: 'auto' }}>Join thousands of locals discovering authentic connections through the activities they love. Your new best friend is waiting.</p>
-          <Link to="/register" className="btn-pill btn-filled">Create Your Profile — It's Free</Link>
-          <div className="cta-badges" style={{ marginTop: '30px' }}>
-            <span className="cta-badge"><i className="fas fa-check"></i> 100% Free</span>
-            <span className="cta-badge"><i className="fas fa-check"></i> No Credit Card</span>
-            <span className="cta-badge"><i className="fas fa-check"></i> GDPR Compliant</span>
-          </div>
-        </section>
+        </footer>
       </main>
-
-      <footer>
-        <div className="footer-content">
-          <div className="footer-brand">
-            <Link to="/" className="logo"><i className="fas fa-users"></i><span>HobbyBuddy</span></Link>
-            <p>Connecting people through shared passions and real energy. No swiping, just authentic local connections.</p>
-          </div>
-          <div className="footer-links-group">
-            <div className="footer-column">
-              <h4>Platform</h4>
-              <ul>
-                <li><Link to="/login">Sign In</Link></li>
-                <li><Link to="/register">Register</Link></li>
-                <li><Link to="/quiz">Personality Quiz</Link></li>
-              </ul>
-            </div>
-            <div className="footer-column">
-              <h4>Legal</h4>
-              <ul>
-                <li><Link to="/privacy">Privacy Policy</Link></li>
-                <li><Link to="/terms">Terms of Service</Link></li>
-                <li><a href="mailto:contact@hobbybuddy.app">Contact Support</a></li>
-              </ul>
-            </div>
-          </div>
-        </div>
-        <div className="footer-bottom">
-          &copy; 2026 HobbyBuddy. Personality matching based on the IPIP Big-Five model.
-        </div>
-      </footer>
     </>
   );
 }

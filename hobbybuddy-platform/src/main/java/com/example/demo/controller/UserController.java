@@ -7,7 +7,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import jakarta.servlet.http.HttpServletResponse;
@@ -17,9 +19,11 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.dao.DataIntegrityViolationException;
 
 import com.example.demo.dto.LoginRequestDTO;
+import com.example.demo.dto.MatchResponseDTO;
 import com.example.demo.dto.UserResponseDTO;
 import com.example.demo.model.User;
 import com.example.demo.repository.UserRepository;
+import com.example.demo.service.MatchingService;
 import com.example.demo.service.UserService;
 import com.example.demo.security.JwtUtil;
 
@@ -46,6 +50,9 @@ public class UserController {
 
     @Autowired
     private com.example.demo.service.ArchetypeService archetypeService;
+
+    @Autowired
+    private MatchingService matchingService;
 
     private void addJwtCookie(HttpServletResponse response, String token) {
         jakarta.servlet.http.Cookie cookie = new jakarta.servlet.http.Cookie("jwt", token);
@@ -116,8 +123,8 @@ public class UserController {
                 User user = userRepository.findByEmail(email).orElseThrow(() -> e);
                 if (user.getPassword() != null && !user.getPassword().startsWith("$2a$") && user.getPassword().equals(password)) {
                     logger.info("[DEBUG-AUTH] Migrating user password: " + email);
-                    userService.saveUser(user); 
-                    authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
+                    userService.saveUser(user);
+                    // Password was just hashed — skip re-authentication, we already verified it
                 } else {
                     throw e;
                 }
@@ -238,6 +245,78 @@ public class UserController {
         userRepository.save(user);
         System.out.println("[QUIZ] Archetype persisted for user " + id + ": " + user.getArchetype());
         return ResponseEntity.ok(Map.of("message", "Quiz results saved", "archetype", user.getArchetype()));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getUserById(@PathVariable("id") java.lang.Long id) {
+        Optional<User> userOpt = userRepository.findById(java.util.Objects.requireNonNull(id));
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(404).body(Map.of("error", "User not found"));
+        }
+        User user = userOpt.get();
+        Map<String, Object> resp = new HashMap<>();
+        resp.put("id", user.getId());
+        resp.put("email", user.getEmail());
+        resp.put("name", user.getName());
+        resp.put("archetype", user.getArchetype() != null ? user.getArchetype() : "");
+        resp.put("hobbies", user.getHobbies() != null ? user.getHobbies() : "");
+        resp.put("prompt1", user.getPrompt1() != null ? user.getPrompt1() : "");
+        resp.put("prompt2", user.getPrompt2() != null ? user.getPrompt2() : "");
+        resp.put("prompt3", user.getPrompt3() != null ? user.getPrompt3() : "");
+        resp.put("city", user.getCity() != null ? user.getCity() : "");
+        resp.put("age", user.getAge() != null ? user.getAge() : "");
+        resp.put("personalityTagline", user.getPersonalityTagline() != null ? user.getPersonalityTagline() : "");
+        resp.put("photosJson", user.getPhotosJson() != null ? user.getPhotosJson() : "[]");
+        resp.put("referralCount", user.getReferralCount());
+        resp.put("quizCompleted", user.isQuizCompleted());
+        return ResponseEntity.ok(resp);
+    }
+
+    @GetMapping("/{id}/find-buddy")
+    public ResponseEntity<?> findBuddy(@PathVariable("id") java.lang.Long id) {
+        Optional<User> userOpt = userRepository.findById(java.util.Objects.requireNonNull(id));
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(404).body(Map.of("error", "User not found"));
+        }
+        User currentUser = userOpt.get();
+        if (currentUser.getOpenness() == null) {
+            return ResponseEntity.ok(Map.of("matches", List.of()));
+        }
+        List<User> allUsers = userRepository.findAll();
+        List<User> otherUsers = allUsers.stream()
+                .filter(u -> !u.getId().equals(id))
+                .collect(java.util.stream.Collectors.toList());
+        List<MatchResponseDTO> matches = matchingService.calculateMatches(currentUser, otherUsers);
+
+        // Build response: DTO fields already populated by service + full user details from DB
+        Map<Long, User> userById = allUsers.stream()
+                .collect(java.util.stream.Collectors.toMap(User::getId, java.util.function.Function.identity()));
+
+        List<Map<String, Object>> richMatches = new ArrayList<>();
+        for (MatchResponseDTO match : matches) {
+            Map<String, Object> m = new HashMap<>();
+            m.put("id", match.getId());
+            m.put("name", match.getName());
+            m.put("archetype", match.getArchetype());
+            m.put("hobbies", match.getHobbies());
+            m.put("compatibilityPercentage", match.getCompatibilityPercentage());
+            m.put("sharedStrengths", match.getSharedStrengths());
+            m.put("complementaryTraits", match.getComplementaryTraits());
+            m.put("traitBreakdowns", match.getTraitBreakdowns());
+            // Enrich with full user details from DB by name (may match multiple; pick first)
+            allUsers.stream()
+                .filter(u -> u.getName() != null && u.getName().equals(match.getName()))
+                .findFirst()
+                .ifPresent(u -> {
+                    m.put("id", u.getId()); // prefer DB id
+                    m.put("age", u.getAge());
+                    m.put("photosJson", u.getPhotosJson() != null ? u.getPhotosJson() : "[]");
+                    m.put("personalityTagline", u.getPersonalityTagline() != null ? u.getPersonalityTagline() : "");
+                    m.put("city", u.getCity() != null ? u.getCity() : "");
+                });
+            richMatches.add(m);
+        }
+        return ResponseEntity.ok(Map.of("matches", richMatches));
     }
 
     @DeleteMapping("/{id}")

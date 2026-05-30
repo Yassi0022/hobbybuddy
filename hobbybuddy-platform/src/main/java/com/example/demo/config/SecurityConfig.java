@@ -14,8 +14,11 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.http.MediaType;
 
 @Configuration
 @EnableWebSecurity
@@ -37,14 +40,43 @@ public class SecurityConfig {
         return authConfig.getAuthenticationManager();
     }
 
+    /**
+     * Returns 401 JSON for API requests instead of redirecting to /login page.
+     * Browser page requests still get redirected via formLogin.
+     */
+    @Bean
+    public AuthenticationEntryPoint apiAuthenticationEntryPoint() {
+        return (request, response, authException) -> {
+            String accept = request.getHeader("Accept");
+            String path = request.getRequestURI();
+            boolean isApiRequest = path.startsWith("/api/") || path.startsWith("/ws-chat/")
+                    || (accept != null && accept.contains(MediaType.APPLICATION_JSON_VALUE));
+            if (isApiRequest) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                response.setCharacterEncoding("UTF-8");
+                String json = "{\"error\":\"Unauthorized\",\"message\":\"Authentication required. Provide a valid JWT token.\",\"status\":401}";
+                response.getWriter().write(json);
+                response.getWriter().flush();
+            } else {
+                // For browser page requests, redirect to login
+                response.sendRedirect("/login");
+            }
+        };
+    }
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/users/login", "/api/users/register", "/api/users/**").permitAll()
-                .requestMatchers("/ws-chat/**").permitAll()
+                .requestMatchers("/api/users/login", "/api/users/register", "/api/users").permitAll()
+                .requestMatchers("/ws-chat/**", "/uploads/**", "/api/photos/file/**").permitAll()
+                .requestMatchers("/api/**").authenticated()
                 .requestMatchers("/", "/login", "/register", "/quiz", "/privacy", "/terms").permitAll()
                 .anyRequest().authenticated()
+            )
+            .exceptionHandling(ex -> ex
+                .authenticationEntryPoint(apiAuthenticationEntryPoint())
             )
             .formLogin(form -> form
                 .loginPage("/login")
