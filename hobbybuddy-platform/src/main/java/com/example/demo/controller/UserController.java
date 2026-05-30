@@ -55,14 +55,20 @@ public class UserController {
     private MatchingService matchingService;
 
     private void addJwtCookie(HttpServletResponse response, String token) {
-        jakarta.servlet.http.Cookie cookie = new jakarta.servlet.http.Cookie("jwt", token);
-        cookie.setHttpOnly(true);
-        cookie.setSecure(true); // Secure for Production (HTTPS)
-        cookie.setPath("/");
-        cookie.setMaxAge(86400); // 1 day
-        response.addCookie(cookie);
-        // Add SameSite=Lax via header manually to ensure compatibility
-        response.addHeader("Set-Cookie", "jwt=" + token + "; Path=/; HttpOnly; Max-Age=86400; SameSite=Lax");
+        // Single Set-Cookie header — no duplicates.
+        // SameSite=None allows the cookie to be sent on cross-origin requests.
+        // Secure is added only when the request comes over HTTPS (detected via
+        // X-Forwarded-Proto for reverse-proxy setups like Render).
+        jakarta.servlet.http.HttpServletRequest req =
+                ((org.springframework.web.context.request.ServletRequestAttributes)
+                        org.springframework.web.context.request.RequestContextHolder.currentRequestAttributes())
+                        .getRequest();
+        String forwardedProto = req.getHeader("X-Forwarded-Proto");
+        boolean isSecure = "https".equalsIgnoreCase(forwardedProto) || req.isSecure();
+        String value = "jwt=" + token
+                + "; Path=/; HttpOnly; Max-Age=86400; SameSite=None"
+                + (isSecure ? "; Secure" : "");
+        response.addHeader("Set-Cookie", value);
     }
 
     @PostMapping
