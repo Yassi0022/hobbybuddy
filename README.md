@@ -1,171 +1,167 @@
-# 🎯 HobbyBuddy — Personality-Based Social Matching PWA
+# HobbyBuddy
 
-<p align="center">
-  <strong>A full-stack social platform that matches users through Big Five personality compatibility, built with a decoupled microservice architecture and deployed on the cloud.</strong>
-</p>
+A social platform that helps adults make real friends through shared interests. Users complete a personality quiz, get matched with compatible locals, and connect via chat and local events.
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Frontend-Vercel_CDN-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Vercel"/>
-  <img src="https://img.shields.io/badge/Backend-Render-46E3B7?style=for-the-badge&logo=render&logoColor=white" alt="Render"/>
-  <img src="https://img.shields.io/badge/Spring_Boot-3.3-6DB33F?style=for-the-badge&logo=springboot&logoColor=white" alt="Spring Boot"/>
-  <img src="https://img.shields.io/badge/FastAPI-0.115-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI"/>
-  <img src="https://img.shields.io/badge/MySQL-Cloud-4479A1?style=for-the-badge&logo=mysql&logoColor=white" alt="MySQL"/>
-</p>
+---
 
-***
+## Architecture
 
-## 📖 About
-
-HobbyBuddy connects people based on **personality compatibility** rather than superficial preferences. Users complete a **50-question IPIP Big Five questionnaire**; their answers are stored as five normalized trait scores (`openness`, `conscientiousness`, `extraversion`, `agreeableness`, `neuroticism`). A dedicated Python microservice ranks potential matches using **cosine similarity** on those personality vectors, returning a scored and sorted list in real time.
-
-The platform is built as a **Progressive Web App (PWA)** — installable on mobile, no app store required.
-
-***
-
-## 🧠 Matching Engine
-
-The matching logic is a standalone **FastAPI** microservice (`matching-engine/`), decoupled from the main backend.
-
-Each user is represented as a 5-dimensional personality vector derived from their Big Five trait scores. When a match request arrives, the engine computes a compatibility score between the requesting user and all candidates, returning a ranked list sorted by affinity.
-
-The Spring Boot backend calls /calculate-match via HTTP POST, passing the target user and the pool of candidates. Results are returned in milliseconds and rendered directly in the match feed.
-
-Implementation details of the scoring algorithm are kept private.
-
-
-
-***
-
-## 🏗️ Architecture
+Three-tier deployment — frontend, backend, database on separate managed services:
 
 ```
-┌──────────────────────────────────┐
-│         MOBILE PWA               │  Vercel Edge CDN
-│   Vanilla JS · HTML/CSS · SW     │
-└───────────────┬──────────────────┘
-                │ REST + STOMP/WebSocket
-┌───────────────▼──────────────────┐
-│      hobbybuddy-platform         │  Render
-│   Spring Boot 3.3 · Java         │
-│   JWT Auth · JPA · WebSocket     │
-└──────────┬────────────┬──────────┘
-           │ JDBC       │ HTTP POST /calculate-match
-┌──────────▼───────┐  ┌─▼──────────────────────────┐
-│  Aiven MySQL     │  │  matching-engine             │  Render
-│  Cloud DB        │  │  FastAPI · scikit-learn      │
-└──────────────────┘  └────────────────────────────┘
+┌─────────────────┐
+│   Vercel CDN    │  React SPA (Vite)
+│   (Frontend)    │
+└────────┬────────┘
+         │ API calls + JWT Bearer
+┌────────┴────────┐
+│   Render        │  Spring Boot 3, Java 17
+│   (Backend)     │
+└────────┬────────┘
+         │ MySQL (SSL)
+┌────────┴────────┐
+│   Aiven         │  MySQL 8.0 (managed)
+│   (Database)    │
+└─────────────────┘
 ```
 
-***
+- **Vercel** serves the compiled React app from its global CDN.
+- **Render** runs the Spring Boot JAR, handles authentication, matching logic, chat, and media uploads.
+- **Aiven** hosts the production MySQL instance with SSL.
 
-## ✨ Features
+---
 
-- 🔐 **JWT Authentication** — stateless session management with Spring Security; automatic 401/403 interception; token stored in `HttpOnly` cookie
-- 💬 **Real-time Chat** — STOMP over SockJS WebSocket, message persistence on MySQL, automatic UI sync
-- 🧠 **Personality Matching** — 50-question IPIP questionnaire → Big Five vector → cosine similarity ranking via FastAPI microservice
-- 🎴 **Swipe UI** — gesture-based match feed with skeleton loading states
-- 🔗 **Referral System** — `referredBy` / `referralCount` fields on the User entity; native Web Share API integration
-- 📱 **PWA** — `manifest.json` + `service-worker.js` for offline caching and mobile installability
-
-***
-
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Layer | Technology |
 |---|---|
-| Frontend | Vanilla JS (ES6+), HTML5/CSS3, PWA (manifest + service worker) |
-| Backend | Java 21, Spring Boot 3.3, Spring Security, JWT (jjwt 0.11.5), Spring WebSocket (STOMP) |
-| Matching Engine | Python 3.11, FastAPI 0.115, scikit-learn 1.5.2, NumPy 2.1, Pydantic 2.11 |
-| Database | MySQL 8 (Aiven cloud) — JPA/Hibernate, Spring Data JPA |
-| Containerization | Docker, docker-compose |
-| Deployment | Vercel (frontend), Render (Spring Boot + FastAPI), Aiven (DB) |
+| Frontend | React 19, Vite 8, React Router 7, CSS Modules |
+| Backend | Spring Boot 3, Java 17, Spring Security (JWT), Spring WebSocket (STOMP) |
+| Database | MySQL 8.0 with SSL (Aiven managed) |
+| Auth | JWT (Bearer token in `Authorization` header; cookie fallback server-side) |
+| Deploy | Vercel (frontend), Render Web Service (backend) |
+| Build | Maven Wrapper (`./mvnw`) for CI compatibility |
 
-***
+---
 
-## 📁 Project Structure
-
-```
-hobbybuddy/
-├── hobbybuddy-platform/          # Spring Boot backend (Java)
-│   └── src/main/java/com/example/demo/
-│       ├── config/               # CORS, Security, WebSocket, DB cleanup
-│       ├── controller/           # UserController, MessageController, EventController
-│       ├── model/                # User, Message, Hobby, Event (JPA entities)
-│       ├── dto/                  # LoginRequestDTO, UserResponseDTO
-│       ├── repository/           # Spring Data JPA repositories
-│       ├── security/             # JwtUtil, JWT filters
-│       └── service/              # UserService, business logic
-├── matching-engine/              # FastAPI microservice (Python)
-│   ├── main.py                   # /calculate-match endpoint
-│   └── requirements.txt
-├── frontend/                     # PWA (static, served via Vercel)
-│   ├── index.html / login.html / register.html
-│   ├── quiz.html                 # 50-question Big Five questionnaire
-│   ├── dashboard.html            # Match feed + swipe UI
-│   ├── manifest.json
-│   └── service-worker.js
-├── docker-compose.yml
-└── seed.sql                      # Sample users with trait scores
-```
-
-***
-
-## 🚀 Local Setup
+## Local Development
 
 ### Prerequisites
-- Docker & docker-compose
-- Java 21 + Maven
+- Node 18+
+- Java 17+
+- Maven (or use `./mvnw` — included)
+- MySQL 8.0 (local or Aiven)
 
-### 1. Environment variables
-
-Create a `.env` file in the project root:
-
-```env
-AIVEN_URL=jdbc:mysql://<host>:<port>/<db>?ssl-mode=REQUIRED
-AIVEN_USER=your_user
-AIVEN_PASSWORD=your_password
-```
-
-### 2. Run with Docker
+### 1. Clone
 
 ```bash
 git clone https://github.com/Yassi0022/hobbybuddy.git
 cd hobbybuddy
-cd hobbybuddy-platform && mvn clean package -DskipTests && cd ..
-docker-compose up --build
 ```
 
-- **Backend**: `http://localhost:8080`
-- **Matching engine**: `http://localhost:8001` (or remote Render URL)
-
-### 3. Seed sample data
+### 2. Backend
 
 ```bash
-mysql -u <user> -p hobbybuddy_db < seed.sql
+cd hobbybuddy-platform
+
+# Create src/main/resources/application-local.properties with your DB credentials:
+#   spring.datasource.url=jdbc:mysql://localhost:3306/hobbybuddy_db?useSSL=false
+#   spring.datasource.username=root
+#   spring.datasource.password=yourpassword
+
+./mvnw spring-boot:run
 ```
 
-### 4. Frontend
+The API runs at `http://localhost:8080`. Health check: `GET /api/health`.
 
-Open `frontend/index.html` locally or deploy to Vercel with `vercel --prod`.
+### 3. Frontend
 
-***
+```bash
+cd frontend_v2
+npm install
+npm run dev
+```
 
-## 🌐 Live Demo
+The Vite dev server runs at `http://localhost:5173` and proxies `/api` to the backend.
 
-- **App**: [hobbybuddy.vercel.app](https://hobbybuddy.vercel.app)
-- **API**: deployed on Render *(cold start ~30s on free tier)*
+### 4. Production Build (local verification)
 
-***
+```bash
+cd frontend_v2
+npm run build          # outputs to dist/
+cd ../hobbybuddy-platform
+./mvnw package -DskipTests
+java -jar target/hobbybuddy-platform-0.0.1-SNAPSHOT.jar
+```
 
-## 📄 License
+The built JAR serves both the API and the static frontend on `http://localhost:8080`.
 
-© 2026 Yassine Hatouf. All rights reserved.
+---
 
-This repository is publicly visible for **portfolio and demonstration purposes only**.
-Commercial use, redistribution, modification, or derivative works are not permitted without explicit written permission from the author.
+## Authentication Flow
 
-***
+1. User submits email + password via `POST /api/users/login`.
+2. Server verifies credentials (BCrypt), generates a JWT, and returns it in the JSON response body **plus** a server-side `Set-Cookie` header.
+3. Frontend stores the token in `localStorage` (`hb_token`) and sends it as `Authorization: Bearer <token>` on every request.
+4. The cookie is a server-side fallback only — the frontend reads from `localStorage`.
 
-## 👤 Author
+---
 
-**Yassine Hatouf** · [GitHub](https://github.com/Yassi0022) · [LinkedIn](https://linkedin.com/in/yassine-hatouf)
+## Production Deploy
+
+### Vercel (Frontend)
+
+| Setting | Value |
+|---|---|
+| Root directory | `frontend_v2/` |
+| Build command | `npm run build` |
+| Output directory | `dist` |
+| Framework preset | Vite |
+
+### Render (Backend Web Service)
+
+| Setting | Value |
+|---|---|
+| Root directory | `hobbybuddy-platform/` |
+| Build command | `./mvnw package -DskipTests` |
+| Start command | `java -jar target/hobbybuddy-platform-0.0.1-SNAPSHOT.jar` |
+| Health check path | `/api/health` |
+
+**Environment variables on Render:**
+
+| Key | Value | Source |
+|---|---|---|
+| `SPRING_DATASOURCE_URL` | `jdbc:mysql://<host>:18844/hobbybuddy_db?useSSL=true&requireSSL=true` | Aiven Console |
+| `SPRING_DATASOURCE_USERNAME` | `<username>` | Aiven Console |
+| `SPRING_DATASOURCE_PASSWORD` | `<password>` | Aiven Console |
+| `FASTAPI_URL` | `http://localhost:8001` | Optional — Java matching fallback works without it |
+
+---
+
+## API Reference (selected endpoints)
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| POST | `/api/users` | Public | Register |
+| POST | `/api/users/login` | Public | Login — returns JWT + user profile |
+| GET | `/api/users/me` | JWT | Current user profile |
+| GET | `/api/users/{id}` | JWT | User profile by ID |
+| PUT | `/api/users/{id}/profile` | JWT | Update profile |
+| POST | `/api/users/{id}/quiz-submit` | JWT | Submit Big Five quiz |
+| GET | `/api/users/{id}/find-buddy` | JWT | Get compatibility matches |
+| DELETE | `/api/users/{id}` | JWT | Delete account |
+| GET | `/api/health` | Public | Health check — returns `{"status":"ok"}` |
+
+---
+
+## Residual Risks
+
+1. **FastAPI matching microservice is not deployed.** The Python microservice in `matching-engine/` provides richer `traitBreakdowns` per match. Without it, the Java fallback matching works but produces simpler results. Deploying the Python service and setting `FASTAPI_URL` restores full fidelity.
+
+2. **`JwtUtil` generates a new random `SecretKey` on every boot** (see `JwtUtil.java`). After a restart, all existing tokens become invalid and users must log in again. For a real production workload, inject a fixed secret via `JWT_SECRET` environment variable instead of calling `Keys.secretKeyFor()` each time.
+
+---
+
+## License
+
+MIT

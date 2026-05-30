@@ -3,8 +3,9 @@ target/
 *.jar
 *.class
 .mvn/
-mvnw
-mvnw.cmd
+
+# Maven Wrapper (mvnw, mvnw.cmd) is COMMITTED intentionally
+# so `./mvnw package` works in CI/CD (Render) without Maven installed.
 
 # === Python ===
 __pycache__/
@@ -28,6 +29,21 @@ node_modules/
 # === OS ===
 .DS_Store
 Thumbs.db
+
+# === Logs & Debug ===
+*.log
+*.bak
+*.bak2
+
+# === Screenshots / Test Artifacts ===
+audit*.png
+audit-*.*
+*test*.mjs
+*test*.cjs
+screenshot*.png
+screenshot*.cjs
+final-*.png
+debug_*.cjs
 
 # === Vercel ===
 .vercel/
