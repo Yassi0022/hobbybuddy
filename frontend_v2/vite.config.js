@@ -7,7 +7,7 @@ export default defineConfig({
   css: { transformer: 'postcss' },
   base: '/',
   build: {
-    outDir: path.resolve(__dirname, '../hobbybuddy-platform/src/main/resources/static'),
+    outDir: 'dist',
     emptyOutDir: true,
     sourcemap: false,
     rollupOptions: {
