@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://hobbybuddy.app/sitemap.xml
