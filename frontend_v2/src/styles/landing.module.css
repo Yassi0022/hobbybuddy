@@ -387,6 +387,7 @@
     padding: 80px var(--container-pad);
     text-align: center;
     position: relative;
+    background: linear-gradient(180deg, transparent 0%, #f9f8f6 50%, transparent 100%);
 }
 .sectionVibeInner {
     max-width: var(--container-max);
@@ -459,16 +460,18 @@
 }
 
 .traitCard {
-    background: white;
-    border: 1px solid rgba(0, 0, 0, 0.04);
+    background: #fafbfc;
+    border: 1px solid rgba(0, 0, 0, 0.08);
     border-radius: 18px;
     padding: 28px 20px 24px;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
     text-align: center;
 }
 .traitCard:hover {
     transform: translateY(-4px);
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.06);
+    background: white;
+    border-color: rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
 }
 
 .traitIcon {
@@ -499,15 +502,9 @@
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
 .sectionStats {
-    padding: 64px var(--container-pad);
+    padding: 80px var(--container-pad);
     text-align: center;
-    background: linear-gradient(
-        180deg,
-        transparent 0%,
-        rgba(253, 248, 240, 0.4) 40%,
-        rgba(253, 248, 240, 0.4) 60%,
-        transparent 100%
-    );
+    background: #f5f4f2;
 }
 .statsInner {
     max-width: var(--container-max);
@@ -589,13 +586,16 @@
     text-align: center;
     padding: 32px 20px 28px;
     border-radius: 20px;
-    background: white;
-    border: 1px solid rgba(0, 0, 0, 0.04);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background: #f8fafc;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+    transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
 }
 .stepCard:hover {
     transform: translateY(-3px);
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.06);
+    background: white;
+    border-color: rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
 }
 
 .stepNumber {
@@ -637,31 +637,32 @@
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
 .sectionCta {
-    padding: 0 var(--container-pad) 88px;
+    padding: 0 var(--container-pad) 64px;
 }
 .ctaBox {
     max-width: 680px;
     margin: 0 auto;
     text-align: center;
-    padding: 64px 48px 56px;
-    background: linear-gradient(180deg, #f8f7f4 0%, #faf9f6 100%);
-    border-radius: 24px;
-    border: 1px solid rgba(0,0,0,0.03);
+    padding: 72px 48px 60px;
+    background: #1a1a2e;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 20px 60px -20px rgba(0, 0, 0, 0.3);
 }
 
 .ctaTitle {
     font-size: clamp(1.7rem, 3.4vw, 2.4rem);
     font-weight: 800;
     letter-spacing: -0.035em;
-    color: var(--color-ink);
+    color: #ffffff;
     margin-bottom: 14px;
     line-height: 1.15;
 }
 .ctaCopy {
     font-size: 1rem;
-    color: var(--color-text-muted);
+    color: rgba(255, 255, 255, 0.65);
     max-width: 400px;
-    margin: 0 auto 28px;
+    margin: 0 auto 32px;
     line-height: 1.65;
 }
 
@@ -670,12 +671,12 @@
     align-items: center;
     justify-content: center;
     gap: 10px;
-    background: var(--color-ink);
+    background: var(--color-secondary);
     color: white;
     border: none;
-    padding: 15px 36px;
+    padding: 16px 40px;
     border-radius: 14px;
-    font-size: 1rem;
+    font-size: 1.05rem;
     font-weight: 700;
     font-family: inherit;
     cursor: pointer;
@@ -683,9 +684,9 @@
     transition: all 0.2s ease;
 }
 .ctaButton:hover {
-    transform: translateY(-1px);
-    background: #1a1a2e;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    transform: translateY(-2px);
+    background: #e11d48;
+    box-shadow: 0 8px 24px rgba(244, 63, 94, 0.3);
     color: white;
 }
 .ctaButton:active {
@@ -702,7 +703,7 @@
     display: flex;
     justify-content: center;
     gap: 20px;
-    margin-top: 24px;
+    margin-top: 28px;
     flex-wrap: wrap;
 }
 .ctaBadge {
@@ -710,12 +711,12 @@
     align-items: center;
     font-size: 0.8rem;
     font-weight: 500;
-    color: var(--color-text-muted);
+    color: rgba(255, 255, 255, 0.45);
 }
 .ctaBadge + .ctaBadge::before {
     content: "·";
     margin-right: 20px;
-    color: #d1d5db;
+    color: rgba(255,255,255,0.2);
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -723,9 +724,9 @@
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
 .footer {
-    padding: 48px var(--container-pad) 32px;
-    border-top: 1px solid rgba(0, 0, 0, 0.03);
-    background: linear-gradient(180deg, rgba(253, 248, 240, 0.25) 0%, transparent 100%);
+    padding: 64px var(--container-pad) 32px;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+    background: #f8fafc;
 }
 .footerInner {
     max-width: var(--container-max);
