@@ -121,9 +121,13 @@
 
 .heroSection {
     position: relative;
-    padding-top: 100px;
-    padding-bottom: 72px;
+    padding-top: 140px;
+    padding-bottom: 100px;
     overflow: hidden;
+    min-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 /* Hero grid — asymmetric 55/45 split */
@@ -133,14 +137,14 @@
     padding: 0 var(--container-pad);
     display: grid;
     grid-template-columns: 55fr 45fr;
-    gap: 48px;
-    align-items: center;
+    gap: 60px;
+    align-items: start;
 }
 
 /* ── Left column ── */
 
 .heroContent {
-    padding: 40px 0;
+    padding: 20px 0;
     animation: fadeSlideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
@@ -177,7 +181,7 @@
     line-height: 1.08;
     letter-spacing: -0.045em;
     color: var(--color-ink);
-    margin-bottom: 20px;
+    margin-bottom: 24px;
 }
 .heroTitleAccent {
     display: block;
@@ -191,20 +195,20 @@
 
 /* Body copy */
 .heroCopy {
-    font-size: 1.02rem;
+    font-size: 1.08rem;
     line-height: 1.7;
     color: var(--color-text-muted);
-    max-width: 420px;
-    margin-bottom: 24px;
+    max-width: 480px;
+    margin-bottom: 32px;
     animation: fadeSlideUpDelay 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 /* CTA — primary only */
 .heroCtas {
     display: flex;
-    gap: 10px;
+    gap: 12px;
     align-items: center;
-    margin-bottom: 32px;
+    margin-bottom: 40px;
     flex-wrap: wrap;
     animation: fadeSlideUpDelay 1s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
@@ -214,22 +218,23 @@
     align-items: center;
     justify-content: center;
     gap: 10px;
-    background: var(--color-ink);
+    background: var(--color-secondary);
     color: white;
     border: none;
-    padding: 15px 32px;
+    padding: 16px 36px;
     border-radius: 14px;
-    font-size: 0.96rem;
+    font-size: 1rem;
     font-weight: 700;
     font-family: inherit;
     cursor: pointer;
     text-decoration: none;
     transition: all 0.2s ease;
+    box-shadow: 0 4px 16px rgba(244, 63, 94, 0.25);
 }
 .heroCtaPrimary:hover {
-    transform: translateY(-1px);
-    background: #1a1a2e;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    transform: translateY(-2px);
+    background: #e11d48;
+    box-shadow: 0 8px 24px rgba(244, 63, 94, 0.35);
     color: white;
 }
 .heroCtaPrimary:active {
@@ -267,9 +272,12 @@
 
 /* Social proof row */
 .heroSocialProof {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
+    padding: 12px 16px;
+    background: rgba(0, 0, 0, 0.02);
+    border-radius: 12px;
     animation: fadeSlideUpDelay 1.1s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 .starsRow {
@@ -291,9 +299,9 @@
 .heroCardWrap {
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
     position: relative;
-    padding: 40px 0;
+    padding: 20px 0;
 }
 
 .heroCard {
@@ -800,13 +808,18 @@
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
 @media (max-width: 900px) {
+    .heroSection {
+        min-height: 0;
+        padding-top: 110px;
+        padding-bottom: 64px;
+    }
     .heroGrid {
         grid-template-columns: 1fr;
-        gap: 20px;
+        gap: 24px;
         text-align: center;
     }
     .heroContent {
-        padding: 24px 0 12px;
+        padding: 12px 0;
         max-width: 560px;
         margin: 0 auto;
     }
@@ -822,7 +835,7 @@
     }
     .heroCardWrap {
         order: -1;
-        padding: 12px 0 24px;
+        padding: 8px 0 16px;
     }
     .heroCard {
         width: 260px;
@@ -862,14 +875,15 @@
 
 @media (max-width: 768px) {
     .heroSection {
-        padding-top: 88px;
-        padding-bottom: 48px;
+        min-height: 0;
+        padding-top: 100px;
+        padding-bottom: 56px;
     }
     .heroTitle {
         font-size: clamp(1.9rem, 7vw, 2.4rem);
     }
     .heroCopy {
-        font-size: 0.94rem;
+        font-size: 1rem;
     }
     .heroCard {
         width: 220px;
@@ -877,6 +891,20 @@
     }
     .heroCard:hover {
         transform: none;
+    }
+    .heroCardBadge {
+        padding: 4px 10px;
+        font-size: 0.65rem;
+    }
+    .heroCardNames {
+        font-size: 1.2rem;
+    }
+    .heroCardChips {
+        gap: 4px;
+    }
+    .heroCardChip {
+        padding: 3px 8px;
+        font-size: 0.6rem;
     }
     .heroCtas {
         flex-direction: column;
