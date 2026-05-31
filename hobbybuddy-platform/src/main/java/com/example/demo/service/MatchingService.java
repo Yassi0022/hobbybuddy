@@ -7,6 +7,7 @@ import com.example.demo.dto.UserTraitsDTO;
 import com.example.demo.model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -25,10 +26,14 @@ import java.util.stream.Collectors;
 public class MatchingService {
 
     private static final Logger logger = LoggerFactory.getLogger(MatchingService.class);
-    private final String fastapiUrl = "http://localhost:8001";
+    private final String fastapiUrl;
     private final RestTemplate restTemplate = new RestTemplate();
 
     private static final String[] TRAIT_NAMES = {"openness", "conscientiousness", "extraversion", "agreeableness", "neuroticism"};
+
+    public MatchingService(@Value("${fastapi.url}") String fastapiUrl) {
+        this.fastapiUrl = fastapiUrl;
+    }
 
     public List<MatchResponseDTO> calculateMatches(User currentUser, List<User> allUsers) {
         List<MatchResponseDTO> matches = new ArrayList<>();
