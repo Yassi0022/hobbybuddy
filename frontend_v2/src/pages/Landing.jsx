@@ -121,7 +121,7 @@ export default function Landing() {
                 </div>
                 <div className={styles.heroCardOverlay}>
                   <div>
-                    <h2 className={styles.heroCardNames}>Sofia &amp; Alex</h2>
+                    <h2 className={styles.heroCardNames}>Your new circle</h2>
                     <div className={styles.heroCardChips}>
                       <span className={styles.heroCardChip}>📷 Photography</span>
                       <span className={styles.heroCardChip}>🏃 Running</span>
