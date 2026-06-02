@@ -5,10 +5,10 @@ import { API_BASE_URL } from '../utils/constants';
 import { showToast } from '../utils/toast';
 
 /**
- * Dashboard — home feed + top matches teaser.
+ * Dashboard — home base: welcome, top matches, community feed.
  *
- * Discover and Events have their own dedicated pages now.
- * This page focuses on: feed, top match cards, quick navigation.
+ * Discover and Events live on their own dedicated pages.
+ * This page keeps things glanceable and action-oriented.
  */
 export default function Dashboard() {
   const { token, logout, authFetch } = useAuth();
@@ -150,7 +150,7 @@ export default function Dashboard() {
             <span style={{ fontSize: '1.6rem', lineHeight: 1 }}>🔍</span>
             <h3 style={{ margin: 0, fontSize: '0.97rem', fontWeight: 700 }}>Discover people</h3>
             <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--color-text-muted)', lineHeight: 1.45 }}>
-              Find compatible hobby buddies near you
+              Connect with people who share your vibe
             </p>
           </Link>
           <Link to="/events" className="card" style={{
@@ -161,7 +161,7 @@ export default function Dashboard() {
             <span style={{ fontSize: '1.6rem', lineHeight: 1 }}>🎟️</span>
             <h3 style={{ margin: 0, fontSize: '0.97rem', fontWeight: 700 }}>Browse events</h3>
             <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--color-text-muted)', lineHeight: 1.45 }}>
-              Discover local events and meetups
+              Find local meetups and things to do
             </p>
           </Link>
         </div>
