@@ -8,15 +8,15 @@ import com.example.demo.model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.time.LocalDateTime;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -29,48 +29,87 @@ import java.util.stream.Collectors;
 public class MatchingService {
 
     private static final Logger logger = LoggerFactory.getLogger(MatchingService.class);
+
+    /** URL of the Python FastAPI matching engine, e.g. http://localhost:8001 or https://matching-engine.onrender.com */
     private final String fastapiUrl;
-    private final RestTemplate restTemplate = new RestTemplate();
 
-    private static final String[] TRAIT_NAMES = {"openness", "conscientiousness", "extraversion", "agreeableness", "neuroticism"};
+    private final RestTemplate restTemplate;
 
-    public MatchingService(@Value("${fastapi.url}") String fastapiUrl) {
+    private static final String[] TRAIT_NAMES = {
+            "openness", "conscientiousness", "extraversion", "agreeableness", "neuroticism"
+    };
+
+    /** Connect and read timeouts in milliseconds for outbound matching-engine calls. */
+    private static final int CONNECT_TIMEOUT_MS = 3000;
+    private static final int READ_TIMEOUT_MS = 5000;
+
+    public MatchingService(RestTemplateBuilder restTemplateBuilder,
+                           @Value("${fastapi.url}") String fastapiUrl) {
         this.fastapiUrl = fastapiUrl;
+        this.restTemplate = restTemplateBuilder
+                .requestFactory(() -> {
+                    SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+                    factory.setConnectTimeout(CONNECT_TIMEOUT_MS);
+                    factory.setReadTimeout(READ_TIMEOUT_MS);
+                    return factory;
+                })
+                .build();
     }
 
-    public List<MatchResponseDTO> calculateMatches(User currentUser, List<User> allUsers) {
-        List<MatchResponseDTO> matches = new ArrayList<>();
+    // ── Public API ────────────────────────────────────────────────────────────
 
-        if (currentUser.getOpenness() == null) return matches;
+    /**
+     * Find the best matches for {@code currentUser} among {@code allUsers}.
+     * <p>
+     * Delegates to the Python FastAPI matching engine when available.
+     * Falls back to the pure-Java Euclidean implementation if the engine is unreachable.
+     *
+     * @return top 5 matches, sorted by compatibility percentage descending
+     */
+    public List<MatchResponseDTO> calculateMatches(User currentUser, List<User> allUsers) {
+        if (currentUser.getOpenness() == null) return new ArrayList<>();
 
         List<User> validCandidates = allUsers.stream()
-                .filter(u -> !u.getId().equals(currentUser.getId()) && u.getOpenness() != null)
+                .filter(u -> !u.getId().equals(currentUser.getId()))
+                .filter(u -> u.getOpenness() != null)
                 .collect(Collectors.toList());
 
-        if (validCandidates.isEmpty()) return matches;
+        if (validCandidates.isEmpty()) return new ArrayList<>();
 
-        // Try Python FastAPI first
         try {
             List<MatchResponseDTO> pythonMatches = callPythonEngine(currentUser, validCandidates);
             if (!pythonMatches.isEmpty()) {
                 return pythonMatches;
             }
         } catch (Exception e) {
-            logger.warn("Python matching engine unavailable ({}), falling back to Java matching", e.getMessage());
+            logger.warn("[Matching] Python engine unavailable ({}), using Java fallback", e.getMessage());
         }
 
-        // Fallback: pure Java matching
         return calculateMatchesJava(currentUser, validCandidates);
     }
 
-    private List<MatchResponseDTO> callPythonEngine(User currentUser, List<User> validCandidates) {
+    // ── Python FastAPI integration ────────────────────────────────────────────
+
+    /**
+     * POST the target user and candidates to the FastAPI /calculate-match endpoint
+     * and map the Python response into our internal {@link MatchResponseDTO}.
+     * <p>
+     * Contract (FastAPI → Spring Boot):
+     * <pre>
+     *   { "best_match_id": int,
+     *     "compatibility_score": int,
+     *     "match_label": str,
+     *     "shared_strengths": [str],
+     *     "complementary_traits": [str],
+     *     "trait_breakdowns": [{trait, userScore, matchScore, matchQuality}] }
+     * </pre>
+     */
+    List<MatchResponseDTO> callPythonEngine(User currentUser, List<User> validCandidates) {
         MatchRequestDTO requestDTO = new MatchRequestDTO();
         requestDTO.setTargetUser(convertToTraitsDTO(currentUser));
-
-        List<UserTraitsDTO> candidatesDTOs = validCandidates.stream()
-                .map(this::convertToTraitsDTO)
-                .collect(Collectors.toList());
-        requestDTO.setPotentialMatches(candidatesDTOs);
+        requestDTO.setPotentialMatches(
+                validCandidates.stream().map(this::convertToTraitsDTO).collect(Collectors.toList())
+        );
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -82,61 +121,59 @@ public class MatchingService {
                 PythonMatchResponseDTO[].class
         );
 
-        PythonMatchResponseDTO[] pythonResponse = response.getBody();
-        if (pythonResponse == null || pythonResponse.length == 0) return new ArrayList<>();
+        PythonMatchResponseDTO[] body = response.getBody();
+        if (body == null || body.length == 0) return new ArrayList<>();
 
         Map<Long, User> userMap = validCandidates.stream()
                 .collect(Collectors.toMap(User::getId, Function.identity()));
 
         List<MatchResponseDTO> matches = new ArrayList<>();
-        for (PythonMatchResponseDTO pyMatch : pythonResponse) {
-            User matchUser = userMap.get(pyMatch.getBestMatchId());
-            if (matchUser != null) {
-                int percentage = (int) Math.round(pyMatch.getCompatibilityScore());
-                MatchResponseDTO dto = new MatchResponseDTO(
-                        matchUser.getName() != null ? matchUser.getName() : "Buddy",
-                        matchUser.getArchetype() != null ? matchUser.getArchetype() : "Explorer",
-                        matchUser.getHobbies() != null ? matchUser.getHobbies() : "General",
-                        percentage
-                );
-                dto.setId(matchUser.getId());
-                dto.setSharedStrengths(pyMatch.getSharedStrengths());
-                dto.setComplementaryTraits(pyMatch.getComplementaryTraits());
-                dto.setTraitBreakdowns(pyMatch.getTraitBreakdowns());
-                matches.add(dto);
-            }
+        for (PythonMatchResponseDTO py : body) {
+            User matchUser = userMap.get(py.getBestMatchId());
+            if (matchUser == null) continue;
+
+            MatchResponseDTO dto = new MatchResponseDTO(
+                    matchUser.getName() != null ? matchUser.getName() : "Buddy",
+                    matchUser.getArchetype() != null ? matchUser.getArchetype() : "Explorer",
+                    matchUser.getHobbies() != null ? matchUser.getHobbies() : "General",
+                    py.getCompatibilityScore()
+            );
+            dto.setId(matchUser.getId());
+            dto.setSharedStrengths(py.getSharedStrengths());
+            dto.setComplementaryTraits(py.getComplementaryTraits());
+            dto.setTraitBreakdowns(py.getTraitBreakdowns());
+            matches.add(dto);
         }
 
         matches.sort((a, b) -> Integer.compare(b.getCompatibilityPercentage(), a.getCompatibilityPercentage()));
         return matches.subList(0, Math.min(5, matches.size()));
     }
 
+    // ── Java fallback: Euclidean distance on Big Five traits ─────────────────
+
     /**
-     * Pure Java fallback matching based on Big-5 personality trait similarity.
-     * Uses normalised Euclidean distance to compute compatibility percentage.
+     * Pure-Java fallback when the Python engine is unreachable.
+     * Uses normalised Euclidean distance across all five traits.
      */
     private List<MatchResponseDTO> calculateMatchesJava(User currentUser, List<User> candidates) {
         double[] currentTraits = getTraitsArray(currentUser);
 
-        // Build scored list
-        List<Map.Entry<User, Double>> scored = new ArrayList<>();
-        for (User candidate : candidates) {
-            double[] candidateTraits = getTraitsArray(candidate);
-            double distance = euclideanDistance(currentTraits, candidateTraits);
-            // Max possible Euclidean distance for 5 traits (0-100 range each) = sqrt(5 * 10000) = ~223.6
-            double maxDistance = 223.6;
-            double similarity = (1.0 - (distance / maxDistance)) * 100.0;
-            scored.add(Map.entry(candidate, similarity));
-        }
+        List<Map.Entry<User, Double>> scored = candidates.stream()
+                .map(c -> {
+                    double[] ct = getTraitsArray(c);
+                    double distance = euclideanDistance(currentTraits, ct);
+                    double similarity = (1.0 - distance / 223.6) * 100.0;
+                    return Map.entry(c, similarity);
+                })
+                .sorted((a, b) -> Double.compare(b.getValue(), a.getValue()))
+                .collect(Collectors.toList());
 
-        // Sort descending by score
-        scored.sort((a, b) -> Double.compare(b.getValue(), a.getValue()));
-
-        List<MatchResponseDTO> matches = new ArrayList<>();
         int limit = Math.min(5, scored.size());
+        List<MatchResponseDTO> matches = new ArrayList<>();
         for (int i = 0; i < limit; i++) {
             User u = scored.get(i).getKey();
             int pct = (int) Math.round(Math.max(0, Math.min(100, scored.get(i).getValue())));
+            double[] candidateTraits = getTraitsArray(u);
 
             MatchResponseDTO dto = new MatchResponseDTO(
                     u.getName() != null ? u.getName() : "Buddy",
@@ -145,118 +182,84 @@ public class MatchingService {
                     pct
             );
             dto.setId(u.getId());
-
-            double[] candidateTraits = getTraitsArray(u);
             dto.setSharedStrengths(computeSharedStrengths(currentTraits, candidateTraits));
             dto.setComplementaryTraits(computeComplementaryTraits(currentTraits, candidateTraits));
             dto.setTraitBreakdowns(computeTraitBreakdowns(currentTraits, candidateTraits));
-
             matches.add(dto);
         }
         return matches;
     }
 
+    // ── Trait helpers ─────────────────────────────────────────────────────────
+
     private double[] getTraitsArray(User user) {
         return new double[]{
-                user.getOpenness() != null ? user.getOpenness() : 0,
-                user.getConscientiousness() != null ? user.getConscientiousness() : 0,
-                user.getExtraversion() != null ? user.getExtraversion() : 0,
-                user.getAgreeableness() != null ? user.getAgreeableness() : 0,
-                // Invert neuroticism: lower neuroticism is better for compatibility
-                user.getNeuroticism() != null ? (100 - user.getNeuroticism()) : 0
+                nz(user.getOpenness()),
+                nz(user.getConscientiousness()),
+                nz(user.getExtraversion()),
+                nz(user.getAgreeableness()),
+                100.0 - nz(user.getNeuroticism())   // invert to "calm"
         };
     }
+
+    private double nz(Double v) { return v != null ? v : 0.0; }
 
     private double euclideanDistance(double[] a, double[] b) {
         double sum = 0;
         for (int i = 0; i < a.length; i++) {
-            double diff = a[i] - b[i];
-            sum += diff * diff;
+            double d = a[i] - b[i];
+            sum += d * d;
         }
         return Math.sqrt(sum);
     }
 
-    /**
-     * A shared strength = a trait where BOTH users score >= 70.
-     */
-    private List<String> computeSharedStrengths(double[] current, double[] candidate) {
-        List<String> strengths = new ArrayList<>();
+    // ── Shared strengths / complements / breakdowns (Java fallback) ──────────
+
+    private List<String> computeSharedStrengths(double[] a, double[] b) {
+        List<String> out = new ArrayList<>();
         for (int i = 0; i < TRAIT_NAMES.length; i++) {
-            if (current[i] >= 60 && candidate[i] >= 60) {
-                strengths.add(capitalize(TRAIT_NAMES[i]));
-            }
+            if (a[i] >= 60 && b[i] >= 60) out.add(capitalize(TRAIT_NAMES[i]));
         }
-        // Extra badges
-        if (strengths.size() >= 4) strengths.add("Exceptional Personality Alignment");
-        else if (strengthCount(current, candidate, 60) >= 2) strengths.add("Strong Personality Overlap");
-        return strengths;
+        if (out.size() >= 4) out.add("Exceptional Personality Alignment");
+        else if (out.size() >= 2) out.add("Strong Personality Overlap");
+        return out;
     }
 
-    private int strengthCount(double[] a, double[] b, double threshold) {
-        int count = 0;
-        for (int i = 0; i < a.length; i++) {
-            if (a[i] >= threshold && b[i] >= threshold) count++;
-        }
-        return count;
-    }
-
-    /**
-     * Complementary traits = one user is high (>=65) and the other is moderate (30-65),
-     * creating balance rather than conflict.
-     */
-    private List<String> computeComplementaryTraits(double[] current, double[] candidate) {
-        List<String> complementary = new ArrayList<>();
+    private List<String> computeComplementaryTraits(double[] a, double[] b) {
+        List<String> out = new ArrayList<>();
         for (int i = 0; i < TRAIT_NAMES.length; i++) {
-            if (current[i] >= 65 && candidate[i] >= 30 && candidate[i] < 65) {
-                complementary.add(capitalize(TRAIT_NAMES[i]) + " balance");
-            } else if (candidate[i] >= 65 && current[i] >= 30 && current[i] < 65) {
-                complementary.add(capitalize(TRAIT_NAMES[i]) + " complement");
-            }
+            if (a[i] >= 65 && b[i] >= 30 && b[i] < 65) out.add(capitalize(TRAIT_NAMES[i]) + " balance");
+            else if (b[i] >= 65 && a[i] >= 30 && a[i] < 65) out.add(capitalize(TRAIT_NAMES[i]) + " complement");
         }
-        return complementary;
+        return out;
     }
 
-    /**
-     * Build per-trait breakdown with labels, scores for both users, and match quality.
-     */
-    private List<Map<String, Object>> computeTraitBreakdowns(double[] current, double[] candidate) {
-        List<Map<String, Object>> breakdowns = new ArrayList<>();
+    private List<Map<String, Object>> computeTraitBreakdowns(double[] a, double[] b) {
+        List<Map<String, Object>> out = new ArrayList<>();
         for (int i = 0; i < TRAIT_NAMES.length; i++) {
-            Map<String, Object> entry = new LinkedHashMap<>();
-            entry.put("trait", capitalize(TRAIT_NAMES[i]));
-            entry.put("userScore", (int) Math.round(current[i]));
-            entry.put("matchScore", (int) Math.round(candidate[i]));
-            int diff = (int) Math.abs(current[i] - candidate[i]);
-            String quality;
-            if (diff <= 10) quality = "Very High";
-            else if (diff <= 25) quality = "High";
-            else if (diff <= 45) quality = "Moderate";
-            else quality = "Low";
-            entry.put("matchQuality", quality);
-            breakdowns.add(entry);
+            Map<String, Object> e = new LinkedHashMap<>();
+            e.put("trait", capitalize(TRAIT_NAMES[i]));
+            e.put("userScore", (int) Math.round(a[i]));
+            e.put("matchScore", (int) Math.round(b[i]));
+            int diff = (int) Math.abs(a[i] - b[i]);
+            e.put("matchQuality", diff <= 10 ? "Very High" : diff <= 25 ? "High" : diff <= 45 ? "Moderate" : "Low");
+            out.add(e);
         }
-        return breakdowns;
+        return out;
     }
 
-    private String capitalize(String s) {
-        if (s == null || s.isEmpty()) return s;
-        return s.substring(0, 1).toUpperCase() + s.substring(1);
-    }
+    // ── Discover: personality + city boost + hobby overlap ─────────────────────
 
     /**
-     * Enhanced matching for Discover: personality + city boost + hobby overlap + recency.
-     * Returns richer DTOs suitable for the Discover page (archetype, photos, city, etc.).
+     * Enhanced matching for the Discover page.
+     * <p>
+     * Scoring: Euclidean base + city boost (+10) + hobby overlap (+5 each, max +15),
+     * capped at 100.
      *
-     * Scoring:
-     *   base score    = Euclidean distance on 5 Big-Five traits (0–100)
-     *   city boost    = +10 if same city (capped at 100)
-     *   hobby bonus   = +5 per shared hobby, max +15 (capped at 100 after city boost)
-     *   recency bonus = +5 if quiz completed within last 7 days
-     *   final score   = min(100, base + cityBoost + hobbyBonus + recencyBonus)
-     *
-     * Sort: finalScore DESC → hobbyOverlap DESC → name ASC
+     * @return sorted list limited to {@code limit} entries, ready for JSON serialisation.
      */
-    public List<Map<String, Object>> discoverMatches(User currentUser, List<User> candidates, String city, int limit) {
+    public List<Map<String, Object>> discoverMatches(User currentUser, List<User> candidates,
+                                                     String city, int limit) {
         if (currentUser.getOpenness() == null || candidates == null || candidates.isEmpty()) {
             return new ArrayList<>();
         }
@@ -272,71 +275,59 @@ public class MatchingService {
             if (candidate.getOpenness() == null) continue;
 
             double[] candidateTraits = getTraitsArray(candidate);
-            double distance = euclideanDistance(currentTraits, candidateTraits);
-            double maxDistance = 223.6;
-            double baseScore = (1.0 - (distance / maxDistance)) * 100.0;
+            double baseScore = (1.0 - euclideanDistance(currentTraits, candidateTraits) / 223.6) * 100.0;
 
-            // City boost
             double cityBoost = 0;
             if (currentUserCity != null && !currentUserCity.isBlank()
                     && currentUserCity.equalsIgnoreCase(candidate.getCity())) {
                 cityBoost = 10;
             }
 
-            // Hobby overlap
-            List<String> candidateHobbies = parseHobbies(candidate.getHobbies());
             long hobbyOverlap = currentUserHobbies.stream()
-                    .filter(h -> candidateHobbies.stream()
+                    .filter(h -> parseHobbies(candidate.getHobbies()).stream()
                             .anyMatch(ch -> ch.equalsIgnoreCase(h)))
                     .count();
             double hobbyBonus = Math.min(hobbyOverlap * 5, 15);
 
-            // Users with no shared hobbies don't get a penalty — base score stands
-
-            double finalScore = Math.min(100, baseScore + cityBoost + hobbyBonus);
-            int score = (int) Math.round(Math.max(0, finalScore));
+            int score = (int) Math.round(Math.max(0, Math.min(100, baseScore + cityBoost + hobbyBonus)));
 
             Map<String, Object> entry = new LinkedHashMap<>();
             entry.put("id", candidate.getId());
-            entry.put("name", candidate.getName() != null ? candidate.getName() : "Buddy");
-            entry.put("archetype", candidate.getArchetype() != null ? candidate.getArchetype() : "Explorer");
+            entry.put("name", n(candidate.getName(), "Buddy"));
+            entry.put("archetype", n(candidate.getArchetype(), "Explorer"));
             entry.put("archetypeEmoji", getArchetypeEmoji(candidate.getArchetype()));
-            entry.put("hobbies", candidate.getHobbies() != null ? candidate.getHobbies() : "");
+            entry.put("hobbies", n(candidate.getHobbies(), ""));
             entry.put("city", candidate.getCity());
             entry.put("age", candidate.getAge());
             entry.put("personalityTagline", candidate.getPersonalityTagline());
-            entry.put("photosJson", candidate.getPhotosJson() != null ? candidate.getPhotosJson() : "[]");
+            entry.put("photosJson", n(candidate.getPhotosJson(), "[]"));
             entry.put("matchLabel", scoreToDiscoverLabel(score));
             entry.put("matchScore", score);
             entry.put("sharedStrengths", computeSharedStrengths(currentTraits, candidateTraits));
             entry.put("complementaryTraits", computeComplementaryTraits(currentTraits, candidateTraits));
             entry.put("hobbyOverlapCount", (int) hobbyOverlap);
             entry.put("sameCity", cityBoost > 0);
-            entry.put("distanceKm", null); // reserved for future geo-radius filtering
-
+            entry.put("distanceKm", null);
             results.add(entry);
         }
 
-        // Sort: score DESC → hobby overlap DESC → name ASC
         results.sort((a, b) -> {
-            int scoreCompare = Integer.compare((int) b.get("matchScore"), (int) a.get("matchScore"));
-            if (scoreCompare != 0) return scoreCompare;
-            int hobbyCompare = Integer.compare((int) b.get("hobbyOverlapCount"), (int) a.get("hobbyOverlapCount"));
-            if (hobbyCompare != 0) return hobbyCompare;
-            return String.valueOf(a.get("name")).compareTo(String.valueOf(b.get("name")));
+            int cmp = Integer.compare((int) b.get("matchScore"), (int) a.get("matchScore"));
+            if (cmp != 0) return cmp;
+            cmp = Integer.compare((int) b.get("hobbyOverlapCount"), (int) a.get("hobbyOverlapCount"));
+            return cmp != 0 ? cmp : String.valueOf(a.get("name")).compareTo(String.valueOf(b.get("name")));
         });
 
         return results.stream().limit(Math.min(limit, results.size())).collect(Collectors.toList());
     }
 
-    /**
-     * Parse comma-separated hobby string into trimmed list.
-     */
-    private List<String> parseHobbies(String hobbiesStr) {
-        if (hobbiesStr == null || hobbiesStr.isBlank()) return new ArrayList<>();
-        return Arrays.stream(hobbiesStr.split(","))
+    // ── Misc helpers ──────────────────────────────────────────────────────────
+
+    private List<String> parseHobbies(String s) {
+        if (s == null || s.isBlank()) return new ArrayList<>();
+        return Arrays.stream(s.split(","))
                 .map(String::trim)
-                .filter(s -> !s.isEmpty())
+                .filter(p -> !p.isEmpty())
                 .collect(Collectors.toList());
     }
 
@@ -352,15 +343,24 @@ public class MatchingService {
         if (archetype == null) return "🧭";
         return switch (archetype) {
             case "The Visionary" -> "🔮";
-            case "The Champion" -> "🏆";
-            case "The Guardian" -> "🛡️";
-            case "The Diplomat" -> "🕊️";
-            case "The Analyst" -> "🔬";
-            case "The Explorer" -> "🧭";
-            case "The Anchor" -> "⚓";
-            case "The Catalyst" -> "⚡";
-            default -> "🧭";
+            case "The Champion"  -> "🏆";
+            case "The Guardian"  -> "🛡️";
+            case "The Diplomat"  -> "🕊️";
+            case "The Analyst"   -> "🔬";
+            case "The Explorer"  -> "🧭";
+            case "The Anchor"    -> "⚓";
+            case "The Catalyst"  -> "⚡";
+            default              -> "🧭";
         };
+    }
+
+    private String capitalize(String s) {
+        if (s == null || s.isEmpty()) return s;
+        return Character.toUpperCase(s.charAt(0)) + s.substring(1);
+    }
+
+    private String n(String value, String fallback) {
+        return value != null ? value : fallback;
     }
 
     private UserTraitsDTO convertToTraitsDTO(User user) {

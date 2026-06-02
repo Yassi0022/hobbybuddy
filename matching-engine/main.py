@@ -282,6 +282,11 @@ def compute_trait_breakdowns(t1: np.ndarray, t2: np.ndarray) -> List[TraitBreakd
 
 # ── Endpoint ─────────────────────────────────────────────────────────────────
 
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
+
 @app.post("/calculate-match", response_model=List[MatchResponse])
 def calculate_match(request: MatchRequest):
     target_vec = _to_vector(request.target_user)

@@ -1,4 +1,5 @@
 services:
+  # ── Service 1: Spring Boot web app (Java) ──────────────────────────────────
   - type: web
     name: hobbybuddy
     runtime: java
@@ -12,8 +13,22 @@ services:
       - key: SPRING_DATASOURCE_PASSWORD
         sync: false
       - key: FASTAPI_URL
-        sync: false
+        fromService:
+          type: web
+          name: hobbybuddy-matching
+          envVarKey: RENDER_EXTERNAL_URL
       - key: PORT
         value: 8080
     healthCheckPath: /api/health
+    plan: free
+
+  # ── Service 2: Python matching engine (FastAPI) ────────────────────────────
+  - type: web
+    name: hobbybuddy-matching
+    runtime: docker
+    dockerfilePath: matching-engine/Dockerfile
+    envVars:
+      - key: PORT
+        value: 8001
+    healthCheckPath: /health
     plan: free
