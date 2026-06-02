@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { API_BASE_URL, QUESTIONS, TRAIT_LABELS, TRAIT_ICONS, SCALE_LABELS, HOBBIES_LIST, TOTAL } from '../utils/constants';
+import { API_BASE_URL, QUESTIONS, TRAIT_VIBE_LABELS, TRAIT_ICONS, TRAIT_VIBE_CLASSES, SCALE_LABELS, HOBBIES_LIST, TOTAL } from '../utils/constants';
 import { getArchetype } from '../utils/archetype';
 import { showToast } from '../utils/toast';
 import { shareVibe, shareToWhatsApp, shareToTelegram, shareToTwitter } from '../utils/share';
@@ -35,7 +35,7 @@ export default function Quiz() {
 
     if (nextIdx >= TOTAL) {
       calculateTraits(newAnswers);
-    } else if (nextIdx % 10 === 0) {
+    } else if (nextIdx % 4 === 0 && nextIdx < TOTAL) {
       setScreen('unlock');
       setTimeout(() => {
         setCurrentIdx(nextIdx);
@@ -125,11 +125,11 @@ export default function Quiz() {
         <div className="bg-mesh"><div className="orb orb-1"></div><div className="orb orb-2"></div><div className="orb orb-3"></div></div>
         <nav className="navbar navbar-solid"><div className="nav-container"><a href="/" className="logo"><i className="fas fa-users"></i><span>HobbyBuddy</span></a></div></nav>
         <div className="gamified-screen" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column', textAlign: 'center', padding: '40px 24px', minHeight: '100vh' }}>
-          <div className="auth-icon" style={{ background: 'var(--color-accent-violet)', marginBottom: '30px' }}><i className="fas fa-shield-halved"></i></div>
+          <div className="auth-icon" style={{ background: 'linear-gradient(135deg, #c2410c, #f43f5e)', marginBottom: '30px' }}><i className="fas fa-shield-halved"></i></div>
           <h1 style={{ fontSize: '2.2rem', marginBottom: '20px' }}>Before we begin</h1>
-          <div style={{ maxWidth: '500px', background: 'rgba(255,255,255,0.05)', padding: '30px', borderRadius: '20px', textAlign: 'left', marginBottom: '30px' }}>
-            <p style={{ marginBottom: '15px' }}>You're about to complete the IPIP Big-Five personality assessment. Your results will be used exclusively to match you with compatible hobby buddies. We do not sell your data.</p>
-            <label style={{ display: 'flex', gap: '12px', cursor: 'pointer', alignItems: 'flex-start' }}>
+          <div style={{ maxWidth: '500px', background: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-card)', padding: '30px', borderRadius: '20px', textAlign: 'left', marginBottom: '30px' }}>
+            <p style={{ marginBottom: '15px', color: 'var(--color-text-muted)' }}>You're about to take a short personality quiz. Your answers will be used exclusively to match you with compatible hobby buddies. We do not sell your data.</p>
+            <label style={{ display: 'flex', gap: '12px', cursor: 'pointer', alignItems: 'flex-start', color: 'var(--color-text-main)' }}>
               <input type="checkbox" style={{ marginTop: '5px' }} onChange={(e) => { if (e.target.checked) setScreen('splash'); }} />
               <span style={{ fontSize: '0.95rem' }}>I consent to the processing of my personality data for matching purposes (GDPR Art. 6).</span>
             </label>
@@ -148,9 +148,9 @@ export default function Quiz() {
         <div className="gamified-screen" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column', textAlign: 'center', padding: '20px', minHeight: '100vh' }}>
           <h1 className="splash-title animate-in">Discover who you really are</h1>
           <p className="splash-subtitle animate-in delay-1">
-            <i className="fas fa-stopwatch" style={{ color: 'var(--color-accent-teal)' }}></i> Just 4 minutes &bull;
-            <i className="fas fa-list-ol" style={{ color: 'var(--color-accent-violet)' }}></i> 50 questions &bull;
-            <i className="fas fa-microscope" style={{ color: 'var(--color-accent-rose)' }}></i> Scientific backend
+            <i className="fas fa-stopwatch" style={{ color: 'var(--color-accent-emerald)' }}></i> Just 3 minutes &bull;
+            <i className="fas fa-list-ol" style={{ color: 'var(--color-accent-warm)' }}></i> 20 quick questions &bull;
+            <i className="fas fa-sparkles" style={{ color: 'var(--color-accent-rose)' }}></i> Find your vibe
           </p>
         </div>
       </>
@@ -159,17 +159,17 @@ export default function Quiz() {
 
   // --- UNLOCK ---
   if (screen === 'unlock') {
-    const unlockedTrait = Math.floor(currentIdx / 10) - 1;
+    const unlockedTrait = Math.floor(currentIdx / 4);
     return (
       <>
         <div className="bg-mesh"><div className="orb orb-1"></div><div className="orb orb-2"></div><div className="orb orb-3"></div></div>
         <nav className="navbar navbar-solid"><div className="nav-container"><a href="/" className="logo"><i className="fas fa-users"></i><span>HobbyBuddy</span></a></div></nav>
         <div className="gamified-screen" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column', padding: '20px', minHeight: '100vh' }}>
-          <div style={{ fontSize: '5rem', marginBottom: '20px', animation: 'bounceIn 0.5s ease', color: 'var(--color-accent-violet)' }}>
+          <div style={{ fontSize: '5rem', marginBottom: '20px', animation: 'bounceIn 0.5s ease', color: 'var(--color-accent-warm)' }}>
             <i className={`fas ${TRAIT_ICONS[unlockedTrait] || 'fa-unlock'}`}></i>
           </div>
-          <h2 style={{ fontSize: '2.2rem', marginBottom: '16px', textAlign: 'center', fontWeight: 800 }}>🔓 Unlocked: {TRAIT_LABELS[unlockedTrait] || 'Trait'}!</h2>
-          <p style={{ color: 'var(--color-text-muted)', maxWidth: '440px', margin: '0 auto', textAlign: 'center', fontSize: '1.05rem' }}>Our AI is building your personality map...</p>
+          <h2 style={{ fontSize: '2.2rem', marginBottom: '16px', textAlign: 'center', fontWeight: 800 }}>🔓 Unlocked: {TRAIT_VIBE_LABELS[unlockedTrait] || 'Trait'}!</h2>
+          <p style={{ color: 'var(--color-text-muted)', maxWidth: '440px', margin: '0 auto', textAlign: 'center', fontSize: '1.05rem' }}>Building your vibe profile...</p>
         </div>
       </>
     );
@@ -193,20 +193,30 @@ export default function Quiz() {
             </div>
           </div>
           <div style={{ textAlign: 'center', fontSize: '0.9rem', color: 'var(--color-text-light)', margin: '12px 0 0', fontWeight: 500 }}>
-            Discovering your personality... {progress}% complete
+            Finding your vibe... {progress}%
           </div>
           <div className="quiz-card-container">
             <div className="quiz-card">
-              <div className="quiz-card-trait badge" style={{ marginBottom: '20px', fontSize: '0.8rem', padding: '6px 14px' }}>
-                Round {Math.floor(currentIdx / 10) + 1}: {TRAIT_LABELS[traitIdx]}
+              <div className={`quiz-card-trait ${TRAIT_VIBE_CLASSES[traitIdx] || ''}`} style={{ marginBottom: '20px', fontSize: '0.78rem', padding: '5px 14px' }}>
+                Vibe {Math.floor(currentIdx / 4) + 1}/5: {TRAIT_VIBE_LABELS[traitIdx]}
               </div>
               <p className="quiz-card-question">{questionText}</p>
-              <div className="quiz-card-options btn-group-horizontal" style={{ display: 'flex', flexDirection: 'row', gap: '10px', flexWrap: 'wrap', justifyContent: 'center', marginTop: '30px' }}>
-                {SCALE_LABELS.map((label, i) => (
-                  <button key={i} className="btn-quiz-option btn-secondary" onClick={() => handleAnswer(i + 1)} style={{ minWidth: '100px', padding: '12px 16px' }}>
-                    {label}
-                  </button>
-                ))}
+              <div className="quiz-scale">
+                <div className="quiz-scale-labels">
+                  <span>Strongly disagree</span>
+                  <span>Strongly agree</span>
+                </div>
+                <div className="quiz-scale-options">
+                  {SCALE_LABELS.map((label, i) => (
+                    <button
+                      key={i}
+                      className={`quiz-scale-btn${answers[currentIdx] === i + 1 ? ' selected' : ''}`}
+                      onClick={() => handleAnswer(i + 1)}
+                    >
+                      {i + 1}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -224,7 +234,7 @@ export default function Quiz() {
         <div className="gamified-screen" style={{ display: 'block', paddingTop: '80px' }}>
           <div style={{ maxWidth: '680px', margin: '0 auto', padding: '20px 24px' }}>
             <h1 style={{ fontSize: '2.2rem', textAlign: 'center', marginBottom: '10px' }}>What are your hobbies?</h1>
-            <p style={{ textAlign: 'center', color: 'var(--color-text-light)', marginBottom: '30px' }}>Select 3 to 5 hobbies to complete your profile.</p>
+            <p style={{ textAlign: 'center', color: 'var(--color-text-light)', marginBottom: '30px' }}>Pick 3–5 things you love doing.</p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'center', marginBottom: '40px' }}>
               {HOBBIES_LIST.map((hobby) => (
                 <button key={hobby} className={selectedHobbies.has(hobby) ? 'btn-primary' : 'btn-secondary'} style={{ margin: '4px', borderRadius: '100px' }} onClick={() => toggleHobby(hobby)}>
@@ -251,46 +261,30 @@ export default function Quiz() {
         <nav className="navbar navbar-solid"><div className="nav-container"><a href="/" className="logo"><i className="fas fa-users"></i><span>HobbyBuddy</span></a></div></nav>
         <div className="gamified-screen" style={{ display: 'block' }}>
           <div style={{ maxWidth: '680px', margin: '0 auto', padding: '80px 24px 60px', width: '100%' }}>
-            <h1 style={{ fontSize: '2.2rem', textAlign: 'center', marginBottom: '10px' }} className="gradient-text">Your psychological profile is ready!</h1>
-            <p style={{ textAlign: 'center', color: 'var(--color-text-light)', marginBottom: '40px' }}>Here is your digital footprint (IPIP-50 Big Five)</p>
+            <h1 style={{ fontSize: '2.2rem', textAlign: 'center', marginBottom: '10px' }} className="gradient-text">Your vibe is ready!</h1>
+            <p style={{ textAlign: 'center', color: 'var(--color-text-light)', marginBottom: '40px' }}>Based on your answers, here's who you are.</p>
 
-            <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-              <p style={{ textTransform: 'uppercase', letterSpacing: '2px', fontWeight: 700, color: 'var(--color-accent-violet)', marginBottom: '10px' }}>Your Identity Archetype</p>
-              <h2 style={{ fontSize: '3rem', fontWeight: 800, color: '#6366f1', margin: 0 }}>{archetype.emoji} {archetype.name}</h2>
+            <div style={{ textAlign: 'center', marginBottom: '56px' }}>
+              <p style={{ textTransform: 'uppercase', letterSpacing: '2px', fontWeight: 700, color: 'var(--color-accent-warm)', marginBottom: '10px' }}>Your Vibe Archetype</p>
+              <h2 style={{ fontSize: '3rem', fontWeight: 800, color: 'var(--color-primary)', margin: 0 }}>{archetype.emoji} {archetype.name}</h2>
               <p style={{ color: 'var(--color-text-muted)', marginTop: '10px' }}>{archetype.desc}</p>
             </div>
 
-            {traits && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginBottom: '40px' }}>
-                {Object.entries(traits).map(([key, val]) => (
-                  <div key={key}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                      <span style={{ fontWeight: 600, textTransform: 'capitalize' }}>{key}</span>
-                      <span>{val}%</span>
-                    </div>
-                    <div style={{ height: '8px', background: 'var(--color-input-bg)', borderRadius: '4px', overflow: 'hidden' }}>
-                      <div style={{ width: `${val}%`, height: '100%', background: 'var(--gradient-primary)', borderRadius: '4px', transition: 'width 1s ease' }}></div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
-              <button className="btn-primary btn-large" style={{ minWidth: '220px' }} onClick={() => navigate('/dashboard')}>
-                <i className="fas fa-search"></i> Find your HobbyBuddy!
+            <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+              <button className="btn-primary btn-large" style={{ minWidth: '260px' }} onClick={() => navigate('/dashboard')}>
+                <i className="fas fa-search"></i> Find your people
               </button>
-              <button className="btn-primary btn-large" style={{ minWidth: '220px' }} onClick={() => shareVibe(archetype.name)}>
-                <i className="fas fa-share-alt"></i> Share Your Vibe
+              <button className="btn-secondary" style={{ minWidth: '260px' }} onClick={() => shareVibe(archetype.name)}>
+                <i className="fas fa-share-alt"></i> Share your vibe
               </button>
-              <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', marginTop: '8px' }}>
-                <button className="btn-secondary" style={{ padding: '10px 20px', fontSize: '0.9rem' }} onClick={() => shareToWhatsApp(archetype.name)}>
+              <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '4px' }}>
+                <button className="btn-secondary" style={{ padding: '8px 16px', fontSize: '0.82rem' }} onClick={() => shareToWhatsApp(archetype.name)}>
                   <i className="fab fa-whatsapp" style={{ color: '#25D366' }}></i> WhatsApp
                 </button>
-                <button className="btn-secondary" style={{ padding: '10px 20px', fontSize: '0.9rem' }} onClick={() => shareToTelegram(archetype.name)}>
+                <button className="btn-secondary" style={{ padding: '8px 16px', fontSize: '0.82rem' }} onClick={() => shareToTelegram(archetype.name)}>
                   <i className="fab fa-telegram" style={{ color: '#0088cc' }}></i> Telegram
                 </button>
-                <button className="btn-secondary" style={{ padding: '10px 20px', fontSize: '0.9rem' }} onClick={() => shareToTwitter(archetype.name)}>
+                <button className="btn-secondary" style={{ padding: '8px 16px', fontSize: '0.82rem' }} onClick={() => shareToTwitter(archetype.name)}>
                   <i className="fab fa-x-twitter" style={{ color: '#1DA1F2' }}></i> Twitter
                 </button>
               </div>

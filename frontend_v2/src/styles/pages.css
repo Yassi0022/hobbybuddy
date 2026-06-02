@@ -12,20 +12,20 @@
     border: 1px solid var(--color-border);
     border-radius: var(--radius-lg);
     padding: 40px;
-    box-shadow: var(--shadow-hover);
+    box-shadow: var(--shadow-card);
     position: relative;
     overflow: hidden;
 }
 
 .auth-icon {
     width: 72px; height: 72px;
-    background: var(--gradient-primary);
+    background: linear-gradient(135deg, #c2410c, #f43f5e);
     color: white;
     border-radius: var(--radius-md);
     display: flex; justify-content: center; align-items: center;
     font-size: 1.8rem;
     margin: 0 auto 28px;
-    box-shadow: 0 8px 24px rgba(139, 92, 246, 0.35);
+    box-shadow: 0 8px 24px rgba(194, 65, 12, 0.25);
     flex-shrink: 0;
 }
 
@@ -38,7 +38,7 @@ form { display: flex; flex-direction: column; gap: 20px; }
     font-size: 0.85rem; font-weight: 600; color: var(--color-text-muted);
     letter-spacing: 0.05em; text-transform: uppercase;
 }
-.form-group label i { margin-right: 6px; color: var(--color-accent-violet); }
+.form-group label i { margin-right: 6px; color: var(--color-accent-warm); }
 
 input[type="text"], input[type="email"], input[type="password"] {
     width: 100%;
@@ -53,12 +53,12 @@ input[type="text"], input[type="email"], input[type="password"] {
 }
 input:focus {
     outline: none; border-color: var(--color-input-focus);
-    background: white; box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.1);
+    background: white; box-shadow: 0 0 0 4px rgba(194, 65, 12, 0.08);
 }
 
 .btn-form-primary { width: 100%; margin-top: 10px; }
 .auth-footer { text-align: center; margin-top: 24px; font-size: 0.95rem; color: var(--color-text-muted); }
-.auth-footer a { color: var(--color-accent-violet); font-weight: 600; transition: var(--transition-fast); }
+.auth-footer a { color: var(--color-accent-warm); font-weight: 600; transition: var(--transition-fast); }
 .auth-footer a:hover { color: var(--color-text-main); text-decoration: underline; }
 .form-error {
     background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2);
@@ -66,22 +66,25 @@ input:focus {
 }
 
 /* =========================================================================
-   QUIZ PAGE (Tinder Style)
+   QUIZ PAGE — Warm editorial style
 ========================================================================= */
 .quiz-page {
     min-height: 100vh;
     display: flex; flex-direction: column;
-    padding-top: 70px; /* nav height */
+    padding-top: 70px;
 }
 
 .quiz-top-progress {
-    height: 6px; background: var(--color-border);
+    height: 4px; background: var(--color-border);
     position: fixed; top: 73px; left: 0; right: 0; z-index: 99;
 }
 .quiz-top-progress-fill {
-    height: 100%; background: var(--gradient-primary); transition: width 0.3s ease; width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, #c2410c, #f43f5e);
+    transition: width 0.4s ease;
+    width: 0%;
 }
-.quiz-counter { font-weight: 700; color: var(--color-accent-violet); font-size: 1.1rem; }
+.quiz-counter { font-weight: 700; color: var(--color-accent-warm); font-size: 1.1rem; }
 
 .quiz-card-container {
     flex: 1; display: flex; justify-content: center; align-items: center;
@@ -92,10 +95,10 @@ input:focus {
     background: var(--color-bg-base-alt);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-lg);
-    padding: 50px 40px;
+    padding: 48px 40px;
     width: 100%; max-width: 600px;
     text-align: center;
-    box-shadow: var(--shadow-hover);
+    box-shadow: var(--shadow-card);
     transition: transform 0.35s ease, opacity 0.35s ease;
     transform-origin: center bottom;
 }
@@ -110,51 +113,63 @@ input:focus {
     100% { transform: translateY(0) scale(1); opacity: 1; }
 }
 
+/* Vibe trait badges — warm editorial pills */
 .quiz-card-trait {
-    display: inline-block; padding: 6px 16px; border-radius: var(--radius-full);
-    font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
-    margin-bottom: 24px;
+    display: inline-block; padding: 5px 14px; border-radius: var(--radius-full);
+    font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+    margin-bottom: 24px; border: 1px solid transparent;
 }
-/* Trait colors */
-.extraversion { background: rgba(244, 63, 94, 0.1); color: var(--color-accent-rose); border: 1px solid rgba(244, 63, 94, 0.2); }
-.agreeableness { background: rgba(16, 185, 129, 0.1); color: var(--color-success); border: 1px solid rgba(16, 185, 129, 0.2); }
-.conscientiousness { background: rgba(14, 165, 233, 0.1); color: #0ea5e9; border: 1px solid rgba(14, 165, 233, 0.2); }
-.neuroticism { background: rgba(139, 92, 246, 0.1); color: var(--color-accent-violet); border: 1px solid rgba(139, 92, 246, 0.2); }
-.openness { background: rgba(245, 158, 11, 0.1); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.2); }
+.vibe-energy     { background: rgba(244, 63, 94, 0.08); color: var(--color-accent-rose); border-color: rgba(244, 63, 94, 0.15); }
+.vibe-empathy    { background: rgba(5, 150, 105, 0.08); color: var(--color-accent-emerald); border-color: rgba(5, 150, 105, 0.15); }
+.vibe-steadiness { background: rgba(217, 119, 6, 0.08); color: var(--color-accent-amber); border-color: rgba(217, 119, 6, 0.15); }
+.vibe-calm       { background: rgba(194, 65, 12, 0.08); color: var(--color-accent-warm); border-color: rgba(194, 65, 12, 0.15); }
+.vibe-curiosity  { background: rgba(245, 158, 11, 0.08); color: #d97706; border-color: rgba(245, 158, 11, 0.15); }
 
-.quiz-card-question { font-size: 1.8rem; font-weight: 700; margin-bottom: 50px; color: var(--color-text-main); line-height: 1.3; }
+/* Legacy Big Five classes — mapped to warm palette */
+.extraversion { background: rgba(244, 63, 94, 0.08) !important; color: var(--color-accent-rose) !important; border-color: rgba(244, 63, 94, 0.15) !important; }
+.agreeableness { background: rgba(5, 150, 105, 0.08) !important; color: var(--color-accent-emerald) !important; border-color: rgba(5, 150, 105, 0.15) !important; }
+.conscientiousness { background: rgba(217, 119, 6, 0.08) !important; color: var(--color-accent-amber) !important; border-color: rgba(217, 119, 6, 0.15) !important; }
+.neuroticism { background: rgba(194, 65, 12, 0.08) !important; color: var(--color-accent-warm) !important; border-color: rgba(194, 65, 12, 0.15) !important; }
+.openness { background: rgba(245, 158, 11, 0.08) !important; color: #d97706 !important; border-color: rgba(245, 158, 11, 0.15) !important; }
 
-.quiz-bubble-label {
+.quiz-card-question { font-size: 1.7rem; font-weight: 700; margin-bottom: 40px; color: var(--color-text-main); line-height: 1.35; }
+
+/* ── Scale selector — warm editorial row ── */
+.quiz-scale { width: 100%; }
+.quiz-scale-labels {
     display: flex; justify-content: space-between;
-    font-size: 0.8rem; color: var(--color-text-muted); font-weight: 600; text-transform: uppercase;
-    margin-bottom: 12px; padding: 0 10px;
+    font-size: 0.72rem; color: var(--color-text-light); font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.04em;
+    margin-bottom: 10px; padding: 0 4px;
 }
-
-.quiz-card-options { display: flex; justify-content: space-between; gap: 8px; }
-
-.quiz-bubble {
-    width: 60px; height: 60px;
-    border-radius: 50%;
-    border: 2px solid var(--color-border);
-    display: flex; justify-content: center; align-items: center;
-    font-size: 1.25rem; font-weight: 600;
+.quiz-scale-options {
+    display: flex; gap: 8px; justify-content: space-between;
+}
+.quiz-scale-btn {
+    flex: 1; max-width: 64px;
+    aspect-ratio: 1;
+    border-radius: 12px;
+    border: 1.5px solid var(--color-border);
+    background: var(--color-bg-base-alt);
     color: var(--color-text-muted);
+    font-size: 1.1rem; font-weight: 700;
+    font-family: var(--font-body);
     cursor: pointer;
     transition: var(--transition-fast);
-    background: var(--color-bg-base-alt);
+    display: flex; align-items: center; justify-content: center;
 }
-
-.quiz-bubble:hover {
-    border-color: var(--color-accent-violet);
-    color: var(--color-accent-violet);
-    transform: scale(1.1);
-    box-shadow: 0 5px 15px rgba(139, 92, 246, 0.15);
+.quiz-scale-btn:hover {
+    border-color: var(--color-accent-warm);
+    color: var(--color-accent-warm);
+    background: rgba(194, 65, 12, 0.04);
+    transform: translateY(-2px);
 }
-
-.quiz-bubble.selected {
-    background: var(--gradient-primary);
-    border-color: transparent; color: white; transform: scale(1.15);
-    box-shadow: var(--shadow-glow);
+.quiz-scale-btn.selected {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: white;
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 4px 16px rgba(194, 65, 12, 0.25);
 }
 
 /* Quiz nav bottom */
@@ -169,14 +184,20 @@ input:focus {
 }
 .quiz-btn-back:hover:not(:disabled), .quiz-btn-skip:hover { background: rgba(0,0,0,0.05); color: var(--color-text-main); }
 .quiz-btn-skip { color: var(--color-text-main); }
-.quiz-btn-skip.finish { background: var(--gradient-primary); color: white; box-shadow: var(--shadow-soft); }
-.quiz-btn-skip.finish:hover { transform: translateY(-2px); box-shadow: var(--shadow-hover); }
+.quiz-btn-skip.finish {
+    background: linear-gradient(135deg, #c2410c, #f43f5e);
+    color: white; box-shadow: 0 4px 16px rgba(194, 65, 12, 0.2);
+}
+.quiz-btn-skip.finish:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(194, 65, 12, 0.3); }
 
 /* Dots */
 .quiz-dots { display: flex; gap: 4px; overflow: hidden; flex: 1; justify-content: center; margin: 0 20px; }
 .quiz-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--color-border); transition: 0.3s; }
-.quiz-dot.answered { background: var(--color-accent-violet); opacity: 0.5; }
-.quiz-dot.current { background: var(--gradient-primary); transform: scale(1.5); opacity: 1; border-radius: 10px; width: 12px; }
+.quiz-dot.answered { background: var(--color-accent-warm); opacity: 0.4; }
+.quiz-dot.current {
+    background: var(--color-primary);
+    transform: scale(1.5); opacity: 1; border-radius: 10px; width: 12px;
+}
 
 /* =========================================================================
    SOCIAL DASHBOARD FEED (Brand New UI)
@@ -212,7 +233,8 @@ input:focus {
 }
 .avatar-lg {
     width: 80px; height: 80px; border-radius: 50%;
-    background: var(--gradient-secondary); color: white;
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    color: #92400e;
     display: flex; justify-content: center; align-items: center; font-size: 2rem;
     margin: 0 auto 15px;
     border: 4px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.08);
@@ -233,7 +255,7 @@ input:focus {
     border-radius: var(--radius-md); transition: var(--transition-fast); text-align: left;
     background: transparent; border: none; cursor: pointer; text-decoration: none;
 }
-.menu-item:hover, .menu-item.active { background: rgba(99, 102, 241, 0.08); color: var(--color-accent-violet); }
+.menu-item:hover, .menu-item.active { background: rgba(194, 65, 12, 0.06); color: var(--color-accent-warm); }
 .menu-item i { width: 20px; text-align: center; font-size: 1.1rem; }
 
 /* MAIN FEED */
@@ -243,7 +265,7 @@ input:focus {
     display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
 }
 .section-header h2 { font-size: 1.5rem; color: var(--color-text-main); display: flex; align-items: center; gap: 10px;}
-.section-header h2 i { color: var(--color-accent-violet); }
+.section-header h2 i { color: var(--color-accent-warm); }
 
 /* Match Cards Horizontal Scroll */
 .matches-scroll {
@@ -259,7 +281,7 @@ input:focus {
     scroll-snap-align: start; transition: transform var(--transition-fast);
     position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center;
 }
-.match-card-social:hover { transform: translateY(-5px); box-shadow: var(--shadow-hover); border-color: rgba(99, 102, 241, 0.3); }
+.match-card-social:hover { transform: translateY(-5px); box-shadow: var(--shadow-hover); border-color: rgba(194, 65, 12, 0.2); }
 
 .match-avatar-social {
     width: 70px; height: 70px; border-radius: 50%; margin: 0 auto 15px;
@@ -269,10 +291,10 @@ input:focus {
 
 .match-label-badge {
     position: absolute; top: 12px; right: 12px;
-    background: var(--gradient-primary); color: white;
+    background: linear-gradient(135deg, #c2410c, #f43f5e); color: white;
     font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
     padding: 4px 10px; border-radius: 12px; letter-spacing: 0.05em;
-    box-shadow: 0 4px 10px rgba(168, 85, 247, 0.3);
+    box-shadow: 0 4px 10px rgba(194, 65, 12, 0.2);
 }
 
 .match-card-social h3 { font-size: 1.1rem; margin-bottom: 5px; }
@@ -283,7 +305,7 @@ input:focus {
     border: none; font-weight: 600; cursor: pointer; transition: 0.2s;
     display: flex; justify-content: center; align-items: center; gap: 8px;
 }
-.btn-msg:hover { background: var(--color-accent-violet); color: white; }
+.btn-msg:hover { background: var(--color-accent-warm); color: white; }
 
 /* Posts / Events Feed */
 .post-card {
@@ -339,7 +361,9 @@ input:focus {
 .chat-modal.open { transform: translateY(0); }
 
 .chat-header {
-    padding: 15px 20px; background: var(--gradient-primary); color: white;
+    padding: 15px 20px;
+    background: linear-gradient(135deg, #c2410c, #f43f5e);
+    color: white;
     border-radius: calc(var(--radius-lg) - 1px) calc(var(--radius-lg) - 1px) 0 0;
     display: flex; justify-content: space-between; align-items: center;
 }
@@ -356,7 +380,7 @@ input:focus {
     position: relative;
 }
 .msg-received { background: white; border: 1px solid var(--color-border); align-self: flex-start; border-bottom-left-radius: 4px; }
-.msg-sent { background: var(--color-accent-violet); color: white; align-self: flex-end; border-bottom-right-radius: 4px; box-shadow: 0 4px 10px rgba(139, 92, 246, 0.2); }
+.msg-sent { background: var(--color-accent-warm); color: white; align-self: flex-end; border-bottom-right-radius: 4px; box-shadow: 0 4px 10px rgba(194, 65, 12, 0.15); }
 
 .chat-input {
     padding: 15px; border-top: 1px solid var(--color-border); display: flex; gap: 10px; background: white;
@@ -366,9 +390,11 @@ input:focus {
     flex: 1; padding: 10px 15px; border-radius: var(--radius-full); border: 1px solid var(--color-input-border);
     outline: none; background: var(--color-input-bg);
 }
-.chat-input input:focus { border-color: var(--color-accent-violet); background: white; }
+.chat-input input:focus { border-color: var(--color-accent-warm); background: white; }
 .btn-send {
-    width: 40px; height: 40px; border-radius: 50%; background: var(--gradient-primary); color: white;
+    width: 40px; height: 40px; border-radius: 50%;
+    background: linear-gradient(135deg, #c2410c, #f43f5e);
+    color: white;
     border: none; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: 0.2s;
 }
 .btn-send:hover { transform: scale(1.05); }
@@ -378,7 +404,7 @@ input:focus {
 .loader-container { padding: 40px; text-align: center; color: var(--color-text-muted); }
 .spinner-border {
     width: 30px; height: 30px; border: 3px solid var(--color-border);
-    border-top-color: var(--color-accent-violet); border-radius: 50%; margin: 0 auto 15px;
+    border-top-color: var(--color-accent-warm); border-radius: 50%; margin: 0 auto 15px;
     animation: spin 1s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }

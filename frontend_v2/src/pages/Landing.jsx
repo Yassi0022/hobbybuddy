@@ -160,7 +160,7 @@ export default function Landing() {
             <div className={styles.traitsRow}>
               {[
                 { icon: 'fa-lightbulb', color: '#ff6b35', title: 'Curiosity', desc: 'Adventure seeker or homebody — find someone with the same spark.' },
-                { icon: 'fa-fire', color: '#6366f1', title: 'Energy', desc: 'How fired up you get about the things you love.' },
+                { icon: 'fa-fire', color: '#c2410c', title: 'Energy', desc: 'How fired up you get about the things you love.' },
                 { icon: 'fa-comments', color: '#c026d3', title: 'Social style', desc: 'Deep one-on-one chats or electric group hangouts — your call.' },
               ].map((trait, i) => (
                 <div
@@ -230,7 +230,7 @@ export default function Landing() {
 
             <div className={styles.statsList}>
               {[
-                { icon: 'fa-calendar-check', label: 'Real events & hangouts', desc: 'Show up together, not just scroll', color: '#6366f1' },
+                { icon: 'fa-calendar-check', label: 'Real events & hangouts', desc: 'Show up together, not just scroll', color: '#c2410c' },
                 { icon: 'fa-shield-halved', label: 'Profiles you can trust', desc: 'Real people, real interests — no games', color: '#10b981' },
                 { icon: 'fa-location-dot', label: 'Right in your neighborhood', desc: 'Meet locals who are just around the corner', color: '#f43f5e' },
               ].map((stat, i) => (
@@ -275,7 +275,7 @@ export default function Landing() {
 
             <div className={styles.stepsGrid}>
               {[
-                { num: '1', title: 'Take the Quiz', desc: 'A quick 15-question vibe check that takes about 2 minutes. Genuinely fun — promise.', icon: 'fa-brain', color: '#6366f1' },
+                { num: '1', title: 'Take the Quiz', desc: 'A quick 20-question vibe check that takes about 3 minutes. Genuinely fun — promise.', icon: 'fa-brain', color: '#c2410c' },
                 { num: '2', title: 'Get Matched', desc: 'Our Vibe Engine finds locals who share your energy, interests, and vibe.', icon: 'fa-heart', color: '#ec4899' },
                 { num: '3', title: 'Show Up & Connect', desc: 'Join local events, grab coffee, or start a hobby together. Real life starts here.', icon: 'fa-calendar-days', color: '#10b981' },
               ].map((step, i) => (

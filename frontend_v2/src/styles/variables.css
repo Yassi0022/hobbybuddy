@@ -1,59 +1,71 @@
 /* Fonts loaded via Google Fonts in index.html for better reliability */
 
 :root {
-    /* CLEAN MODERN THEME */
-    --color-bg-base: #f8fafc;
+    /* PREMIUM WARM EDITORIAL THEME */
+    --color-bg-base: #faf9f6;
     --color-bg-base-alt: #ffffff;
-    --color-bg: #f8fafc;
+    --color-bg: #faf9f6;
     --color-card: #ffffff;
     --color-text: #1e293b;
 
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, #6366f1, #818cf8); /* Soft Indigo */
-    --gradient-secondary: linear-gradient(135deg, #f43f5e, #fb7185); /* Vibrant Coral */
-    --gradient-text: linear-gradient(to right, #6366f1, #f43f5e);
+    /* Muted, warm accent palette — no generic SaaS indigo */
+    --color-primary: #c2410c;          /* Warm terracotta — used sparingly */
+    --color-primary-hover: #9a3412;
+    --color-secondary: #f43f5e;        /* Rose for CTAs only */
+    --color-accent-warm: #c2410c;      /* Terracotta — primary accent */
+    --color-accent-rose: #f43f5e;      /* Rose — CTAs, highlights */
+    --color-accent-amber: #d97706;     /* Amber — external events, warnings */
+    --color-accent-emerald: #059669;   /* Emerald — success, local events */
+    --color-accent-slate: #475569;     /* Slate — secondary text accents */
+    --color-accent-violet: #6366f1;    /* Legacy alias — kept for backward compat */
 
     /* Text Colors */
+    --color-ink: #1a1a2e;               /* Primary heading/text — used by landing module */
     --color-text-main: #1a1a2e;
-    --color-text-muted: #6b7280;
-    --color-text-light: #9ca3af;
+    --color-text-muted: #64748b;
+    --color-text-light: #94a3b8;
 
-    /* Surfaces */
-    --color-surface: rgba(255, 255, 255, 0.9);
-    --color-surface-hover: rgba(255, 255, 255, 1);
+    /* Surfaces — cleaner, more editorial */
+    --color-surface: #ffffff;
+    --color-surface-hover: #fafaf9;
     --color-border: rgba(0, 0, 0, 0.06);
+    --color-border-light: rgba(0, 0, 0, 0.04);
 
-    /* Status & Accents */
-    --color-primary: #6366f1;
-    --color-primary-hover: #4f46e5;
-    --color-secondary: #f43f5e;
-    --color-accent-violet: #6366f1;
-    --color-accent-teal: #2ec4b6;
-    --color-accent-rose: #ff9a7b;
-    --color-error: #ef4444;
-    --color-success: #10b981;
+    /* Status */
+    --color-error: #dc2626;
+    --color-success: #059669;
 
-    /* Shadows */
-    --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-    --shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    --shadow-glow: 0 10px 15px -3px rgba(99, 102, 241, 0.3);
+    /* Warm gradient — replaces generic indigo/violet SaaS gradient */
+    --gradient-primary: linear-gradient(135deg, #c2410c 0%, #f43f5e 100%);
+    --gradient-secondary: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+
+    /* Shadows — softer, more refined */
+    --shadow-soft: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+    --shadow-hover: 0 12px 32px rgba(0, 0, 0, 0.06), 0 4px 10px rgba(0, 0, 0, 0.03);
+    --shadow-card: 0 0 0 1px rgba(0,0,0,0.04), 0 2px 8px rgba(0,0,0,0.03);
+    --shadow-glow: 0 0 20px rgba(194, 65, 12, 0.15);
 
     /* Inputs */
-    --color-input-bg: #f3f4f6;
-    --color-input-border: #e5e7eb;
-    --color-input-focus: #ff6b4a;
+    --color-input-bg: #f8fafc;
+    --color-input-border: #e2e8f0;
+    --color-input-focus: #c2410c;
 
     --radius-sm: 8px;
     --radius-md: 12px;
-    --radius-lg: 20px;
-    --radius-xl: 32px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
     --radius-full: 9999px;
 
     --font-heading: 'Plus Jakarta Sans', sans-serif;
     --font-body: 'Plus Jakarta Sans', sans-serif;
 
     --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-smooth: 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+    --transition-smooth: 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+
+    /* Layout tokens (used by landing module + shared) */
+    --container-max: 1200px;
+    --container-pad: 24px;
+    --radius-pill: 9999px;
 }
 
 * {
@@ -63,7 +75,7 @@
 
 body {
     font-family: var(--font-body);
-    background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%) !important;
+    background: #faf9f6 !important; /* Unified warm cream/white background */
     color: var(--color-text-main);
     line-height: 1.6;
     font-size: 16px;
@@ -135,7 +147,7 @@ p { color: var(--color-text-muted); }
 a { text-decoration: none; color: inherit; }
 
 .gradient-text {
-    background: var(--gradient-text);
+    background: linear-gradient(135deg, #c2410c 0%, #f43f5e 50%, #c2410c 100%);
     background-size: 300% auto;
     color: transparent;
     background-clip: text;
@@ -146,7 +158,7 @@ a { text-decoration: none; color: inherit; }
 }
 
 .gradient-text-dark {
-    background: var(--gradient-secondary);
+    background: linear-gradient(135deg, #f43f5e 0%, #c2410c 100%);
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;

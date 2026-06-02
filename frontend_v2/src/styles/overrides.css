@@ -2,7 +2,21 @@
    REDESIGN OVERRIDES — Minimal overrides that complement the main styles
    ========================================================================= */
 
-/* Ensure cards have consistent styling */
+/* ── Base .card — shared across Dashboard, Discover, Events ── */
+.card {
+    background: var(--color-bg-base-alt);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-soft);
+    transition: transform var(--transition-smooth), box-shadow var(--transition-smooth);
+}
+.card:hover {
+    box-shadow: var(--shadow-hover);
+}
+/* Suppress hover lift on disabled/static cards */
+.card[data-static] { transform: none !important; }
+
+/* Ensure legacy named cards have consistent styling */
 .feature-card, .step-card, .floating-card, .post-card, .match-card, .match-card-social, .quiz-card, .auth-card {
     background: var(--color-bg-base-alt);
     border-radius: var(--radius-lg);
@@ -11,28 +25,29 @@
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.feature-card:hover, .floating-card:hover, .post-card:hover, .match-card:hover, .match-card-social:hover {
+.feature-card:hover, .floating-card:hover, .post-card:hover, .match-card:hover {
     transform: translateY(-2px);
     box-shadow: var(--shadow-hover);
 }
+/* match-card-social hover is defined in pages.css with translateY(-5px) */
 
-/* Button consistency */
+/* Button consistency — dark default, warm hover */
 .btn-primary, .btn-form-primary, .btn-accent {
-    background: var(--gradient-primary) !important;
+    background: #1a1a2e !important;
     color: white !important;
     border: none;
     transition: var(--transition-fast);
 }
 
 .btn-primary:hover, .btn-form-primary:hover, .btn-accent:hover {
-    box-shadow: var(--shadow-glow);
-    filter: brightness(1.05);
+    background: var(--color-primary) !important;
+    box-shadow: 0 8px 24px rgba(194, 65, 12, 0.2);
 }
 
 .btn-secondary, .btn-outline {
     background: white;
-    border: 1px solid var(--color-primary) !important;
-    color: var(--color-primary) !important;
+    border: 1px solid var(--color-border) !important;
+    color: var(--color-text-main) !important;
     border-radius: var(--radius-full);
 }
 
@@ -51,12 +66,12 @@
 }
 
 .nav-item.active {
-    background: rgba(255,107,74,0.1);
-    color: var(--color-primary) !important;
-    border-right: 3px solid var(--color-primary);
+    background: rgba(194, 65, 12, 0.08);
+    color: var(--color-accent-warm) !important;
+    border-right: 3px solid var(--color-accent-warm);
 }
 .nav-item.active i {
-    color: var(--color-primary) !important;
+    color: var(--color-accent-warm) !important;
 }
 
 /* Bounce in animation for match cards */
@@ -71,7 +86,7 @@
 }
 
 .btn-quiz-option.selected {
-    box-shadow: 0 0 0 2px var(--color-primary), var(--shadow-glow);
+    box-shadow: 0 0 0 2px var(--color-primary), 0 8px 24px rgba(194, 65, 12, 0.15);
     transform: scale(1.02);
     border-color: var(--color-primary);
 }
@@ -110,8 +125,8 @@
     font-weight: 500;
 }
 .post-actions span:hover {
-    background: rgba(99, 102, 241, 0.06);
-    color: var(--color-accent-violet);
+    background: rgba(194, 65, 12, 0.04);
+    color: var(--color-accent-warm);
 }
 .post-actions span:active {
     transform: scale(0.95);

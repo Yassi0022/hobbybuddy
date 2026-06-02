@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mvn -B test)",
+      "Bash(mvn *)",
+      "Bash(npm *)",
+      "Bash(pkill *)",
+      "Bash(cmd.exe /c mvn *)",
+      "Bash(powershell -Command *Stop-Process*Force*)",
+      "Bash(powershell -Command *Get-Process*)",
+      "Bash(powershell -Command *Get-NetTCPConnection*)"
+    ]
+  }
+}

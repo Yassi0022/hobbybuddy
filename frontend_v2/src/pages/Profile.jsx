@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL, HOBBIES_LIST } from '../utils/constants';
 import { showToast } from '../utils/toast';
@@ -114,19 +114,19 @@ export default function Profile() {
       <div className="bg-mesh"><div className="orb orb-1"></div><div className="orb orb-2"></div><div className="orb orb-3"></div></div>
       <nav className="navbar navbar-solid">
         <div className="nav-container">
-          <a href="/" className="logo"><i className="fas fa-users"></i><span>HobbyBuddy</span></a>
-          <ul className="nav-menu"><li><a href="/dashboard" className="cta-button">Back to Dashboard</a></li></ul>
+          <Link to="/dashboard" className="logo"><i className="fas fa-users"></i><span>HobbyBuddy</span></Link>
+          <ul className="nav-menu"><li><Link to="/dashboard" className="btn-secondary" style={{ padding: '8px 18px', fontSize: '0.85rem' }}>Back to Dashboard</Link></li></ul>
         </div>
       </nav>
 
       <div style={{ maxWidth: '800px', margin: '100px auto 60px', padding: '0 24px' }}>
         <div style={{ textAlign: 'center', marginBottom: '40px' }}>
           <h1 style={{ fontSize: '2.2rem', fontWeight: 800, marginBottom: '8px' }}>Edit Your Profile</h1>
-          <p style={{ color: 'var(--color-text-muted)' }}>Make your profile stand out to find the best matches</p>
+          <p style={{ color: 'var(--color-text-muted)' }}>Make your profile feel like you</p>
         </div>
 
         <div className="auth-card" style={{ marginBottom: '30px' }}>
-          <h3 style={{ marginBottom: '20px', fontSize: '1.2rem' }}><i className="fas fa-user" style={{ color: 'var(--color-accent-violet)', marginRight: '10px' }}></i>Basic Info</h3>
+          <h3 style={{ marginBottom: '20px', fontSize: '1.2rem' }}><i className="fas fa-user" style={{ color: 'var(--color-accent-warm)', marginRight: '10px' }}></i>Basic Info</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div className="form-group">
               <label htmlFor="profile-name"><i className="fas fa-user"></i> Display Name</label>
@@ -150,7 +150,7 @@ export default function Profile() {
         </div>
 
         <div className="auth-card" style={{ marginBottom: '30px' }}>
-          <h3 style={{ marginBottom: '20px', fontSize: '1.2rem' }}><i className="fas fa-camera" style={{ color: 'var(--color-accent-violet)', marginRight: '10px' }}></i>Profile Photos</h3>
+          <h3 style={{ marginBottom: '20px', fontSize: '1.2rem' }}><i className="fas fa-camera" style={{ color: 'var(--color-accent-warm)', marginRight: '10px' }}></i>Profile Photos</h3>
           <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginBottom: '16px' }}>Add up to 3 photo URLs to showcase yourself</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {photos.map((photo, i) => (
@@ -165,7 +165,7 @@ export default function Profile() {
         </div>
 
         <div className="auth-card" style={{ marginBottom: '30px' }}>
-          <h3 style={{ marginBottom: '20px', fontSize: '1.2rem' }}><i className="fas fa-heart" style={{ color: 'var(--color-accent-violet)', marginRight: '10px' }}></i>Hobbies</h3>
+          <h3 style={{ marginBottom: '20px', fontSize: '1.2rem' }}><i className="fas fa-heart" style={{ color: 'var(--color-accent-warm)', marginRight: '10px' }}></i>Hobbies</h3>
           <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginBottom: '16px' }}>Select 3–5 hobbies that define you</p>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
             {HOBBIES_LIST.map((hobby) => (
@@ -177,7 +177,7 @@ export default function Profile() {
         </div>
 
         <div className="auth-card" style={{ marginBottom: '40px' }}>
-          <h3 style={{ marginBottom: '20px', fontSize: '1.2rem' }}><i className="fas fa-comments" style={{ color: 'var(--color-accent-violet)', marginRight: '10px' }}></i>Icebreaker Prompts</h3>
+          <h3 style={{ marginBottom: '20px', fontSize: '1.2rem' }}><i className="fas fa-comments" style={{ color: 'var(--color-accent-warm)', marginRight: '10px' }}></i>Icebreaker Prompts</h3>
           <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginBottom: '16px' }}>Answer these to help matches start conversations</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div className="form-group">

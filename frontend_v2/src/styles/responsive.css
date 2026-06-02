@@ -89,7 +89,7 @@
     font-size: 3rem;
     font-weight: 800;
     text-align: center;
-    background: var(--gradient-primary);
+    background: linear-gradient(135deg, #c2410c, #f43f5e);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -135,24 +135,24 @@
     .btn-quiz-option { flex: 1 1 100%; }
 }
 .btn-quiz-option:hover {
-    border-color: var(--color-accent-violet);
-    background: rgba(139, 92, 246, 0.04);
+    border-color: var(--color-accent-warm);
+    background: rgba(194, 65, 12, 0.04);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.15);
+    box-shadow: 0 4px 12px rgba(194, 65, 12, 0.12);
 }
 .btn-quiz-option:active {
     transform: translateY(0) scale(0.98);
 }
 .btn-quiz-option:focus-visible {
-    outline: 3px solid rgba(139, 92, 246, 0.4);
+    outline: 3px solid rgba(194, 65, 12, 0.35);
     outline-offset: 2px;
 }
 .btn-quiz-option.selected {
-    background: var(--gradient-primary);
+    background: linear-gradient(135deg, #c2410c, #f43f5e);
     border-color: transparent;
     color: white;
     transform: scale(1.03);
-    box-shadow: var(--shadow-glow);
+    box-shadow: 0 4px 16px rgba(194, 65, 12, 0.25);
 }
 
 /* =========================================================================
@@ -218,9 +218,9 @@
 
 /* Viral share button pulse */
 @keyframes viralPulse {
-    0% { box-shadow: var(--shadow-glow); }
-    50% { box-shadow: 0 0 30px rgba(168, 85, 247, 0.5); transform: scale(1.05); }
-    100% { box-shadow: var(--shadow-glow); }
+    0% { box-shadow: 0 4px 16px rgba(194, 65, 12, 0.2); }
+    50% { box-shadow: 0 0 30px rgba(194, 65, 12, 0.35); transform: scale(1.05); }
+    100% { box-shadow: 0 4px 16px rgba(194, 65, 12, 0.2); }
 }
 
 /* =========================================================================
@@ -234,7 +234,7 @@ input[type="text"]:focus-visible,
 input[type="email"]:focus-visible,
 input[type="password"]:focus-visible,
 textarea:focus-visible {
-    outline: 3px solid rgba(139, 92, 246, 0.35);
+    outline: 3px solid rgba(194, 65, 12, 0.3);
     outline-offset: 0;
 }
 
@@ -280,7 +280,7 @@ textarea:focus-visible {
     border-radius: 100px;
     font-weight: 700;
     font-size: 0.85rem;
-    color: var(--color-accent-violet);
+    color: var(--color-accent-warm);
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
@@ -358,7 +358,7 @@ textarea:focus-visible {
 
 /* Animated gradient text */
 .animated-gradient-text {
-    background: linear-gradient(90deg, #6366f1, #ec4899, #6366f1);
+    background: linear-gradient(90deg, #c2410c, #f43f5e, #c2410c);
     background-size: 200% auto;
     -webkit-background-clip: text;
     background-clip: text;
@@ -410,7 +410,7 @@ footer {
 }
 
 .footer-column ul li a:hover {
-    color: var(--color-accent-violet);
+    color: var(--color-accent-warm);
 }
 
 .footer-bottom {
@@ -453,7 +453,7 @@ footer {
     font-weight: 700;
     color: #0F172A;
     margin-top: 2.5rem;
-    border-left: 4px solid #FF6B35;
+    border-left: 4px solid #c2410c;
     padding-left: 12px;
 }
 
@@ -481,20 +481,23 @@ footer {
 
 .bg-mesh .orb-1 {
     width: 40vw; height: 40vw;
-    background: #6366f1;
+    background: #f59e0b;
     top: -10vw; left: -10vw;
+    opacity: 0.08;
 }
 
 .bg-mesh .orb-2 {
     width: 35vw; height: 35vw;
-    background: #ec4899;
+    background: #f43f5e;
     bottom: -5vw; right: -5vw;
+    opacity: 0.06;
 }
 
 .bg-mesh .orb-3 {
     width: 25vw; height: 25vw;
-    background: #22d3ee;
+    background: #8ba888;
     top: 40%; left: 50%;
+    opacity: 0.04;
 }
 
 /* Avatar sizes */

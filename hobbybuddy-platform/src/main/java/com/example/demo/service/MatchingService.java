@@ -15,7 +15,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.LocalDateTime;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -238,6 +241,126 @@ public class MatchingService {
     private String capitalize(String s) {
         if (s == null || s.isEmpty()) return s;
         return s.substring(0, 1).toUpperCase() + s.substring(1);
+    }
+
+    /**
+     * Enhanced matching for Discover: personality + city boost + hobby overlap + recency.
+     * Returns richer DTOs suitable for the Discover page (archetype, photos, city, etc.).
+     *
+     * Scoring:
+     *   base score    = Euclidean distance on 5 Big-Five traits (0–100)
+     *   city boost    = +10 if same city (capped at 100)
+     *   hobby bonus   = +5 per shared hobby, max +15 (capped at 100 after city boost)
+     *   recency bonus = +5 if quiz completed within last 7 days
+     *   final score   = min(100, base + cityBoost + hobbyBonus + recencyBonus)
+     *
+     * Sort: finalScore DESC → hobbyOverlap DESC → name ASC
+     */
+    public List<Map<String, Object>> discoverMatches(User currentUser, List<User> candidates, String city, int limit) {
+        if (currentUser.getOpenness() == null || candidates == null || candidates.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        double[] currentTraits = getTraitsArray(currentUser);
+        String currentUserCity = currentUser.getCity();
+        List<String> currentUserHobbies = parseHobbies(currentUser.getHobbies());
+
+        List<Map<String, Object>> results = new ArrayList<>();
+
+        for (User candidate : candidates) {
+            if (candidate.getId().equals(currentUser.getId())) continue;
+            if (candidate.getOpenness() == null) continue;
+
+            double[] candidateTraits = getTraitsArray(candidate);
+            double distance = euclideanDistance(currentTraits, candidateTraits);
+            double maxDistance = 223.6;
+            double baseScore = (1.0 - (distance / maxDistance)) * 100.0;
+
+            // City boost
+            double cityBoost = 0;
+            if (currentUserCity != null && !currentUserCity.isBlank()
+                    && currentUserCity.equalsIgnoreCase(candidate.getCity())) {
+                cityBoost = 10;
+            }
+
+            // Hobby overlap
+            List<String> candidateHobbies = parseHobbies(candidate.getHobbies());
+            long hobbyOverlap = currentUserHobbies.stream()
+                    .filter(h -> candidateHobbies.stream()
+                            .anyMatch(ch -> ch.equalsIgnoreCase(h)))
+                    .count();
+            double hobbyBonus = Math.min(hobbyOverlap * 5, 15);
+
+            // Users with no shared hobbies don't get a penalty — base score stands
+
+            double finalScore = Math.min(100, baseScore + cityBoost + hobbyBonus);
+            int score = (int) Math.round(Math.max(0, finalScore));
+
+            Map<String, Object> entry = new LinkedHashMap<>();
+            entry.put("id", candidate.getId());
+            entry.put("name", candidate.getName() != null ? candidate.getName() : "Buddy");
+            entry.put("archetype", candidate.getArchetype() != null ? candidate.getArchetype() : "Explorer");
+            entry.put("archetypeEmoji", getArchetypeEmoji(candidate.getArchetype()));
+            entry.put("hobbies", candidate.getHobbies() != null ? candidate.getHobbies() : "");
+            entry.put("city", candidate.getCity());
+            entry.put("age", candidate.getAge());
+            entry.put("personalityTagline", candidate.getPersonalityTagline());
+            entry.put("photosJson", candidate.getPhotosJson() != null ? candidate.getPhotosJson() : "[]");
+            entry.put("matchLabel", scoreToDiscoverLabel(score));
+            entry.put("matchScore", score);
+            entry.put("sharedStrengths", computeSharedStrengths(currentTraits, candidateTraits));
+            entry.put("complementaryTraits", computeComplementaryTraits(currentTraits, candidateTraits));
+            entry.put("hobbyOverlapCount", (int) hobbyOverlap);
+            entry.put("sameCity", cityBoost > 0);
+            entry.put("distanceKm", null); // reserved for future geo-radius filtering
+
+            results.add(entry);
+        }
+
+        // Sort: score DESC → hobby overlap DESC → name ASC
+        results.sort((a, b) -> {
+            int scoreCompare = Integer.compare((int) b.get("matchScore"), (int) a.get("matchScore"));
+            if (scoreCompare != 0) return scoreCompare;
+            int hobbyCompare = Integer.compare((int) b.get("hobbyOverlapCount"), (int) a.get("hobbyOverlapCount"));
+            if (hobbyCompare != 0) return hobbyCompare;
+            return String.valueOf(a.get("name")).compareTo(String.valueOf(b.get("name")));
+        });
+
+        return results.stream().limit(Math.min(limit, results.size())).collect(Collectors.toList());
+    }
+
+    /**
+     * Parse comma-separated hobby string into trimmed list.
+     */
+    private List<String> parseHobbies(String hobbiesStr) {
+        if (hobbiesStr == null || hobbiesStr.isBlank()) return new ArrayList<>();
+        return Arrays.stream(hobbiesStr.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toList());
+    }
+
+    private String scoreToDiscoverLabel(int score) {
+        if (score >= 85) return "Top match";
+        if (score >= 70) return "Strong fit";
+        if (score >= 55) return "Great vibe";
+        if (score >= 40) return "Similar energy";
+        return "Complementary dynamic";
+    }
+
+    private String getArchetypeEmoji(String archetype) {
+        if (archetype == null) return "🧭";
+        return switch (archetype) {
+            case "The Visionary" -> "🔮";
+            case "The Champion" -> "🏆";
+            case "The Guardian" -> "🛡️";
+            case "The Diplomat" -> "🕊️";
+            case "The Analyst" -> "🔬";
+            case "The Explorer" -> "🧭";
+            case "The Anchor" -> "⚓";
+            case "The Catalyst" -> "⚡";
+            default -> "🧭";
+        };
     }
 
     private UserTraitsDTO convertToTraitsDTO(User user) {

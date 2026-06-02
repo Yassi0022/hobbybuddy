@@ -42,8 +42,8 @@ export default function Login() {
         <div className="auth-container">
           <div className="auth-card">
             <div className="auth-icon"><i className="fas fa-sign-in-alt"></i></div>
-            <h1 className="auth-title">Welcome Back!</h1>
-            <p className="auth-subtitle">Sign in to discover your new matches and messages</p>
+            <h1 className="auth-title">Welcome back</h1>
+            <p className="auth-subtitle">Sign in to find your next real friendship</p>
             <form onSubmit={handleSubmit} noValidate>
               <div className="form-group">
                 <label htmlFor="login-email"><i className="fas fa-envelope"></i> Email</label>
@@ -67,7 +67,7 @@ export default function Login() {
           <Link to="/privacy" style={{ color: 'inherit', textDecoration: 'none' }}>Privacy Policy</Link>
           <Link to="/terms" style={{ color: 'inherit', textDecoration: 'none' }}>Terms of Use</Link>
         </div>
-        <p style={{ marginTop: '10px' }}>&copy; 2026 HobbyBuddy. Matching friends by psychology.</p>
+        <p style={{ marginTop: '10px' }}>&copy; 2026 HobbyBuddy. Real friendships start here.</p>
       </footer>
     </>
   );

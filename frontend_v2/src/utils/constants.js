@@ -6,8 +6,10 @@ export const API_BASE_URL = IS_LOCAL ? '' : (IS_SEPARATE_DOMAIN ? 'https://hobby
 export const WS_BASE_URL = IS_LOCAL ? '' : (IS_SEPARATE_DOMAIN ? 'wss://hobbybuddy-springboot.onrender.com' : '');
 
 export const TRAIT_LABELS = ['Extraversion', 'Agreeableness', 'Conscientiousness', 'Emotional Stability', 'Openness'];
+export const TRAIT_VIBE_LABELS = ['Energy', 'Empathy', 'Steadiness', 'Calm', 'Curiosity'];
 export const TRAIT_ICONS = ['fa-fire', 'fa-handshake', 'fa-tasks', 'fa-leaf', 'fa-lightbulb'];
 export const TRAIT_CLASSES = ['extraversion', 'agreeableness', 'conscientiousness', 'neuroticism', 'openness'];
+export const TRAIT_VIBE_CLASSES = ['vibe-energy', 'vibe-empathy', 'vibe-steadiness', 'vibe-calm', 'vibe-curiosity'];
 export const TRAIT_API_NAMES = ['extraversion', 'agreeableness', 'conscientiousness', 'neuroticism', 'openness'];
 export const SCALE_LABELS = ['Disagree', 'Slightly Disagree', 'Neutral', 'Slightly Agree', 'Agree'];
 
@@ -18,62 +20,37 @@ export const HOBBIES_LIST = [
   'Writing ✍️', 'Football ⚽', 'Tennis 🎾', 'Cycling 🚴', 'Volunteering 🤝'
 ];
 
-export const TOTAL = 50;
+// ─────────────────────────────────────────────────────────────
+// Mini-IPIP 20 (Donnellan et al., 2006)
+// 4 items per trait × 5 traits = 20 questions
+// Trait indices: 0=E, 1=A, 2=C, 3=N, 4=O
+// Direction: +1 = forward, −1 = reverse scored
+// Question order cycles E→A→C→N×2→O to spread trait items
+// ─────────────────────────────────────────────────────────────
+export const TOTAL = 20;
 
 export const QUESTIONS = [
-  // Extraversion
-  [0, 'I am the life of the party 🥳', 1],
-  [0, "I don't talk a lot 😶", -1],
-  [0, 'I feel comfortable around people 🤝', 1],
-  [0, 'I keep in the background 👤', -1],
-  [0, 'I start conversations 🗣️', 1],
-  [0, 'I have little to say 🤐', -1],
-  [0, 'I talk to a lot of different people at parties 🎊', 1],
-  [0, "I don't like to draw attention to myself 🙈", -1],
-  [0, 'I don\'t mind being the center of attention 🌟', 1],
-  [0, 'I am quiet around strangers 🤫', -1],
-  // Agreeableness
-  [1, 'I am interested in people 🧑‍🤝‍🧑', 1],
-  [1, 'I insult people 😤', -1],
-  [1, 'I feel others\' emotions 💗', 1],
-  [1, 'I am not interested in other people\'s problems 🧱', -1],
-  [1, 'I have a soft heart 💖', 1],
-  [1, 'I am not really interested in people 🙄', -1],
-  [1, 'I take time out for others ⏰', 1],
-  [1, 'I feel little concern for others 😐', -1],
-  [1, 'I make people feel at home 🏠', 1],
-  [1, 'I am hard to get to know 🧊', -1],
-  // Conscientiousness
-  [2, 'I am always prepared 📋', 1],
-  [2, 'I leave my belongings around 🧸', -1],
-  [2, 'I pay attention to details 🔍', 1],
-  [2, 'I make a mess of things 🗑️', -1],
-  [2, 'I get chores done right away ✅', 1],
-  [2, 'I often forget to put things back 🔑', -1],
-  [2, 'I like order 📐', 1],
-  [2, 'I shirk my duties 😴', -1],
-  [2, 'I follow a schedule 📅', 1],
-  [2, 'I am exacting in my work 🎯', 1],
-  // Emotional Stability (reverse-scored: high = stable)
-  [3, 'I am relaxed most of the time 😌', 1],
-  [3, 'I get stressed out easily 😰', -1],
-  [3, 'I worry about things 🤔', -1],
-  [3, 'I seldom feel blue 🌤️', 1],
-  [3, 'I am easily disturbed 😵', -1],
-  [3, 'I get upset easily 😢', -1],
-  [3, 'I change my mood a lot 🎭', -1],
-  [3, 'I have frequent mood swings 🎢', -1],
-  [3, 'I get irritated easily 😠', -1],
-  [3, 'I often feel blue 🌧️', -1],
-  // Openness
-  [4, 'I have a rich vocabulary 📖', 1],
-  [4, 'I have difficulty understanding abstract ideas 🤯', -1],
-  [4, 'I have a vivid imagination 🎨', 1],
-  [4, 'I am not interested in abstract ideas 📊', -1],
-  [4, 'I have excellent ideas 💡', 1],
-  [4, 'I do not have a good imagination 🧱', -1],
-  [4, 'I am quick to understand things ⚡', 1],
-  [4, 'I use difficult words 📝', 1],
-  [4, 'I spend time reflecting on things 🪞', 1],
-  [4, 'I am full of ideas 🌟', 1],
+  // ── Cycle 1 (Q1–Q10) ──
+  [0, 'I am the life of the party', 1],                              // E1 forward
+  [1, 'I sympathize with others\' feelings', 1],                     // A1 forward
+  [2, 'I get chores done right away', 1],                            // C1 forward
+  [3, 'I have frequent mood swings', 1],                             // N1 forward
+  [4, 'I have a vivid imagination', 1],                              // O1 forward
+  [0, 'I don\'t talk a lot', -1],                                    // E2 reverse
+  [1, 'I am not interested in other people\'s problems', -1],        // A2 reverse
+  [2, 'I often forget to put things back in their proper place', -1],// C2 reverse
+  [3, 'I am relaxed most of the time', -1],                          // N2 reverse
+  [4, 'I am not interested in abstract ideas', -1],                  // O2 reverse
+
+  // ── Cycle 2 (Q11–Q20) ──
+  [0, 'I feel comfortable around people', 1],                        // E3 forward
+  [1, 'I feel others\' emotions', 1],                                // A3 forward
+  [2, 'I like order', 1],                                            // C3 forward
+  [3, 'I get stressed out easily', 1],                               // N3 forward
+  [4, 'I have difficulty understanding abstract ideas', -1],         // O3 reverse
+  [0, 'I don\'t like to draw attention to myself', -1],              // E4 reverse
+  [1, 'I take time out for others', 1],                              // A4 forward
+  [2, 'I shirk my duties', -1],                                      // C4 reverse
+  [3, 'I worry about things', 1],                                    // N4 forward
+  [4, 'I have a rich vocabulary', 1],                                // O4 forward
 ];

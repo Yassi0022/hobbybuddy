@@ -1,0 +1,71 @@
+import { useState, useEffect, useCallback } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { API_BASE_URL } from '../utils/constants';
+
+/**
+ * Events data hook — fetches paginated event listing with filters.
+ *
+ * Supports: city, hobby, source (internal/external/all), pagination.
+ */
+export default function useEvents(city, buildParams, initialFilters = {}) {
+  const { authFetch } = useAuth();
+  const [events, setEvents] = useState([]);
+  const [pagination, setPagination] = useState({ page: 0, size: 12, totalElements: 0, totalPages: 0 });
+  const [filters, setFilters] = useState({ source: 'all', hobby: '', ...initialFilters });
+  const [fallback, setFallback] = useState(null);
+  const [location, setLocation] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchEvents = useCallback(async (page = 0) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const params = buildParams({
+        source: filters.source,
+        hobby: filters.hobby || '',
+        page,
+        size: pagination.size,
+      });
+      const res = await authFetch(`${API_BASE_URL}/api/events?${params}`);
+      if (!res.ok) {
+        throw new Error('Failed to load events');
+      }
+      const json = await res.json();
+      setEvents(json.events || []);
+      setPagination(json.pagination || { page: 0, size: 12, totalElements: 0, totalPages: 0 });
+      setFallback(json.fallback || null);
+      setLocation(json.location || null);
+    } catch (err) {
+      setError(err.message);
+      setEvents([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [authFetch, buildParams, filters, pagination.size]);
+
+  useEffect(() => {
+    fetchEvents(0);
+  }, [fetchEvents]);
+
+  const setFilter = useCallback((key, value) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+  }, []);
+
+  const goToPage = useCallback((page) => {
+    fetchEvents(page);
+  }, [fetchEvents]);
+
+  return {
+    events,
+    pagination,
+    filters,
+    fallback,
+    location,
+    loading,
+    error,
+    setFilter,
+    goToPage,
+    refetch: fetchEvents,
+  };
+}

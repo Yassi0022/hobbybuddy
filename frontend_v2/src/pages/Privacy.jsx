@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 export default function Privacy() {
   return (
     <div className="legal-container" style={{ maxWidth: '760px', margin: '0 auto', padding: '4rem 2rem' }}>
-      <Link to="/" className="back-btn" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: '#6366f1', fontWeight: 600, textDecoration: 'none', marginBottom: '3rem' }}>
+      <Link to="/" className="back-btn" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: '#c2410c', fontWeight: 600, textDecoration: 'none', marginBottom: '3rem' }}>
         <i className="fas fa-arrow-left"></i> Back to Home
       </Link>
       <h1 style={{ fontSize: '2.5rem', fontWeight: 800, color: '#0F172A', marginBottom: '0.5rem' }}>Privacy Policy</h1>
@@ -17,7 +17,7 @@ export default function Privacy() {
       <ul style={{ paddingLeft: '1.2rem', fontSize: '1rem', lineHeight: 1.8, color: '#475569' }}>
         <li><strong>Account Information:</strong> Email address, password (encrypted), and display name.</li>
         <li><strong>Profile Information:</strong> Age, city, profile photos (URLs), and icebreaker prompts.</li>
-        <li><strong>Psychological Data:</strong> Personality trait scores derived from the IPIP Big-Five assessment.</li>
+        <li><strong>Personality Data:</strong> Trait scores derived from a short personality quiz (Mini-IPIP model).</li>
         <li><strong>Social Content:</strong> Hobbies, community posts, event participation data, and private messages.</li>
       </ul>
 
@@ -51,12 +51,12 @@ export default function Privacy() {
       <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0F172A', marginTop: '2.5rem', borderLeft: '4px solid #FF6B35', paddingLeft: '12px' }}>7. Data Retention</h2>
       <p style={{ fontSize: '1rem', lineHeight: 1.8, color: '#475569' }}>Your data is retained as long as your account is active. Upon deletion request, all data is permanently deleted within 30 days.</p>
 
-      <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0F172A', marginTop: '2.5rem', borderLeft: '4px solid #FF6B35', paddingLeft: '12px' }}>8. IPIP Attribution</h2>
-      <p style={{ fontSize: '1rem', lineHeight: 1.8, color: '#475569' }}>The personality assessment is based on the International Personality Item Pool (IPIP) Big-Five model. Visit <a href="https://ipip.ori.org" target="_blank" rel="noopener noreferrer">ipip.ori.org</a>.</p>
+      <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0F172A', marginTop: '2.5rem', borderLeft: '4px solid #FF6B35', paddingLeft: '12px' }}>8. Quiz Methodology</h2>
+      <p style={{ fontSize: '1rem', lineHeight: 1.8, color: '#475569' }}>Our personality quiz is based on the Mini-IPIP model (Donnellan et al., 2006), a validated short-form Big Five instrument. Visit <a href="https://ipip.ori.org" target="_blank" rel="noopener noreferrer">ipip.ori.org</a> for more information.</p>
 
       <footer style={{ marginTop: '80px', paddingTop: '40px', borderTop: '1px solid #e2e8f0', textAlign: 'center', color: '#94a3b8', fontSize: '0.9rem' }}>
-        <Link to="/" style={{ color: '#6366f1', textDecoration: 'none', fontWeight: 600 }}>Back to Home</Link>
-        <p style={{ marginTop: '20px' }}>&copy; 2026 HobbyBuddy. Personality matching based on the IPIP Big-Five model.</p>
+        <Link to="/" style={{ color: '#c2410c', textDecoration: 'none', fontWeight: 600 }}>Back to Home</Link>
+        <p style={{ marginTop: '20px' }}>&copy; 2026 HobbyBuddy. Personality-based matching for real friendships.</p>
       </footer>
     </div>
   );

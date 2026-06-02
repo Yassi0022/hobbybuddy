@@ -43,8 +43,8 @@ export default function Register() {
         <div className="auth-container">
           <div className="auth-card">
             <div className="auth-icon"><i className="fas fa-user-astronaut"></i></div>
-            <h1 className="auth-title">Join the Community</h1>
-            <p className="auth-subtitle">Create your secure profile and unlock the personality test.</p>
+            <h1 className="auth-title">Find your people</h1>
+            <p className="auth-subtitle">Create your profile and discover your vibe archetype.</p>
             <form onSubmit={handleSubmit} noValidate>
               <div className="form-group">
                 <label htmlFor="reg-name"><i className="fas fa-user"></i> Name</label>
@@ -60,7 +60,7 @@ export default function Register() {
               </div>
               {error && <div className="form-error" style={{ display: 'block' }} role="alert"><i className="fas fa-exclamation-triangle"></i> {error}</div>}
               <button type="submit" className="btn-form-primary" id="btn-register" disabled={loading}>
-                {loading ? <><i className="fas fa-spinner fa-spin"></i> Creating...</> : <>Discover your personality <i className="fas fa-arrow-right"></i></>}
+                {loading ? <><i className="fas fa-spinner fa-spin"></i> Creating...</> : <>Get started <i className="fas fa-arrow-right"></i></>}
               </button>
             </form>
             <div className="auth-footer">Already have an account? <Link to="/login">Sign in</Link></div>
@@ -72,7 +72,7 @@ export default function Register() {
           <Link to="/privacy" style={{ color: 'inherit', textDecoration: 'none' }}>Privacy Policy</Link>
           <Link to="/terms" style={{ color: 'inherit', textDecoration: 'none' }}>Terms of Use</Link>
         </div>
-        <p style={{ marginTop: '10px' }}>&copy; 2026 HobbyBuddy. Science-backed social matching.</p>
+        <p style={{ marginTop: '10px' }}>&copy; 2026 HobbyBuddy. Real friendships start here.</p>
       </footer>
     </>
   );

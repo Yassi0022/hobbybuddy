@@ -19,6 +19,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.http.MediaType;
+import org.springframework.web.cors.CorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
@@ -29,6 +30,9 @@ public class SecurityConfig {
 
     @Autowired
     private JwtRequestFilter jwtRequestFilter;
+
+    @Autowired
+    private CorsConfigurationSource corsConfigurationSource;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -68,12 +72,15 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
+            .cors(cors -> cors.configurationSource(corsConfigurationSource))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/health").permitAll()
                 .requestMatchers("/api/users/login", "/api/users/register", "/api/users").permitAll()
                 .requestMatchers("/ws-chat/**", "/uploads/**", "/api/photos/file/**").permitAll()
+                .requestMatchers("/api/events").permitAll()
+                .requestMatchers("/api/discover", "/api/events", "/api/events/**").permitAll()
                 .requestMatchers("/api/**").authenticated()
-                .requestMatchers("/", "/login", "/register", "/quiz", "/privacy", "/terms").permitAll()
+                .requestMatchers("/", "/login", "/register", "/quiz", "/dashboard", "/discover", "/events", "/profile", "/privacy", "/terms", "/messages", "/feed", "/settings").permitAll()
                 .anyRequest().authenticated()
             )
             .exceptionHandling(ex -> ex
@@ -108,6 +115,7 @@ public class SecurityConfig {
         return (web) -> web.ignoring()
             .requestMatchers(PathRequest.toStaticResources().atCommonLocations())
             .requestMatchers(
+                "/index.html",
                 "/css/**",
                 "/js/**",
                 "/images/**",
