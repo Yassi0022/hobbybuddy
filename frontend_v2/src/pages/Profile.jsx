@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { API_BASE_URL, HOBBIES_LIST } from '../utils/constants';
+import { API_BASE_URL, HOBBY_CATEGORIES } from '../utils/constants';
 import { showToast } from '../utils/toast';
 import PhotoUpload from '../components/ui/PhotoUpload';
 
@@ -158,13 +158,18 @@ export default function Profile() {
         <div className="auth-card" style={{ marginBottom: '30px' }}>
           <h3 style={{ marginBottom: '20px', fontSize: '1.2rem' }}><i className="fas fa-heart" style={{ color: 'var(--color-accent-warm)', marginRight: '10px' }}></i>Hobbies</h3>
           <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginBottom: '16px' }}>Select 3–5 hobbies that define you</p>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-            {HOBBIES_LIST.map((hobby) => (
-              <button key={hobby} type="button" className={selectedHobbies.has(hobby) ? 'btn-primary' : 'btn-secondary'} style={{ borderRadius: '100px', padding: '8px 16px', fontSize: '0.9rem' }} onClick={() => toggleHobby(hobby)}>
-                {hobby}
-              </button>
-            ))}
-          </div>
+          {HOBBY_CATEGORIES.map((cat) => (
+            <div key={cat.name} style={{ marginBottom: 18 }}>
+              <h4 style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-text-muted)', marginBottom: 8 }}>{cat.name}</h4>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                {cat.hobbies.map((hobby) => (
+                  <button key={hobby} type="button" className={selectedHobbies.has(hobby) ? 'btn-primary' : 'btn-secondary'} style={{ borderRadius: '100px', padding: '8px 16px', fontSize: '0.88rem' }} onClick={() => toggleHobby(hobby)}>
+                    {hobby}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
 
         <div className="auth-card" style={{ marginBottom: '40px' }}>

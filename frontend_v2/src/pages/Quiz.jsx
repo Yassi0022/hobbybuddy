@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { API_BASE_URL, QUESTIONS, TRAIT_VIBE_LABELS, TRAIT_ICONS, TRAIT_VIBE_CLASSES, SCALE_LABELS, HOBBIES_LIST, TOTAL } from '../utils/constants';
+import { API_BASE_URL, QUESTIONS, TRAIT_VIBE_LABELS, TRAIT_ICONS, TRAIT_VIBE_CLASSES, SCALE_LABELS, HOBBIES_LIST, HOBBY_CATEGORIES, TOTAL } from '../utils/constants';
 import { getArchetype } from '../utils/archetype';
 import { showToast } from '../utils/toast';
 import { shareVibe, shareToWhatsApp, shareToTelegram, shareToTwitter } from '../utils/share';
@@ -88,7 +88,6 @@ export default function Quiz() {
     try {
       const userId = localStorage.getItem('userId');
       const hobbies = Array.from(selectedHobbies).join(',');
-      // Calculate trait scores from answers
       const scores = [0, 0, 0, 0, 0];
       const counts = [0, 0, 0, 0, 0];
       for (let i = 0; i < TOTAL; i++) {
@@ -127,6 +126,9 @@ export default function Quiz() {
         <div className="gamified-screen" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column', textAlign: 'center', padding: '40px 24px', minHeight: '100vh' }}>
           <div className="auth-icon" style={{ background: 'linear-gradient(135deg, #c2410c, #f43f5e)', marginBottom: '30px' }}><i className="fas fa-shield-halved"></i></div>
           <h1 style={{ fontSize: '2.2rem', marginBottom: '20px' }}>Before we begin</h1>
+          <p style={{ fontSize: '1.05rem', color: 'var(--color-accent-warm)', fontWeight: 700, marginBottom: '24px' }}>
+            ⏱️ It'll only take 2 minutes!
+          </p>
           <div style={{ maxWidth: '500px', background: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-card)', padding: '30px', borderRadius: '20px', textAlign: 'left', marginBottom: '30px' }}>
             <p style={{ marginBottom: '15px', color: 'var(--color-text-muted)' }}>You're about to take a short personality quiz. Your answers will be used exclusively to match you with compatible hobby buddies. We do not sell your data.</p>
             <label style={{ display: 'flex', gap: '12px', cursor: 'pointer', alignItems: 'flex-start', color: 'var(--color-text-main)' }}>
@@ -148,7 +150,7 @@ export default function Quiz() {
         <div className="gamified-screen" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column', textAlign: 'center', padding: '20px', minHeight: '100vh' }}>
           <h1 className="splash-title animate-in">Discover who you really are</h1>
           <p className="splash-subtitle animate-in delay-1">
-            <i className="fas fa-stopwatch" style={{ color: 'var(--color-accent-emerald)' }}></i> Just 3 minutes &bull;
+            <i className="fas fa-stopwatch" style={{ color: 'var(--color-accent-emerald)' }}></i> Just 2 minutes &bull;
             <i className="fas fa-list-ol" style={{ color: 'var(--color-accent-warm)' }}></i> 20 quick questions &bull;
             <i className="fas fa-sparkles" style={{ color: 'var(--color-accent-rose)' }}></i> Find your vibe
           </p>
@@ -225,7 +227,7 @@ export default function Quiz() {
     );
   }
 
-  // --- HOBBIES ---
+  // --- HOBBIES (categorized) ---
   if (screen === 'hobbies') {
     return (
       <>
@@ -235,14 +237,34 @@ export default function Quiz() {
           <div style={{ maxWidth: '680px', margin: '0 auto', padding: '20px 24px' }}>
             <h1 style={{ fontSize: '2.2rem', textAlign: 'center', marginBottom: '10px' }}>What are your hobbies?</h1>
             <p style={{ textAlign: 'center', color: 'var(--color-text-light)', marginBottom: '30px' }}>Pick 3–5 things you love doing.</p>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'center', marginBottom: '40px' }}>
-              {HOBBIES_LIST.map((hobby) => (
-                <button key={hobby} className={selectedHobbies.has(hobby) ? 'btn-primary' : 'btn-secondary'} style={{ margin: '4px', borderRadius: '100px' }} onClick={() => toggleHobby(hobby)}>
-                  {hobby}
-                </button>
-              ))}
+
+            {/* Selected count indicator */}
+            <div style={{ textAlign: 'center', marginBottom: 24 }}>
+              <span style={{
+                display: 'inline-block', padding: '4px 14px', borderRadius: 100,
+                fontSize: '0.78rem', fontWeight: 700,
+                background: selectedHobbies.size >= 3 ? 'rgba(22, 163, 74, 0.08)' : 'rgba(194, 65, 12, 0.06)',
+                color: selectedHobbies.size >= 3 ? '#16a34a' : 'var(--color-accent-warm)',
+              }}>
+                {selectedHobbies.size} of 5 selected {selectedHobbies.size >= 3 && '✓'}
+              </span>
             </div>
-            <div style={{ textAlign: 'center' }}>
+
+            {/* Hobby categories */}
+            {HOBBY_CATEGORIES.map((cat) => (
+              <div key={cat.name} style={{ marginBottom: 24 }}>
+                <h3 style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--color-text-muted)', marginBottom: 10, letterSpacing: '0.01em' }}>{cat.name}</h3>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                  {cat.hobbies.map((hobby) => (
+                    <button key={hobby} className={selectedHobbies.has(hobby) ? 'btn-primary' : 'btn-secondary'} style={{ borderRadius: '100px', padding: '8px 16px', fontSize: '0.88rem' }} onClick={() => toggleHobby(hobby)}>
+                      {hobby}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+
+            <div style={{ textAlign: 'center', marginTop: 12 }}>
               <button className="btn-primary btn-large" disabled={selectedHobbies.size < 3} onClick={submitTraits}>
                 Continue <i className="fas fa-arrow-right"></i>
               </button>

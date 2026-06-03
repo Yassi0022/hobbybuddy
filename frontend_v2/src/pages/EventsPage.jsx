@@ -6,6 +6,7 @@ import useEvents from '../hooks/useEvents';
 import EventCard from '../components/events/EventCard';
 import EventFilters from '../components/events/EventFilters';
 import CreateEventModal from '../components/events/CreateEventModal';
+import EmptyState from '../components/ui/EmptyState';
 import { showToast } from '../utils/toast';
 
 /**
@@ -147,25 +148,16 @@ export default function EventsPage() {
 
         {/* ── Fallback ── */}
         {fallback && (
-          <div style={{
-            textAlign: 'center', padding: '48px 24px',
-            background: 'var(--color-surface)', borderRadius: 16,
-            border: '1px solid var(--color-border)',
-            marginBottom: 24,
-          }}>
-            <div style={{ fontSize: '3rem', marginBottom: 16 }}>📅</div>
-            <h3 style={{ margin: '0 0 8px', fontSize: '1.2rem', fontWeight: 700 }}>{fallback.message}</h3>
-            {fallback.action === 'create_event' && (
-              <button className="btn-primary" onClick={() => setShowCreateModal(true)} style={{ marginTop: 16, minWidth: 180 }}>
-                Create an event
-              </button>
-            )}
-            {fallback.action === 'set_city' && (
-              <button className="btn-primary" onClick={() => setShowCityInput(true)} style={{ marginTop: 16, minWidth: 180 }}>
-                Set your city
-              </button>
-            )}
-          </div>
+          <EmptyState
+            icon="📅"
+            title={fallback.message}
+            body={fallback.action === 'no_events' ? 'Be the first to organize something in your area.' : null}
+            action={
+              fallback.action === 'create_event' ? { label: 'Create an event', onClick: () => setShowCreateModal(true) }
+              : fallback.action === 'set_city' ? { label: 'Set your city', onClick: () => setShowCityInput(true) }
+              : null
+            }
+          />
         )}
 
         {/* ── Events grid ── */}
@@ -206,16 +198,12 @@ export default function EventsPage() {
             )}
           </>
         ) : !fallback ? (
-          <div style={{ textAlign: 'center', padding: '48px 24px' }}>
-            <div style={{ fontSize: '3rem', marginBottom: 16 }}>🔍</div>
-            <h3 style={{ margin: '0 0 8px', fontSize: '1.2rem', fontWeight: 700 }}>No events found</h3>
-            <p style={{ margin: '0 0 16px', fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
-              Try adjusting filters or create the first event!
-            </p>
-            <button className="btn-primary" onClick={() => setShowCreateModal(true)}>
-              Create an event
-            </button>
-          </div>
+          <EmptyState
+            icon="🔍"
+            title="No events found"
+            body="Try adjusting your filters, or be the first to create an event."
+            action={{ label: 'Create an event', onClick: () => setShowCreateModal(true) }}
+          />
         ) : null}
       </div>
 

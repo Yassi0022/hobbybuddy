@@ -20,6 +20,26 @@ export const HOBBIES_LIST = [
   'Writing ✍️', 'Football ⚽', 'Tennis 🎾', 'Cycling 🚴', 'Volunteering 🤝'
 ];
 
+/** Hobby categories for structured presentation in Quiz and Profile */
+export const HOBBY_CATEGORIES = [
+  {
+    name: '🏃 Sport & Fitness',
+    hobbies: ['Running 🏃', 'Hiking 🥾', 'Fitness 💪', 'Yoga 🧘', 'Football ⚽', 'Tennis 🎾', 'Cycling 🚴', 'Dancing 💃'],
+  },
+  {
+    name: '🎨 Creativity & Art',
+    hobbies: ['Photography 📷', 'Art 🎨', 'Music 🎵', 'Writing ✍️', 'Cooking 🍳', 'Cinema 🎬'],
+  },
+  {
+    name: '💻 Tech & Gaming',
+    hobbies: ['Coding 💻', 'Gaming 🎮', 'Board Games 🎲'],
+  },
+  {
+    name: '🌍 Culture & Community',
+    hobbies: ['Travel ✈️', 'Reading 📚', 'Volunteering 🤝'],
+  },
+];
+
 // ─────────────────────────────────────────────────────────────
 // Mini-IPIP 20 (Donnellan et al., 2006)
 // 4 items per trait × 5 traits = 20 questions

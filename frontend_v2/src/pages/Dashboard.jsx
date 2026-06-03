@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL } from '../utils/constants';
 import { showToast } from '../utils/toast';
+import EmptyState from '../components/ui/EmptyState';
 
 /**
  * Dashboard — home base: welcome, top matches, community feed.
@@ -19,6 +20,8 @@ export default function Dashboard() {
   const [userName, setUserName] = useState('');
   const [userArchetype, setUserArchetype] = useState('');
   const [postLikes, setPostLikes] = useState({});
+  const [expandedComments, setExpandedComments] = useState({});
+  const [commentTexts, setCommentTexts] = useState({});
   const postContentRef = useRef(null);
 
   useEffect(() => {
@@ -86,6 +89,32 @@ export default function Dashboard() {
   const handleLike = (postId) => {
     setPostLikes(prev => ({ ...prev, [postId]: (prev[postId] || 0) + 1 }));
     showToast('Liked!', 'success');
+  };
+
+  /** Toggle comment input open/closed for a post */
+  const toggleComments = (postId) => {
+    setExpandedComments(prev => ({ ...prev, [postId]: !prev[postId] }));
+  };
+
+  /** Submit a comment on a post (client-side only — backend has no Comment entity yet) */
+  const handleAddComment = (postId) => {
+    const text = (commentTexts[postId] || '').trim();
+    if (!text) return;
+    // Store comment locally until backend supports it
+    const stored = JSON.parse(localStorage.getItem(`post-comments-${postId}`) || '[]');
+    stored.push({ text, author: userName, createdAt: new Date().toISOString() });
+    localStorage.setItem(`post-comments-${postId}`, JSON.stringify(stored));
+    setCommentTexts(prev => ({ ...prev, [postId]: '' }));
+    // Force re-render
+    setExpandedComments(prev => ({ ...prev, [postId]: true }));
+    showToast('Comment added', 'success');
+  };
+
+  /** Get locally-stored comments for a post */
+  const getLocalComments = (postId) => {
+    try {
+      return JSON.parse(localStorage.getItem(`post-comments-${postId}`) || '[]');
+    } catch { return []; }
   };
 
   /** Qualitative match label — no raw percentage exposed */
@@ -167,60 +196,70 @@ export default function Dashboard() {
         </div>
 
         {/* ── Top matches teaser ───────────────── */}
-        {matches.length > 0 && (
-          <div style={{ marginBottom: 44 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-              <h2 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, letterSpacing: '-0.01em' }}>
-                ✨ Top matches for you
-              </h2>
-              <Link to="/discover" style={{ fontSize: '0.8rem', color: 'var(--color-accent-warm)', fontWeight: 600 }}>
-                See all →
-              </Link>
-            </div>
-
-            <div style={{ display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 8, scrollbarWidth: 'none' }}>
-              {matches.map(m => (
-                <Link key={m.id} to="/discover" style={{
-                  minWidth: 160, padding: '14px 16px', textDecoration: 'none', color: 'inherit',
-                  borderRadius: 14, flexShrink: 0,
-                  background: 'var(--color-surface)',
-                  border: '1px solid var(--color-border)',
-                  boxShadow: 'var(--shadow-card)',
-                  transition: 'box-shadow 0.2s, border-color 0.2s',
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center',
-                }}>
-                  {/* Avatar — warm gold gradient */}
-                  <div style={{
-                    width: 48, height: 48, borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
-                    color: '#92400e',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: '1.1rem', fontWeight: 800, marginBottom: 10,
-                    flexShrink: 0,
-                  }}>
-                    {m.name?.[0]?.toUpperCase() || '?'}
-                  </div>
-
-                  <h4 style={{ margin: '0 0 2px', fontSize: '0.88rem', fontWeight: 700, letterSpacing: '-0.01em' }}>{m.name}</h4>
-                  <p style={{ margin: '0 0 8px', fontSize: '0.7rem', color: 'var(--color-text-muted)', lineHeight: 1.4 }}>{m.archetype}</p>
-
-                  {/* Qualitative label — warm editorial chip */}
-                  <span style={{
-                    display: 'inline-block',
-                    fontSize: '0.65rem', fontWeight: 700,
-                    padding: '3px 10px', borderRadius: 100,
-                    background: 'rgba(194, 65, 12, 0.06)',
-                    color: 'var(--color-accent-warm)',
-                    letterSpacing: '0.03em',
-                    textTransform: 'uppercase',
-                  }}>
-                    {getMatchLabel(m.compatibilityPercentage)}
-                  </span>
+        <div style={{ marginBottom: 44 }}>
+          {matches.length > 0 ? (
+            <>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+                <h2 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, letterSpacing: '-0.01em' }}>
+                  ✨ Top matches for you
+                </h2>
+                <Link to="/discover" style={{ fontSize: '0.8rem', color: 'var(--color-accent-warm)', fontWeight: 600 }}>
+                  See all →
                 </Link>
-              ))}
-            </div>
-          </div>
-        )}
+              </div>
+
+              <div style={{ display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 8, scrollbarWidth: 'none' }}>
+                {matches.map(m => (
+                  <Link key={m.id} to="/discover" style={{
+                    minWidth: 160, padding: '14px 16px', textDecoration: 'none', color: 'inherit',
+                    borderRadius: 14, flexShrink: 0,
+                    background: 'var(--color-surface)',
+                    border: '1px solid var(--color-border)',
+                    boxShadow: 'var(--shadow-card)',
+                    transition: 'box-shadow 0.2s, border-color 0.2s',
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center',
+                  }}>
+                    {/* Avatar — warm gold gradient */}
+                    <div style={{
+                      width: 48, height: 48, borderRadius: '50%',
+                      background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+                      color: '#92400e',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: '1.1rem', fontWeight: 800, marginBottom: 10,
+                      flexShrink: 0,
+                    }}>
+                      {m.name?.[0]?.toUpperCase() || '?'}
+                    </div>
+
+                    <h4 style={{ margin: '0 0 2px', fontSize: '0.88rem', fontWeight: 700, letterSpacing: '-0.01em' }}>{m.name}</h4>
+                    <p style={{ margin: '0 0 8px', fontSize: '0.7rem', color: 'var(--color-text-muted)', lineHeight: 1.4 }}>{m.archetype}</p>
+
+                    {/* Qualitative label — warm editorial chip */}
+                    <span style={{
+                      display: 'inline-block',
+                      fontSize: '0.65rem', fontWeight: 700,
+                      padding: '3px 10px', borderRadius: 100,
+                      background: 'rgba(194, 65, 12, 0.06)',
+                      color: 'var(--color-accent-warm)',
+                      letterSpacing: '0.03em',
+                      textTransform: 'uppercase',
+                    }}>
+                      {getMatchLabel(m.compatibilityPercentage)}
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </>
+          ) : (
+            <EmptyState
+              icon="✨"
+              title="No matches yet"
+              body="Complete your profile and personality quiz to unlock personalized matches."
+              action={{ label: 'Complete your profile', href: '/profile' }}
+              secondary={{ label: 'Take the quiz', href: '/quiz' }}
+            />
+          )}
+        </div>
 
         {/* ── Feed ─────────────────────────────── */}
         <div>
@@ -249,28 +288,106 @@ export default function Dashboard() {
 
           {/* Posts */}
           {posts.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '40px 24px', color: 'var(--color-text-muted)' }}>
-              <p style={{ fontSize: '2rem', marginBottom: 8 }}>🌱</p>
-              <p style={{ margin: 0, fontSize: '0.9rem' }}>No posts yet. Be the first to share something!</p>
-            </div>
+            <EmptyState
+              icon="🌱"
+              title="Nothing here yet"
+              body="Be the first to share something with the community."
+            />
           ) : (
-            posts.map(post => (
-              <div key={post.id} className="card" style={{ padding: '18px', marginBottom: 12 }}>
-                <p style={{ margin: '0 0 12px', fontSize: '0.92rem', lineHeight: 1.6 }}>{post.content}</p>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-                    {new Date(post.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                  </span>
-                  <button
-                    className="btn-secondary"
-                    onClick={() => handleLike(post.id)}
-                    style={{ padding: '5px 14px', fontSize: '0.75rem' }}
-                  >
-                    ❤️ {postLikes[post.id] || post.likes || 0}
-                  </button>
+            posts.map(post => {
+              const localComments = getLocalComments(post.id);
+              const isOpen = expandedComments[post.id];
+              const totalComments = (post.commentsCount || 0) + localComments.length;
+
+              return (
+                <div key={post.id} className="card" style={{ padding: '18px', marginBottom: 12 }}>
+                  {/* Author row */}
+                  {post.author?.name && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                      <div style={{
+                        width: 28, height: 28, borderRadius: '50%',
+                        background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+                        color: '#92400e', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: '0.72rem', fontWeight: 800, flexShrink: 0,
+                      }}>
+                        {post.author.name[0]?.toUpperCase()}
+                      </div>
+                      <span style={{ fontSize: '0.82rem', fontWeight: 600 }}>{post.author.name}</span>
+                    </div>
+                  )}
+
+                  <p style={{ margin: '0 0 12px', fontSize: '0.92rem', lineHeight: 1.6 }}>{post.content}</p>
+
+                  {/* Actions row */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+                      {new Date(post.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </span>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      <button
+                        className="btn-secondary"
+                        onClick={() => handleLike(post.id)}
+                        style={{ padding: '5px 14px', fontSize: '0.75rem' }}
+                      >
+                        ❤️ {postLikes[post.id] || post.likesCount || post.likes || 0}
+                      </button>
+                      <button
+                        className="btn-secondary"
+                        onClick={() => toggleComments(post.id)}
+                        style={{ padding: '5px 14px', fontSize: '0.75rem' }}
+                      >
+                        💬 {totalComments}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* ── Comment section ── */}
+                  {isOpen && (
+                    <div style={{ marginTop: 14, borderTop: '1px solid var(--color-border)', paddingTop: 14 }}>
+                      {/* Existing local comments */}
+                      {localComments.length > 0 ? (
+                        localComments.map((c, ci) => (
+                          <div key={ci} style={{ marginBottom: 10, paddingLeft: 8, borderLeft: '2px solid var(--color-border)' }}>
+                            <span style={{ fontSize: '0.78rem', fontWeight: 600 }}>{c.author}</span>
+                            <p style={{ margin: '2px 0 0', fontSize: '0.85rem', lineHeight: 1.4 }}>{c.text}</p>
+                          </div>
+                        ))
+                      ) : (
+                        <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', margin: '0 0 10px' }}>
+                          No comments yet. Start the conversation.
+                        </p>
+                      )}
+
+                      {/* Comment input */}
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <input
+                          type="text"
+                          value={commentTexts[post.id] || ''}
+                          onChange={(e) => setCommentTexts(prev => ({ ...prev, [post.id]: e.target.value }))}
+                          onKeyDown={(e) => { if (e.key === 'Enter') handleAddComment(post.id); }}
+                          placeholder="Write a comment..."
+                          style={{
+                            flex: 1, fontSize: '0.85rem',
+                            padding: '8px 12px', borderRadius: 8,
+                            border: '1px solid var(--color-border, #ddd)',
+                            background: 'var(--color-input-bg, #f9f9fb)',
+                            outline: 'none',
+                          }}
+                        />
+                        <button
+                          className="btn-primary"
+                          onClick={() => handleAddComment(post.id)}
+                          disabled={!(commentTexts[post.id] || '').trim()}
+                          style={{ padding: '7px 16px', fontSize: '0.8rem' }}
+                        >
+                          Send
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </div>
