@@ -219,8 +219,8 @@
     align-items: center;
     justify-content: center;
     gap: 10px;
-    background: var(--color-secondary);
-    color: white;
+    background: var(--color-ink);
+    color: #ffffff;
     border: none;
     padding: 18px 40px;
     border-radius: 14px;
@@ -230,13 +230,13 @@
     cursor: pointer;
     text-decoration: none;
     transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-    box-shadow: 0 4px 20px rgba(244, 63, 94, 0.25);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
 .heroCtaPrimary:hover {
     transform: translateY(-2px);
-    background: #e11d48;
-    box-shadow: 0 8px 30px rgba(244, 63, 94, 0.4);
-    color: white;
+    background: var(--color-secondary);
+    box-shadow: 0 8px 30px rgba(244, 63, 94, 0.35);
+    color: #ffffff;
 }
 .heroCtaPrimary:active {
     transform: translateY(0) scale(0.98);
@@ -680,8 +680,8 @@
     align-items: center;
     justify-content: center;
     gap: 10px;
-    background: var(--color-secondary);
-    color: white;
+    background: #ffffff;
+    color: var(--color-ink);
     border: none;
     padding: 18px 40px;
     border-radius: 14px;
@@ -691,13 +691,13 @@
     cursor: pointer;
     text-decoration: none;
     transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-    box-shadow: 0 4px 20px rgba(244, 63, 94, 0.25);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 .ctaButton:hover {
     transform: translateY(-2px);
-    background: #e11d48;
-    box-shadow: 0 8px 30px rgba(244, 63, 94, 0.4);
-    color: white;
+    background: var(--color-secondary);
+    color: #ffffff;
+    box-shadow: 0 8px 30px rgba(244, 63, 94, 0.35);
 }
 .ctaButton:active {
     transform: translateY(0) scale(0.98);
