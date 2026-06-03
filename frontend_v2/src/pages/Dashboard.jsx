@@ -21,7 +21,6 @@ export default function Dashboard() {
   const [userArchetype, setUserArchetype] = useState('');
   const [postLikes, setPostLikes] = useState({});
   const [expandedComments, setExpandedComments] = useState({});
-  const [commentTexts, setCommentTexts] = useState({});
   const postContentRef = useRef(null);
 
   useEffect(() => {
@@ -89,32 +88,6 @@ export default function Dashboard() {
   const handleLike = (postId) => {
     setPostLikes(prev => ({ ...prev, [postId]: (prev[postId] || 0) + 1 }));
     showToast('Liked!', 'success');
-  };
-
-  /** Toggle comment input open/closed for a post */
-  const toggleComments = (postId) => {
-    setExpandedComments(prev => ({ ...prev, [postId]: !prev[postId] }));
-  };
-
-  /** Submit a comment on a post (client-side only — backend has no Comment entity yet) */
-  const handleAddComment = (postId) => {
-    const text = (commentTexts[postId] || '').trim();
-    if (!text) return;
-    // Store comment locally until backend supports it
-    const stored = JSON.parse(localStorage.getItem(`post-comments-${postId}`) || '[]');
-    stored.push({ text, author: userName, createdAt: new Date().toISOString() });
-    localStorage.setItem(`post-comments-${postId}`, JSON.stringify(stored));
-    setCommentTexts(prev => ({ ...prev, [postId]: '' }));
-    // Force re-render
-    setExpandedComments(prev => ({ ...prev, [postId]: true }));
-    showToast('Comment added', 'success');
-  };
-
-  /** Get locally-stored comments for a post */
-  const getLocalComments = (postId) => {
-    try {
-      return JSON.parse(localStorage.getItem(`post-comments-${postId}`) || '[]');
-    } catch { return []; }
   };
 
   /** Qualitative match label — no raw percentage exposed */
@@ -219,7 +192,6 @@ export default function Dashboard() {
                     transition: 'box-shadow 0.2s, border-color 0.2s',
                     display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center',
                   }}>
-                    {/* Avatar — warm gold gradient */}
                     <div style={{
                       width: 48, height: 48, borderRadius: '50%',
                       background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
@@ -230,11 +202,8 @@ export default function Dashboard() {
                     }}>
                       {m.name?.[0]?.toUpperCase() || '?'}
                     </div>
-
                     <h4 style={{ margin: '0 0 2px', fontSize: '0.88rem', fontWeight: 700, letterSpacing: '-0.01em' }}>{m.name}</h4>
                     <p style={{ margin: '0 0 8px', fontSize: '0.7rem', color: 'var(--color-text-muted)', lineHeight: 1.4 }}>{m.archetype}</p>
-
-                    {/* Qualitative label — warm editorial chip */}
                     <span style={{
                       display: 'inline-block',
                       fontSize: '0.65rem', fontWeight: 700,
@@ -294,100 +263,62 @@ export default function Dashboard() {
               body="Be the first to share something with the community."
             />
           ) : (
-            posts.map(post => {
-              const localComments = getLocalComments(post.id);
-              const isOpen = expandedComments[post.id];
-              const totalComments = (post.commentsCount || 0) + localComments.length;
-
-              return (
-                <div key={post.id} className="card" style={{ padding: '18px', marginBottom: 12 }}>
-                  {/* Author row */}
-                  {post.author?.name && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-                      <div style={{
-                        width: 28, height: 28, borderRadius: '50%',
-                        background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
-                        color: '#92400e', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: '0.72rem', fontWeight: 800, flexShrink: 0,
-                      }}>
-                        {post.author.name[0]?.toUpperCase()}
-                      </div>
-                      <span style={{ fontSize: '0.82rem', fontWeight: 600 }}>{post.author.name}</span>
+            posts.map(post => (
+              <div key={post.id} className="card" style={{ padding: '18px', marginBottom: 12 }}>
+                {/* Author row */}
+                {post.author?.name && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                    <div style={{
+                      width: 28, height: 28, borderRadius: '50%',
+                      background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+                      color: '#92400e', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: '0.72rem', fontWeight: 800, flexShrink: 0,
+                    }}>
+                      {post.author.name[0]?.toUpperCase()}
                     </div>
-                  )}
-
-                  <p style={{ margin: '0 0 12px', fontSize: '0.92rem', lineHeight: 1.6 }}>{post.content}</p>
-
-                  {/* Actions row */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-                      {new Date(post.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                    </span>
-                    <div style={{ display: 'flex', gap: 6 }}>
-                      <button
-                        className="btn-secondary"
-                        onClick={() => handleLike(post.id)}
-                        style={{ padding: '5px 14px', fontSize: '0.75rem' }}
-                      >
-                        ❤️ {postLikes[post.id] || post.likesCount || post.likes || 0}
-                      </button>
-                      <button
-                        className="btn-secondary"
-                        onClick={() => toggleComments(post.id)}
-                        style={{ padding: '5px 14px', fontSize: '0.75rem' }}
-                      >
-                        💬 {totalComments}
-                      </button>
-                    </div>
+                    <span style={{ fontSize: '0.82rem', fontWeight: 600 }}>{post.author.name}</span>
                   </div>
+                )}
 
-                  {/* ── Comment section ── */}
-                  {isOpen && (
-                    <div style={{ marginTop: 14, borderTop: '1px solid var(--color-border)', paddingTop: 14 }}>
-                      {/* Existing local comments */}
-                      {localComments.length > 0 ? (
-                        localComments.map((c, ci) => (
-                          <div key={ci} style={{ marginBottom: 10, paddingLeft: 8, borderLeft: '2px solid var(--color-border)' }}>
-                            <span style={{ fontSize: '0.78rem', fontWeight: 600 }}>{c.author}</span>
-                            <p style={{ margin: '2px 0 0', fontSize: '0.85rem', lineHeight: 1.4 }}>{c.text}</p>
-                          </div>
-                        ))
-                      ) : (
-                        <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', margin: '0 0 10px' }}>
-                          No comments yet. Start the conversation.
-                        </p>
-                      )}
+                <p style={{ margin: '0 0 12px', fontSize: '0.92rem', lineHeight: 1.6 }}>{post.content}</p>
 
-                      {/* Comment input */}
-                      <div style={{ display: 'flex', gap: 8 }}>
-                        <input
-                          type="text"
-                          value={commentTexts[post.id] || ''}
-                          onChange={(e) => setCommentTexts(prev => ({ ...prev, [post.id]: e.target.value }))}
-                          onKeyDown={(e) => { if (e.key === 'Enter') handleAddComment(post.id); }}
-                          placeholder="Write a comment..."
-                          style={{
-                            flex: 1, fontSize: '0.85rem',
-                            padding: '8px 12px', borderRadius: 8,
-                            border: '1px solid var(--color-border, #ddd)',
-                            background: 'var(--color-input-bg, #f9f9fb)',
-                            outline: 'none',
-                          }}
-                        />
-                        <button
-                          className="btn-primary"
-                          onClick={() => handleAddComment(post.id)}
-                          disabled={!(commentTexts[post.id] || '').trim()}
-                          style={{ padding: '7px 16px', fontSize: '0.8rem' }}
-                        >
-                          Send
-                        </button>
-                      </div>
-                    </div>
-                  )}
+                {/* Actions row */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+                    {new Date(post.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                  </span>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <button
+                      className="btn-secondary"
+                      onClick={() => handleLike(post.id)}
+                      style={{ padding: '5px 14px', fontSize: '0.75rem' }}
+                    >
+                      ❤️ {postLikes[post.id] || post.likesCount || post.likes || 0}
+                    </button>
+                    <button
+                      className="btn-secondary"
+                      onClick={() => setExpandedComments(prev => ({ ...prev, [post.id]: !prev[post.id] }))}
+                      style={{ padding: '5px 14px', fontSize: '0.75rem' }}
+                    >
+                      💬
+                    </button>
+                  </div>
                 </div>
-              );
-            })
+
+                {/* ── Comment placeholder (coming soon) ── */}
+                {expandedComments[post.id] && (
+                  <div style={{
+                    marginTop: 14, borderTop: '1px solid var(--color-border)', paddingTop: 14,
+                    display: 'flex', alignItems: 'center', gap: 8,
+                  }}>
+                    <span style={{ fontSize: '0.85rem' }}>💬</span>
+                    <span style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', fontStyle: 'italic' }}>
+                      Conversations open here soon
+                    </span>
+                  </div>
+                )}
+              </div>
+            ))
           )}
         </div>
       </div>
