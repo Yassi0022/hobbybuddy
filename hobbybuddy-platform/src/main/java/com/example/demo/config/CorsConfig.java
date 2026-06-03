@@ -20,7 +20,9 @@ public class CorsConfig {
             "http://localhost:5173",
             "http://localhost:8080",
             "https://hobbybuddy.vercel.app",
-            "https://*.vercel.app"
+            "https://*.vercel.app",
+            "https://hobbybuddy.onrender.com",
+            "https://hobbybuddy-matching.onrender.com"
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
