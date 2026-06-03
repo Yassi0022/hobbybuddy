@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL, HOBBIES_LIST } from '../utils/constants';
 import { showToast } from '../utils/toast';
+import PhotoUpload from '../components/ui/PhotoUpload';
 
 export default function Profile() {
   const { token, user, authFetch } = useAuth();
@@ -63,7 +64,6 @@ export default function Profile() {
   const toggleHobby = (hobby) => {
     setSelectedHobbies((prev) => {
       const next = new Set(prev);
-      const hobbyName = hobby.replace(/[^\w\s]/g, '').trim();
       if (next.has(hobby)) { next.delete(hobby); }
       else {
         if (next.size >= 5) { showToast('Max 5 hobbies', 'error'); return prev; }
@@ -151,17 +151,8 @@ export default function Profile() {
 
         <div className="auth-card" style={{ marginBottom: '30px' }}>
           <h3 style={{ marginBottom: '20px', fontSize: '1.2rem' }}><i className="fas fa-camera" style={{ color: 'var(--color-accent-warm)', marginRight: '10px' }}></i>Profile Photos</h3>
-          <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginBottom: '16px' }}>Add up to 3 photo URLs to showcase yourself</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {photos.map((photo, i) => (
-              <div key={i} style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                <div style={{ width: '54px', height: '54px', borderRadius: '8px', background: 'var(--color-input-bg)', border: '1px solid var(--color-input-border)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-                  {photo ? <img src={photo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <i className="fas fa-image" style={{ color: 'var(--color-text-light)' }}></i>}
-                </div>
-                <input type="url" value={photo} onChange={(e) => { const next = [...photos]; next[i] = e.target.value; setPhotos(next); }} placeholder={`Photo URL ${i + 1}`} style={{ flex: 1 }} />
-              </div>
-            ))}
-          </div>
+          <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginBottom: '16px' }}>Add up to 3 photos — drag & drop or click to upload</p>
+          <PhotoUpload photos={photos} onChange={setPhotos} maxPhotos={3} />
         </div>
 
         <div className="auth-card" style={{ marginBottom: '30px' }}>

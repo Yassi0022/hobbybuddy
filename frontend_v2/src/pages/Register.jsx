@@ -1,33 +1,99 @@
 import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import toast from 'react-hot-toast';
+
+/**
+ * Password strength rules:
+ *  - Minimum 8 characters
+ *  - At least one uppercase letter OR one number
+ */
+function validatePassword(pw) {
+  if (pw.length < 8) return 'Password must be at least 8 characters';
+  if (!/[A-Z0-9]/.test(pw)) return 'Include at least one uppercase letter or number';
+  return null;
+}
+
+function validateEmail(email) {
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return 'Enter a valid email address';
+  return null;
+}
 
 export default function Register() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const refId = searchParams.get('ref') || sessionStorage.getItem('hobbybuddy_ref');
 
+  /** Live field-level validation as user types */
+  const handleEmailChange = (value) => {
+    setEmail(value);
+    if (value && validateEmail(value)) {
+      setFieldErrors((prev) => ({ ...prev, email: validateEmail(value) }));
+    } else {
+      setFieldErrors((prev) => ({ ...prev, email: undefined }));
+    }
+  };
+
+  const handlePasswordChange = (value) => {
+    setPassword(value);
+    if (value && validatePassword(value)) {
+      setFieldErrors((prev) => ({ ...prev, password: validatePassword(value) }));
+    } else {
+      setFieldErrors((prev) => ({ ...prev, password: undefined }));
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    if (!name || !email || !password) { setError('Please fill in all fields.'); return; }
+    setFieldErrors({});
+
+    // ── Client-side validation ──
+    const errors = {};
+    if (!name.trim()) errors.name = 'Name is required';
+    if (!email) errors.email = 'Email is required';
+    else if (validateEmail(email)) errors.email = validateEmail(email);
+    if (!password) errors.password = 'Password is required';
+    else if (validatePassword(password)) errors.password = validatePassword(password);
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      return;
+    }
+
     setLoading(true);
     try {
       const userData = { name, email, password };
       if (refId) userData.referredBy = parseInt(refId);
       await register(userData);
+      toast.success('Account created! Let\'s find your vibe.');
       navigate('/quiz');
     } catch (err) {
-      setError(err.message);
+      const msg = err.message || 'Registration failed';
+      if (msg.toLowerCase().includes('email')) {
+        setFieldErrors({ email: 'This email is already in use' });
+      } else {
+        setError(msg);
+      }
     } finally {
       setLoading(false);
     }
+  };
+
+  /** Style for inline field error text */
+  const fieldErrorStyle = {
+    display: 'block',
+    fontSize: '0.78rem',
+    color: '#dc2626',
+    marginTop: 4,
+    fontWeight: 500,
   };
 
   return (
@@ -49,14 +115,17 @@ export default function Register() {
               <div className="form-group">
                 <label htmlFor="reg-name"><i className="fas fa-user"></i> Name</label>
                 <input type="text" id="reg-name" placeholder="Your name" required autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} />
+                {fieldErrors.name && <span style={fieldErrorStyle}>{fieldErrors.name}</span>}
               </div>
               <div className="form-group">
                 <label htmlFor="reg-email"><i className="fas fa-envelope"></i> Email</label>
-                <input type="email" id="reg-email" placeholder="you@example.com" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+                <input type="email" id="reg-email" placeholder="you@example.com" required autoComplete="email" value={email} onChange={(e) => handleEmailChange(e.target.value)} />
+                {fieldErrors.email && <span style={fieldErrorStyle}>{fieldErrors.email}</span>}
               </div>
               <div className="form-group">
                 <label htmlFor="reg-password"><i className="fas fa-lock"></i> Password</label>
-                <input type="password" id="reg-password" placeholder="Create a strong password" required autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} />
+                <input type="password" id="reg-password" placeholder="Min 8 chars, with uppercase or number" required autoComplete="new-password" value={password} onChange={(e) => handlePasswordChange(e.target.value)} />
+                {fieldErrors.password && <span style={fieldErrorStyle}>{fieldErrors.password}</span>}
               </div>
               {error && <div className="form-error" style={{ display: 'block' }} role="alert"><i className="fas fa-exclamation-triangle"></i> {error}</div>}
               <button type="submit" className="btn-form-primary" id="btn-register" disabled={loading}>

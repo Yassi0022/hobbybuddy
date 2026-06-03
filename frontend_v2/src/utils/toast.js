@@ -1,17 +1,14 @@
+import toast from 'react-hot-toast';
+
+/**
+ * Show a toast notification using react-hot-toast.
+ * Drop-in replacement for the old DOM-based toast.
+ *
+ * @param {string} message  — text to display
+ * @param {'success'|'error'|'info'} type  — toast variant
+ */
 export function showToast(message, type = 'error') {
-  let container = document.getElementById('toast-container');
-  if (!container) {
-    container = document.createElement('div');
-    container.id = 'toast-container';
-    document.body.appendChild(container);
-  }
-  const icon = type === 'error' ? 'fa-exclamation-circle' : 'fa-check-circle';
-  const toast = document.createElement('div');
-  toast.className = `toast ${type}`;
-  toast.innerHTML = `<i class="fas ${icon}"></i> <span>${message}</span>`;
-  container.appendChild(toast);
-  setTimeout(() => {
-    toast.classList.add('fade-out');
-    setTimeout(() => toast.remove(), 300);
-  }, 3000);
+  if (type === 'success') toast.success(message);
+  else if (type === 'error') toast.error(message);
+  else toast(message);
 }
