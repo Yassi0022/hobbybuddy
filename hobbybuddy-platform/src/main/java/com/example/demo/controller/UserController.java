@@ -201,13 +201,23 @@ public class UserController {
     }
 
     @PutMapping("/{id}/profile")
-    public ResponseEntity<?> updateProfile(@PathVariable("id") java.lang.Long id, @RequestBody Map<String, Object> payload) {
-        Optional<User> userOpt = userRepository.findById(java.util.Objects.requireNonNull(id));
-        if (userOpt.isEmpty()) {
-            return ResponseEntity.status(404).body(Map.of("error", "User not found"));
+    public ResponseEntity<?> updateProfile(@PathVariable("id") java.lang.Long id,
+                                           @RequestBody Map<String, Object> payload,
+                                           Authentication authentication) {
+        // Auth check
+        User currentUser = getAuthenticatedUser(authentication);
+        if (currentUser == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Authentication required"));
         }
-        User user = userOpt.get();
-        
+        // Authorization check: user can only update their own profile
+        if (!currentUser.getId().equals(id)) {
+            logger.warn("[AUTHZ] User {} attempted to update profile of user {}", currentUser.getId(), id);
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "You can only update your own profile"));
+        }
+
+        // User is updating their own profile — use the authenticated user entity
+        User user = currentUser;
+
         if (payload.containsKey("name")) user.setName((String) payload.get("name"));
         if (payload.containsKey("prompt1")) user.setPrompt1((String) payload.get("prompt1"));
         if (payload.containsKey("prompt2")) user.setPrompt2((String) payload.get("prompt2"));
@@ -217,20 +227,31 @@ public class UserController {
         if (payload.containsKey("personalityTagline")) user.setPersonalityTagline((String) payload.get("personalityTagline"));
         if (payload.containsKey("hobbies")) user.setHobbies((String) payload.get("hobbies"));
         if (payload.containsKey("photosJson")) user.setPhotosJson((String) payload.get("photosJson"));
-        
+
         userRepository.save(user);
         return ResponseEntity.ok(Map.of("message", "Profile updated successfully"));
     }
 
     @PostMapping("/{id}/quiz-submit")
     @Transactional
-    public ResponseEntity<?> submitQuiz(@PathVariable("id") java.lang.Long id, @RequestBody Map<String, Object> payload) {
+    public ResponseEntity<?> submitQuiz(@PathVariable("id") java.lang.Long id,
+                                        @RequestBody Map<String, Object> payload,
+                                        Authentication authentication) {
+        // Auth check
+        User currentUser = getAuthenticatedUser(authentication);
+        if (currentUser == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Authentication required"));
+        }
+        // Authorization check: user can only submit quiz for themselves
+        if (!currentUser.getId().equals(id)) {
+            logger.warn("[AUTHZ] User {} attempted to submit quiz for user {}", currentUser.getId(), id);
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "You can only submit the quiz for your own account"));
+        }
+
         if (!payload.containsKey("gdprConsent") || !(Boolean) payload.get("gdprConsent")) {
             return ResponseEntity.status(400).body(Map.of("error", "GDPR consent required"));
         }
-        Optional<User> userOpt = userRepository.findById(java.util.Objects.requireNonNull(id));
-        if (userOpt.isEmpty()) return ResponseEntity.status(404).body(Map.of("error", "User not found"));
-        User user = userOpt.get();
+        User user = currentUser;
         
         Double o = Double.valueOf(payload.get("openness").toString());
         Double c = Double.valueOf(payload.get("conscientiousness").toString());
@@ -325,8 +346,31 @@ public class UserController {
         return ResponseEntity.ok(Map.of("matches", richMatches));
     }
 
+    /**
+     * Resolve the authenticated user from the SecurityContext.
+     * Returns null if not authenticated.
+     */
+    private User getAuthenticatedUser(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()
+                || "anonymousUser".equals(authentication.getPrincipal())) {
+            return null;
+        }
+        return userRepository.findByEmail(authentication.getName()).orElse(null);
+    }
+
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteUser(@PathVariable("id") java.lang.Long id) {
+    public ResponseEntity<?> deleteUser(@PathVariable("id") java.lang.Long id, Authentication authentication) {
+        // Auth check
+        User currentUser = getAuthenticatedUser(authentication);
+        if (currentUser == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Authentication required"));
+        }
+        // Authorization check: user can only delete their own account
+        if (!currentUser.getId().equals(id)) {
+            logger.warn("[AUTHZ] User {} attempted to delete user {}", currentUser.getId(), id);
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "You can only delete your own account"));
+        }
+
         logger.info("[DEBUG-AUTH] Deletion request for user id: " + id);
         try {
             userService.deleteUser(id);

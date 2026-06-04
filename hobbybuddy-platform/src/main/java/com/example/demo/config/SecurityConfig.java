@@ -77,8 +77,10 @@ public class SecurityConfig {
                 .requestMatchers("/api/health").permitAll()
                 .requestMatchers("/api/users/login", "/api/users/register", "/api/users").permitAll()
                 .requestMatchers("/ws-chat/**", "/uploads/**", "/api/photos/file/**").permitAll()
-                .requestMatchers("/api/events").permitAll()
-                .requestMatchers("/api/discover", "/api/events", "/api/events/**").permitAll()
+                .requestMatchers("/api/messages/**").authenticated()
+                // Events: GET is public (browsing), POST/PUT/DELETE require auth
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/events", "/api/events/**").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/discover").permitAll()
                 .requestMatchers("/api/**").authenticated()
                 .requestMatchers("/", "/login", "/register", "/quiz", "/dashboard", "/discover", "/events", "/profile", "/privacy", "/terms", "/messages", "/feed", "/settings").permitAll()
                 .anyRequest().authenticated()
