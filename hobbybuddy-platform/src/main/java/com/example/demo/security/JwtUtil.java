@@ -5,7 +5,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -20,7 +20,12 @@ public class JwtUtil {
     private final SecretKey SECRET_KEY;
     private final long EXPIRATION_TIME = 86400000L; // 24 hours
 
-    public JwtUtil(@Value("${JWT_SECRET:}") String jwtSecret) {
+    public JwtUtil(Environment env) {
+        String jwtSecret = env.getProperty("JWT_SECRET");
+        if (jwtSecret == null || jwtSecret.isBlank()) {
+            // Fallback: try system env directly (e.g. when Spring property sources don't include env vars)
+            jwtSecret = System.getenv("JWT_SECRET");
+        }
         if (jwtSecret == null || jwtSecret.isBlank()) {
             logger.error("JWT_SECRET is not set. Application cannot start without a valid JWT secret.");
             throw new IllegalStateException(
