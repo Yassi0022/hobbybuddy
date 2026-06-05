@@ -23,7 +23,11 @@ export default function Login() {
         navigate('/dashboard');
       }
     } catch (err) {
-      setError(err.message);
+      if (err.isRateLimited) {
+        setError({ message: err.message, rateLimited: true });
+      } else {
+        setError({ message: err.message, rateLimited: false });
+      }
     } finally {
       setLoading(false);
     }
@@ -53,7 +57,16 @@ export default function Login() {
                 <label htmlFor="login-password"><i className="fas fa-lock"></i> Password</label>
                 <input type="password" id="login-password" placeholder="Your password" required autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
               </div>
-              {error && <div className="form-error" style={{ display: 'block' }} role="alert"><i className="fas fa-exclamation-triangle"></i> {error}</div>}
+              {error && error.rateLimited && (
+                <div className="form-error" style={{ display: 'block', background: '#fff7ed', borderColor: '#f59e0b', color: '#92400e' }} role="alert">
+                  <i className="fas fa-clock"></i> {error.message}
+                </div>
+              )}
+              {error && !error.rateLimited && (
+                <div className="form-error" style={{ display: 'block' }} role="alert">
+                  <i className="fas fa-exclamation-triangle"></i> {error.message}
+                </div>
+              )}
               <button type="submit" className="btn-form-primary" id="btn-login" disabled={loading}>
                 {loading ? <><i className="fas fa-spinner fa-spin"></i> Signing in...</> : <><i className="fas fa-sign-in-alt"></i> Sign In Now</>}
               </button>

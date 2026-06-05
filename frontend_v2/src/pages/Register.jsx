@@ -77,10 +77,12 @@ export default function Register() {
       navigate('/quiz');
     } catch (err) {
       const msg = err.message || 'Registration failed';
-      if (msg.toLowerCase().includes('email')) {
+      if (err.isRateLimited) {
+        setError({ message: msg, rateLimited: true });
+      } else if (msg.toLowerCase().includes('email')) {
         setFieldErrors({ email: 'This email is already in use' });
       } else {
-        setError(msg);
+        setError({ message: msg, rateLimited: false });
       }
     } finally {
       setLoading(false);
@@ -127,7 +129,16 @@ export default function Register() {
                 <input type="password" id="reg-password" placeholder="Min 8 chars, with uppercase or number" required autoComplete="new-password" value={password} onChange={(e) => handlePasswordChange(e.target.value)} />
                 {fieldErrors.password && <span style={fieldErrorStyle}>{fieldErrors.password}</span>}
               </div>
-              {error && <div className="form-error" style={{ display: 'block' }} role="alert"><i className="fas fa-exclamation-triangle"></i> {error}</div>}
+              {error && error.rateLimited && (
+                <div className="form-error" style={{ display: 'block', background: '#fff7ed', borderColor: '#f59e0b', color: '#92400e' }} role="alert">
+                  <i className="fas fa-clock"></i> {error.message}
+                </div>
+              )}
+              {error && !error.rateLimited && (
+                <div className="form-error" style={{ display: 'block' }} role="alert">
+                  <i className="fas fa-exclamation-triangle"></i> {error.message}
+                </div>
+              )}
               <button type="submit" className="btn-form-primary" id="btn-register" disabled={loading}>
                 {loading ? <><i className="fas fa-spinner fa-spin"></i> Creating...</> : <>Get started <i className="fas fa-arrow-right"></i></>}
               </button>

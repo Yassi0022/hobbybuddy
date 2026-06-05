@@ -41,6 +41,16 @@ export function AuthProvider({ children }) {
       body: JSON.stringify({ email, password }),
     });
     if (!res.ok) {
+      if (res.status === 429) {
+        const errorData = await res.json().catch(() => ({}));
+        const retryAfter = errorData.retryAfter || 300;
+        const minutes = Math.ceil(retryAfter / 60);
+        const err = new Error(`Too many login attempts. Please try again in ${minutes} minute${minutes > 1 ? 's' : ''}.`);
+        err.status = 429;
+        err.retryAfter = retryAfter;
+        err.isRateLimited = true;
+        throw err;
+      }
       if (res.status === 404) throw new Error('No account found with this email.');
       if (res.status === 401) throw new Error('Wrong password.');
       throw new Error('Login failed');
@@ -60,6 +70,16 @@ export function AuthProvider({ children }) {
       body: JSON.stringify(userData),
     });
     if (!res.ok) {
+      if (res.status === 429) {
+        const errorData = await res.json().catch(() => ({}));
+        const retryAfter = errorData.retryAfter || 900;
+        const minutes = Math.ceil(retryAfter / 60);
+        const err = new Error(`Too many registration attempts. Please try again in ${minutes} minute${minutes > 1 ? 's' : ''}.`);
+        err.status = 429;
+        err.retryAfter = retryAfter;
+        err.isRateLimited = true;
+        throw err;
+      }
       const errorData = await res.json().catch(() => ({}));
       throw new Error(errorData.error || `Server Error (${res.status})`);
     }
