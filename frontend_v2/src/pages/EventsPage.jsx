@@ -7,6 +7,7 @@ import EventCard from '../components/events/EventCard';
 import EventFilters from '../components/events/EventFilters';
 import CreateEventModal from '../components/events/CreateEventModal';
 import EmptyState from '../components/ui/EmptyState';
+import Navbar from '../components/ui/Navbar';
 import { showToast } from '../utils/toast';
 
 /**
@@ -83,19 +84,7 @@ export default function EventsPage() {
         <div className="orb orb-3"></div>
       </div>
 
-      <nav className="navbar navbar-solid">
-        <div className="nav-container">
-          <Link to="/dashboard" className="logo">
-            <i className="fas fa-users"></i><span>HobbyBuddy</span>
-          </Link>
-          <ul className="nav-menu">
-            <li><Link to="/dashboard">Feed</Link></li>
-            <li><Link to="/discover">Discover</Link></li>
-            <li><Link to="/events" className="active">Events</Link></li>
-            <li><Link to="/profile">Profile</Link></li>
-          </ul>
-        </div>
-      </nav>
+      <Navbar />
 
       <div style={{ maxWidth: 1080, margin: '0 auto', padding: '80px 24px 40px' }}>
 

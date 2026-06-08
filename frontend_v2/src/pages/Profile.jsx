@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL, HOBBY_CATEGORIES } from '../utils/constants';
 import { showToast } from '../utils/toast';
 import PhotoUpload from '../components/ui/PhotoUpload';
+import Navbar from '../components/ui/Navbar';
 
 export default function Profile() {
   const { token, user, authFetch } = useAuth();
@@ -112,12 +113,12 @@ export default function Profile() {
   return (
     <>
       <div className="bg-mesh"><div className="orb orb-1"></div><div className="orb orb-2"></div><div className="orb orb-3"></div></div>
-      <nav className="navbar navbar-solid">
-        <div className="nav-container">
-          <Link to="/dashboard" className="logo"><i className="fas fa-users"></i><span>HobbyBuddy</span></Link>
-          <ul className="nav-menu"><li><Link to="/dashboard" className="btn-secondary" style={{ padding: '8px 18px', fontSize: '0.85rem' }}>Back to Dashboard</Link></li></ul>
-        </div>
-      </nav>
+      <Navbar brandLink="/dashboard" showLinks={[
+        { to: '/dashboard', label: 'Feed' },
+        { to: '/discover', label: 'Discover' },
+        { to: '/events', label: 'Events' },
+        { to: '/profile', label: 'Profile' },
+      ]} />
 
       <div style={{ maxWidth: '800px', margin: '100px auto 60px', padding: '0 24px' }}>
         <div style={{ textAlign: 'center', marginBottom: '40px' }}>

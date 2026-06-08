@@ -6,6 +6,7 @@ import { API_BASE_URL } from '../utils/constants';
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [unverified, setUnverified] = useState(false);
@@ -77,12 +78,38 @@ export default function Login() {
             <form onSubmit={handleSubmit} noValidate>
               <div className="form-group">
                 <label htmlFor="login-email"><i className="fas fa-envelope"></i> Email</label>
-                <input type="email" id="login-email" placeholder="you@example.com" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+                <input
+                  type="email" id="login-email" placeholder="you@example.com"
+                  required autoComplete="email"
+                  value={email} onChange={(e) => setEmail(e.target.value)}
+                />
               </div>
               <div className="form-group">
                 <label htmlFor="login-password"><i className="fas fa-lock"></i> Password</label>
-                <input type="password" id="login-password" placeholder="Your password" required autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    id="login-password" placeholder="Your password"
+                    required autoComplete="current-password"
+                    value={password} onChange={(e) => setPassword(e.target.value)}
+                    style={{ paddingRight: 44 }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(v => !v)}
+                    tabIndex={-1}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    style={{
+                      position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
+                      background: 'none', border: 'none', cursor: 'pointer',
+                      color: 'var(--color-text-muted)', fontSize: '0.9rem', padding: 4,
+                    }}
+                  >
+                    <i className={`fas ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                  </button>
+                </div>
               </div>
+
               {error && error.rateLimited && (
                 <div className="form-error" style={{ display: 'block', background: '#fff7ed', borderColor: '#f59e0b', color: '#92400e' }} role="alert">
                   <i className="fas fa-clock"></i> {error.message}
@@ -126,6 +153,7 @@ export default function Login() {
                   </div>
                 </div>
               )}
+
               <button type="submit" className="btn-form-primary" id="btn-login" disabled={loading}>
                 {loading ? <><i className="fas fa-spinner fa-spin"></i> Signing in...</> : <><i className="fas fa-sign-in-alt"></i> Sign In Now</>}
               </button>

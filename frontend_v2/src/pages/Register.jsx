@@ -1,7 +1,6 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import toast from 'react-hot-toast';
 
 /**
  * Password strength rules:
@@ -19,6 +18,21 @@ function validateEmail(email) {
   return null;
 }
 
+/**
+ * Compute a simple password strength score (0-3).
+ */
+function passwordStrength(pw) {
+  if (!pw) return { score: 0, label: '', color: 'transparent' };
+  let s = 0;
+  if (pw.length >= 8) s++;
+  if (/[A-Z]/.test(pw) && /[0-9]/.test(pw)) s++;
+  if (pw.length >= 12 && /[^A-Za-z0-9]/.test(pw)) s++;
+  if (s === 0) return { score: 1, label: 'Weak', color: '#dc2626' };
+  if (s === 1) return { score: 2, label: 'Fair', color: '#d97706' };
+  if (s === 2) return { score: 3, label: 'Good', color: '#16a34a' };
+  return { score: 3, label: 'Strong', color: '#059669' };
+}
+
 export default function Register() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -30,6 +44,8 @@ export default function Register() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const refId = searchParams.get('ref') || sessionStorage.getItem('hobbybuddy_ref');
+
+  const strength = useMemo(() => passwordStrength(password), [password]);
 
   /** Live field-level validation as user types */
   const handleEmailChange = (value) => {
@@ -48,7 +64,7 @@ export default function Register() {
     } else {
       setFieldErrors((prev) => ({ ...prev, password: undefined }));
     }
-  };
+  }
 
   const [registered, setRegistered] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState('');
@@ -76,7 +92,6 @@ export default function Register() {
       const userData = { name, email, password };
       if (refId) userData.referredBy = parseInt(refId);
       await register(userData);
-      // Backend does NOT issue a JWT until email is verified — show verification prompt
       setRegisteredEmail(email);
       setRegistered(true);
     } catch (err) {
@@ -93,13 +108,8 @@ export default function Register() {
     }
   };
 
-  /** Style for inline field error text */
   const fieldErrorStyle = {
-    display: 'block',
-    fontSize: '0.78rem',
-    color: '#dc2626',
-    marginTop: 4,
-    fontWeight: 500,
+    display: 'block', fontSize: '0.78rem', color: '#dc2626', marginTop: 4, fontWeight: 500,
   };
 
   // ── Post-registration: prompt to verify email ──
@@ -118,7 +128,7 @@ export default function Register() {
               <div className="auth-icon" style={{ background: 'linear-gradient(135deg, #16a34a, #22c55e)' }}>
                 <i className="fas fa-envelope-open-text"></i>
               </div>
-              <h1 className="auth-title">Check your email 📬</h1>
+              <h1 className="auth-title">Check your email</h1>
               <p className="auth-subtitle">
                 We sent a verification link to <strong>{registeredEmail}</strong>.
                 Click the link to verify your account, then sign in.
@@ -163,6 +173,23 @@ export default function Register() {
                 <label htmlFor="reg-password"><i className="fas fa-lock"></i> Password</label>
                 <input type="password" id="reg-password" placeholder="Min 8 chars, with uppercase or number" required autoComplete="new-password" value={password} onChange={(e) => handlePasswordChange(e.target.value)} />
                 {fieldErrors.password && <span style={fieldErrorStyle}>{fieldErrors.password}</span>}
+                {/* Password strength meter */}
+                {password.length > 0 && (
+                  <div style={{ marginTop: 6 }}>
+                    <div style={{ display: 'flex', gap: 4, marginBottom: 3 }}>
+                      {[1, 2, 3].map(i => (
+                        <div key={i} style={{
+                          flex: 1, height: 3, borderRadius: 2,
+                          background: i <= strength.score ? strength.color : '#e5e7eb',
+                          transition: 'background 0.2s',
+                        }} />
+                      ))}
+                    </div>
+                    <span style={{ fontSize: '0.72rem', color: strength.color, fontWeight: 600 }}>
+                      {strength.label}
+                    </span>
+                  </div>
+                )}
               </div>
               {error && error.rateLimited && (
                 <div className="form-error" style={{ display: 'block', background: '#fff7ed', borderColor: '#f59e0b', color: '#92400e' }} role="alert">

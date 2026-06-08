@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL } from '../utils/constants';
 import { showToast } from '../utils/toast';
 import EmptyState from '../components/ui/EmptyState';
+import Navbar from '../components/ui/Navbar';
 
 /**
  * Dashboard — home base: welcome, top matches, community feed.
@@ -128,19 +129,7 @@ export default function Dashboard() {
         <div className="orb orb-3"></div>
       </div>
 
-      <nav className="navbar navbar-solid">
-        <div className="nav-container">
-          <Link to="/dashboard" className="logo">
-            <i className="fas fa-users"></i><span>HobbyBuddy</span>
-          </Link>
-          <ul className="nav-menu">
-            <li><Link to="/dashboard" className="active">Feed</Link></li>
-            <li><Link to="/discover">Discover</Link></li>
-            <li><Link to="/events">Events</Link></li>
-            <li><Link to="/profile">Profile</Link></li>
-          </ul>
-        </div>
-      </nav>
+      <Navbar />
 
       <div style={{ maxWidth: 720, margin: '0 auto', padding: '88px 24px 48px' }}>
 

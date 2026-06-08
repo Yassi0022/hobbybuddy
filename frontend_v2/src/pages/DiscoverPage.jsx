@@ -7,6 +7,9 @@ import PeopleCard from '../components/discover/PeopleCard';
 import EventTeaserCard from '../components/discover/EventTeaserCard';
 import SuggestionsPanel from '../components/discover/SuggestionsPanel';
 import FallbackState from '../components/discover/FallbackState';
+import Navbar from '../components/ui/Navbar';
+import { showToast } from '../utils/toast';
+import { API_BASE_URL } from '../utils/constants';
 
 /**
  * Discover page — social discovery surface.
@@ -49,6 +52,29 @@ export default function DiscoverPage() {
     refetch();
   }, [setManualCity, refetch]);
 
+  const handleConnect = useCallback(async (candidateId) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/match-requests/${candidateId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('hb_token') || ''}`,
+        },
+      });
+      if (res.ok) {
+        showToast('Match request sent!', 'success');
+        refetch(); // refresh to remove the person from the list
+      } else if (res.status === 409) {
+        showToast('You already sent a request to this person.', 'error');
+      } else {
+        const err = await res.json().catch(() => ({}));
+        showToast(err.error || 'Failed to send request', 'error');
+      }
+    } catch {
+      showToast('Failed to send request', 'error');
+    }
+  }, [refetch]);
+
   if (!token) {
     window.location.href = '/login';
     return null;
@@ -62,19 +88,7 @@ export default function DiscoverPage() {
         <div className="orb orb-3"></div>
       </div>
 
-      <nav className="navbar navbar-solid">
-        <div className="nav-container">
-          <Link to="/dashboard" className="logo">
-            <i className="fas fa-users"></i><span>HobbyBuddy</span>
-          </Link>
-          <ul className="nav-menu">
-            <li><Link to="/dashboard">Feed</Link></li>
-            <li><Link to="/discover" className="active">Discover</Link></li>
-            <li><Link to="/events">Events</Link></li>
-            <li><Link to="/profile">Profile</Link></li>
-          </ul>
-        </div>
-      </nav>
+      <Navbar />
 
       <div style={{ maxWidth: 960, margin: '0 auto', padding: '80px 24px 40px' }}>
 
@@ -163,7 +177,7 @@ export default function DiscoverPage() {
               gap: 14,
             }}>
               {people.map((person) => (
-                <PeopleCard key={person.id} person={person} />
+                <PeopleCard key={person.id} person={person} onConnect={handleConnect} />
               ))}
             </div>
           ) : !fallback ? (

@@ -2,8 +2,9 @@
  * Person card — editorial, restrained, no dating-app feel.
  * No large photo, no match percentage. Tagline-forward, warm initials avatar.
  */
-export default function PeopleCard({ person }) {
+export default function PeopleCard({ person, onConnect }) {
   const {
+    id,
     name = 'Buddy',
     archetype = '',
     hobbies = '',
@@ -35,18 +36,36 @@ export default function PeopleCard({ person }) {
         </div>
       </div>
 
-      {/* ── Tagline — the editorial centerpiece ── */}
+      {/* Tagline */}
       {personalityTagline && (
         <p className="people-card-tagline">"{personalityTagline}"</p>
       )}
 
-      {/* ── Hobbies — low-weight pills ── */}
+      {/* Hobbies */}
       {hobbyList.length > 0 && (
         <div className="people-card-hobbies">
           {hobbyList.slice(0, 3).map((h, i) => (
             <span key={i} className="people-card-hobby-chip">{h}</span>
           ))}
+          {hobbyList.length > 3 && (
+            <span className="people-card-hobby-chip">+{hobbyList.length - 3} more</span>
+          )}
         </div>
+      )}
+
+      {/* Connect button */}
+      {onConnect && (
+        <button
+          className="btn-primary"
+          onClick={() => onConnect(id)}
+          style={{
+            width: '100%', marginTop: 4, padding: '10px 16px',
+            fontSize: '0.82rem', fontWeight: 700,
+          }}
+        >
+          <i className="fas fa-user-plus" style={{ marginRight: 6 }}></i>
+          Connect
+        </button>
       )}
     </div>
   );

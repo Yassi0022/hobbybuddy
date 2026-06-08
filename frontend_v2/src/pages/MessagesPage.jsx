@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL } from '../utils/constants';
 import { showToast } from '../utils/toast';
 import EmptyState from '../components/ui/EmptyState';
+import Navbar from '../components/ui/Navbar';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 
@@ -221,61 +222,42 @@ export default function MessagesPage() {
         <div className="orb orb-3"></div>
       </div>
 
-      <nav className="navbar navbar-solid">
-        <div className="nav-container">
-          <Link to="/dashboard" className="logo">
-            <i className="fas fa-users"></i><span>HobbyBuddy</span>
-          </Link>
-          <ul className="nav-menu">
-            <li><Link to="/dashboard">Feed</Link></li>
-            <li><Link to="/discover">Discover</Link></li>
-            <li><Link to="/events">Events</Link></li>
-            <li><Link to="/profile">Profile</Link></li>
-          </ul>
-        </div>
-      </nav>
+      <Navbar />
 
-      <div style={{ maxWidth: 680, margin: '0 auto', padding: '88px 16px 48px' }}>
-        <h1 style={{ margin: '0 0 6px', fontSize: '1.4rem', fontWeight: 800, letterSpacing: '-0.02em' }}>
-          {buddyId ? '💬 Conversation' : '💬 Messages'}
+      <div style={{
+        maxWidth: 680, margin: '0 auto', padding: '72px 16px 24px',
+        display: 'flex', flexDirection: 'column', minHeight: 'calc(100vh - 72px)',
+      }}>
+        <h1 style={{ margin: '0 0 4px', fontSize: '1.3rem', fontWeight: 800, letterSpacing: '-0.02em' }}>
+          {buddyId ? '\u{1F4AC} Conversation' : '\u{1F4AC} Messages'}
         </h1>
-        <p style={{ margin: '0 0 16px', fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
+        <p style={{ margin: '0 0 10px', fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>
           {buddyId ? `Your chat with match #${buddyId}` : 'Select a match from your dashboard to start chatting.'}
         </p>
 
-        {/* ── Connection status indicator ── */}
         {buddyId && (
           <div style={{
-            display: 'flex', alignItems: 'center', gap: 6, marginBottom: 14,
-            fontSize: '0.75rem', fontWeight: 600,
+            display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8,
+            fontSize: '0.72rem', fontWeight: 600,
             color: wsConnected ? '#16a34a' : 'var(--color-text-muted)',
           }}>
             <span style={{
-              width: 8, height: 8, borderRadius: '50%',
+              width: 7, height: 7, borderRadius: '50%',
               background: wsConnected ? '#16a34a' : '#d97706',
-              boxShadow: wsConnected ? '0 0 6px rgba(22,163,74,0.4)' : 'none',
-              flexShrink: 0,
+              boxShadow: wsConnected ? '0 0 6px rgba(22,163,74,0.4)' : 'none', flexShrink: 0,
             }}></span>
-            {wsConnected ? 'Connected — messages are real-time' : 'Connecting… messages use fallback'}
+            {wsConnected ? 'Connected — real-time' : 'Connecting… fallback mode'}
           </div>
         )}
 
         {buddyId ? (
           <>
-            {/* ── Message list ── */}
             <div
               ref={msgListRef}
               style={{
-                background: 'var(--color-surface)',
-                border: '1px solid var(--color-border)',
-                borderRadius: 16,
-                padding: '18px 18px 12px',
-                marginBottom: 16,
-                height: 420,
-                overflowY: 'auto',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 10,
+                background: 'var(--color-surface)', border: '1px solid var(--color-border)',
+                borderRadius: 16, padding: '14px 14px 10px', flex: 1, minHeight: 200,
+                overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 12,
               }}
             >
               {loading ? (
