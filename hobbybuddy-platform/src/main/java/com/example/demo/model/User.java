@@ -40,6 +40,14 @@ public class User {
     @Column(nullable = false)
     private int referralCount = 0;
 
+    /** True when the user has a high-priority match credit (e.g. from a successful referral). */
+    @Column(nullable = false)
+    private boolean priorityMatchAvailable = false;
+
+    /** Transient invite token passed during registration (not persisted). */
+    @jakarta.persistence.Transient
+    private String inviteToken;
+
     @Column(columnDefinition = "TEXT")
     private String hobbies;
 
@@ -61,6 +69,14 @@ public class User {
 
     @Column(columnDefinition = "TEXT")
     private String photosJson; // Stored as JSON array of URLs
+
+    @Column(nullable = false)
+    private boolean emailVerified = false;
+
+    // ----- New: List of PhotoInfo (transient, not persisted directly) -----
+    @jakarta.persistence.Transient
+    private java.util.List<com.example.demo.model.PhotoInfo> photoList = new java.util.ArrayList<>();
+
 
     public User() {
 
@@ -184,6 +200,22 @@ public class User {
         this.referralCount = referralCount;
     }
 
+    public boolean isPriorityMatchAvailable() {
+        return priorityMatchAvailable;
+    }
+
+    public void setPriorityMatchAvailable(boolean priorityMatchAvailable) {
+        this.priorityMatchAvailable = priorityMatchAvailable;
+    }
+
+    public String getInviteToken() {
+        return inviteToken;
+    }
+
+    public void setInviteToken(String inviteToken) {
+        this.inviteToken = inviteToken;
+    }
+
     public String getHobbies() {
         return hobbies;
     }
@@ -246,5 +278,21 @@ public class User {
 
     public void setPhotosJson(String photosJson) {
         this.photosJson = photosJson;
+    }
+
+    public boolean isEmailVerified() {
+        return emailVerified;
+    }
+
+    public void setEmailVerified(boolean emailVerified) {
+        this.emailVerified = emailVerified;
+    }
+
+    public java.util.List<com.example.demo.model.PhotoInfo> getPhotoList() {
+        return photoList;
+    }
+
+    public void setPhotoList(java.util.List<com.example.demo.model.PhotoInfo> photoList) {
+        this.photoList = photoList;
     }
 }

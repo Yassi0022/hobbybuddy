@@ -15,6 +15,7 @@ export default function Dashboard() {
   const { token, logout, authFetch } = useAuth();
   const navigate = useNavigate();
   const [matches, setMatches] = useState([]);
+  const [confirmedMatches, setConfirmedMatches] = useState([]);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState('');
@@ -28,6 +29,7 @@ export default function Dashboard() {
     fetchCurrentUser();
     fetchPosts();
     fetchTopMatches();
+    fetchConfirmedMatches();
   }, [token, navigate]);
 
   const fetchCurrentUser = async () => {
@@ -67,6 +69,18 @@ export default function Dashboard() {
         })));
       }
     } catch (err) { console.error('Failed to fetch matches:', err); }
+  };
+
+  /** Fetch confirmed matches for the "Your matches" section */
+  const fetchConfirmedMatches = async () => {
+    try {
+      const res = await authFetch(`${API_BASE_URL}/api/match-requests`);
+      if (res.ok) {
+        const data = await res.json();
+        const confirmed = (data.matchRequests || []).filter(m => m.status === 'CONFIRMED');
+        setConfirmedMatches(confirmed);
+      }
+    } catch (err) { console.error('Failed to fetch confirmed matches:', err); }
   };
 
   const handlePublishPost = async () => {
@@ -168,22 +182,22 @@ export default function Dashboard() {
           </Link>
         </div>
 
-        {/* ── Top matches teaser ───────────────── */}
+        {/* ── Confirmed matches ────────────────── */}
         <div style={{ marginBottom: 44 }}>
-          {matches.length > 0 ? (
+          {confirmedMatches.length > 0 ? (
             <>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
                 <h2 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, letterSpacing: '-0.01em' }}>
-                  ✨ Top matches for you
+                  💬 Your matches
                 </h2>
                 <Link to="/discover" style={{ fontSize: '0.8rem', color: 'var(--color-accent-warm)', fontWeight: 600 }}>
-                  See all →
+                  Browse matches →
                 </Link>
               </div>
 
               <div style={{ display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 8, scrollbarWidth: 'none' }}>
-                {matches.map(m => (
-                  <Link key={m.id} to="/discover" style={{
+                {confirmedMatches.map(m => (
+                  <Link key={m.id} to={`/messages?with=${m.buddyId}`} style={{
                     minWidth: 160, padding: '14px 16px', textDecoration: 'none', color: 'inherit',
                     borderRadius: 14, flexShrink: 0,
                     background: 'var(--color-surface)',
@@ -200,10 +214,10 @@ export default function Dashboard() {
                       fontSize: '1.1rem', fontWeight: 800, marginBottom: 10,
                       flexShrink: 0,
                     }}>
-                      {m.name?.[0]?.toUpperCase() || '?'}
+                      {m.buddyName?.[0]?.toUpperCase() || '?'}
                     </div>
-                    <h4 style={{ margin: '0 0 2px', fontSize: '0.88rem', fontWeight: 700, letterSpacing: '-0.01em' }}>{m.name}</h4>
-                    <p style={{ margin: '0 0 8px', fontSize: '0.7rem', color: 'var(--color-text-muted)', lineHeight: 1.4 }}>{m.archetype}</p>
+                    <h4 style={{ margin: '0 0 2px', fontSize: '0.88rem', fontWeight: 700, letterSpacing: '-0.01em' }}>{m.buddyName}</h4>
+                    <p style={{ margin: '0 0 8px', fontSize: '0.7rem', color: 'var(--color-text-muted)', lineHeight: 1.4 }}>{m.buddyArchetype}</p>
                     <span style={{
                       display: 'inline-block',
                       fontSize: '0.65rem', fontWeight: 700,
@@ -213,7 +227,7 @@ export default function Dashboard() {
                       letterSpacing: '0.03em',
                       textTransform: 'uppercase',
                     }}>
-                      {getMatchLabel(m.compatibilityPercentage)}
+                      Chat now
                     </span>
                   </Link>
                 ))}
@@ -222,10 +236,9 @@ export default function Dashboard() {
           ) : (
             <EmptyState
               icon="✨"
-              title="No matches yet"
-              body="Complete your profile and personality quiz to unlock personalized matches."
-              action={{ label: 'Complete your profile', href: '/profile' }}
-              secondary={{ label: 'Take the quiz', href: '/quiz' }}
+              title="No confirmed matches yet"
+              body="Browse Discover, send a match request, and when they accept — you'll see them here."
+              action={{ label: 'Discover people', href: '/discover' }}
             />
           )}
         </div>

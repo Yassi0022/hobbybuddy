@@ -24,6 +24,10 @@ import java.util.List;
 
 @Service
 public class UserService {
+    // ---- Password Reset Helpers ----
+    // (methods added later)
+
+    // ---- Password Reset Helpers ----
 
     private final UserRepository userRepository;
     private final PostRepository postRepository;

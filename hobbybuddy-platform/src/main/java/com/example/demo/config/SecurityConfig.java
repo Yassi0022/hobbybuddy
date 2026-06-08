@@ -80,13 +80,14 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/health").permitAll()
                 .requestMatchers("/api/users/login", "/api/users/register", "/api/users").permitAll()
+                .requestMatchers("/api/users/forgot-password", "/api/users/reset-password").permitAll()
                 .requestMatchers("/ws-chat/**", "/uploads/**", "/api/photos/file/**").permitAll()
                 .requestMatchers("/api/messages/**").authenticated()
                 // Events: GET is public (browsing), POST/PUT/DELETE require auth
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/events", "/api/events/**").permitAll()
-                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/discover").permitAll()
+                // /api/discover requires auth (removed permitAll — was leaking empty results to anonymous)
                 .requestMatchers("/api/**").authenticated()
-                .requestMatchers("/", "/login", "/register", "/quiz", "/dashboard", "/discover", "/events", "/profile", "/privacy", "/terms", "/messages", "/feed", "/settings").permitAll()
+                .requestMatchers("/", "/login", "/register", "/quiz", "/dashboard", "/discover", "/events", "/profile", "/privacy", "/terms", "/messages", "/feed", "/settings", "/verify").permitAll()
                 .anyRequest().authenticated()
             )
             .exceptionHandling(ex -> ex

@@ -1,18 +1,23 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { API_BASE_URL } from '../utils/constants';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [unverified, setUnverified] = useState(false);
+  const [resendStatus, setResendStatus] = useState(null); // null | 'sending' | 'sent'
   const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setUnverified(false);
+    setResendStatus(null);
     if (!email || !password) { setError('Please fill in all fields.'); return; }
     setLoading(true);
     try {
@@ -25,11 +30,32 @@ export default function Login() {
     } catch (err) {
       if (err.isRateLimited) {
         setError({ message: err.message, rateLimited: true });
+      } else if (err.isUnverified) {
+        setUnverified(true);
+        setError({ message: err.message, rateLimited: false });
       } else {
         setError({ message: err.message, rateLimited: false });
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    setResendStatus('sending');
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/users/send-verification`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      if (res.ok) {
+        setResendStatus('sent');
+      } else {
+        setResendStatus('error');
+      }
+    } catch {
+      setResendStatus('error');
     }
   };
 
@@ -62,9 +88,42 @@ export default function Login() {
                   <i className="fas fa-clock"></i> {error.message}
                 </div>
               )}
-              {error && !error.rateLimited && (
+              {error && !error.rateLimited && !unverified && (
                 <div className="form-error" style={{ display: 'block' }} role="alert">
                   <i className="fas fa-exclamation-triangle"></i> {error.message}
+                </div>
+              )}
+              {error && unverified && (
+                <div className="form-error" style={{ display: 'block', background: '#fff7ed', borderColor: '#f59e0b', color: '#92400e' }} role="alert">
+                  <i className="fas fa-envelope-circle-xmark"></i> {error.message}
+                  <div style={{ marginTop: 10 }}>
+                    <button
+                      type="button"
+                      onClick={handleResendVerification}
+                      disabled={resendStatus === 'sending'}
+                      style={{
+                        background: 'none', border: '1px solid #f59e0b', borderRadius: 8,
+                        padding: '6px 14px', fontSize: '0.82rem', fontWeight: 600,
+                        color: '#92400e', cursor: 'pointer',
+                      }}
+                    >
+                      {resendStatus === 'sending' ? (
+                        <><i className="fas fa-spinner fa-spin"></i> Sending…</>
+                      ) : (
+                        <><i className="fas fa-paper-plane"></i> Resend verification email</>
+                      )}
+                    </button>
+                    {resendStatus === 'sent' && (
+                      <span style={{ color: '#16a34a', fontSize: '0.8rem', marginLeft: 10 }}>
+                        <i className="fas fa-check-circle"></i> Sent! Check your inbox.
+                      </span>
+                    )}
+                    {resendStatus === 'error' && (
+                      <span style={{ color: '#dc2626', fontSize: '0.8rem', marginLeft: 10 }}>
+                        <i className="fas fa-exclamation-triangle"></i> Failed. Try again.
+                      </span>
+                    )}
+                  </div>
                 </div>
               )}
               <button type="submit" className="btn-form-primary" id="btn-login" disabled={loading}>

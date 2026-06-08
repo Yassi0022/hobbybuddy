@@ -41,8 +41,8 @@ export function AuthProvider({ children }) {
       body: JSON.stringify({ email, password }),
     });
     if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
       if (res.status === 429) {
-        const errorData = await res.json().catch(() => ({}));
         const retryAfter = errorData.retryAfter || 300;
         const minutes = Math.ceil(retryAfter / 60);
         const err = new Error(`Too many login attempts. Please try again in ${minutes} minute${minutes > 1 ? 's' : ''}.`);
@@ -51,9 +51,15 @@ export function AuthProvider({ children }) {
         err.isRateLimited = true;
         throw err;
       }
+      if (res.status === 403 && errorData.error === 'EMAIL_NOT_VERIFIED') {
+        const err = new Error(errorData.message || 'Please verify your email before logging in.');
+        err.status = 403;
+        err.isUnverified = true;
+        throw err;
+      }
       if (res.status === 404) throw new Error('No account found with this email.');
       if (res.status === 401) throw new Error('Wrong password.');
-      throw new Error('Login failed');
+      throw new Error(errorData.message || 'Login failed');
     }
     const data = await res.json();
     localStorage.setItem('userId', data.id);
@@ -96,7 +102,10 @@ export function AuthProvider({ children }) {
   }, []);
 
   const authFetch = useCallback(async (url, options = {}) => {
-    const headers = { 'Content-Type': 'application/json', ...options.headers };
+    // Only set Content-Type for JSON bodies; let the browser set it for FormData
+    const isFormData = options.body instanceof FormData;
+    const defaultHeaders = isFormData ? {} : { 'Content-Type': 'application/json' };
+    const headers = { ...defaultHeaders, ...options.headers };
     if (token) headers['Authorization'] = `Bearer ${token}`;
     const res = await fetch(url, { ...options, headers });
     if ((res.status === 401 || res.status === 403) && !url.includes('/login') && !url.includes('/register')) {

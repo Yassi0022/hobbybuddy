@@ -4,6 +4,7 @@ import com.example.demo.dto.*;
 import com.example.demo.model.Event;
 import com.example.demo.model.User;
 import com.example.demo.repository.EventRepository;
+import com.example.demo.repository.MatchRequestRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.service.ExternalEventsProvider;
 import com.example.demo.service.LocationService;
@@ -54,6 +55,9 @@ public class DiscoverController {
     @Autowired
     private ExternalEventsProvider externalEventsProvider;
 
+    @Autowired
+    private MatchRequestRepository matchRequestRepository;
+
     private static final int DEFAULT_LIMIT = 10;
     private static final int MAX_LIMIT = 20;
     private static final int TEASER_COUNT = 3;
@@ -64,6 +68,7 @@ public class DiscoverController {
             @RequestParam(required = false) Double lat,
             @RequestParam(required = false) Double lng,
             @RequestParam(defaultValue = "10") int limit,
+            @RequestParam(defaultValue = "0") int offset,
             Authentication authentication) {
 
         DiscoverResponseDTO response = new DiscoverResponseDTO();
@@ -103,16 +108,33 @@ public class DiscoverController {
 
         // ── Find compatible people ──
         int effectiveLimit = Math.min(Math.max(limit, 1), MAX_LIMIT);
+        int effectiveOffset = Math.max(offset, 0);
 
         final User discoverUser = currentUser; // effectively final for lambda
         if (discoverUser != null && discoverUser.getOpenness() != null) {
+            // Build exclusion set: self + users with active (PENDING or CONFIRMED) match requests
+            Set<Long> excludedIds = new HashSet<>();
+            excludedIds.add(discoverUser.getId());
+            try {
+                excludedIds.addAll(matchRequestRepository.findActiveMatchUserIds(discoverUser));
+            } catch (Exception e) {
+                logger.warn("[Discover] Could not query active matches: {}", e.getMessage());
+            }
+
             List<User> candidates = userRepository.findAll().stream()
-                    .filter(u -> !u.getId().equals(discoverUser.getId()))
+                    .filter(u -> !excludedIds.contains(u.getId()))
                     .filter(u -> u.getOpenness() != null)
                     .collect(Collectors.toList());
 
-            List<Map<String, Object>> people = matchingService.discoverMatches(
-                    discoverUser, candidates, resolvedCity, effectiveLimit);
+            // Fetch enough results to cover offset + limit, then slice
+            int fetchLimit = effectiveOffset + effectiveLimit;
+            List<Map<String, Object>> allRanked = matchingService.discoverMatches(
+                    discoverUser, candidates, resolvedCity, fetchLimit);
+
+            List<Map<String, Object>> people = allRanked.stream()
+                    .skip(effectiveOffset)
+                    .limit(effectiveLimit)
+                    .collect(Collectors.toList());
             response.setPeople(people);
 
             // ── Sparse area fallback ──

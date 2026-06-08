@@ -6,27 +6,23 @@ A social platform that helps adults make real friends through shared interests. 
 
 ## Architecture
 
-Three-tier deployment — frontend, backend, database on separate managed services:
+Two-tier deployment — frontend is built into the Spring Boot JAR, database on managed MySQL:
 
 ```
-┌─────────────────┐
-│   Vercel CDN    │  React SPA (Vite)
-│   (Frontend)    │
-└────────┬────────┘
-         │ API calls + JWT Bearer
-┌────────┴────────┐
-│   Render        │  Spring Boot 3, Java 17
-│   (Backend)     │
-└────────┬────────┘
-         │ MySQL (SSL)
-┌────────┴────────┐
-│   Aiven         │  MySQL 8.0 (managed)
-│   (Database)    │
-└─────────────────┘
+┌──────────────────────────────┐
+│   Render                     │  Spring Boot 3, Java 21
+│   (Single JAR)               │  Serves React SPA from static resources
+│                              │  Spring Security (JWT), Spring WebSocket (STOMP)
+└──────────────┬───────────────┘
+               │ MySQL (SSL)
+┌──────────────┴───────────────┐
+│   Aiven                      │  MySQL 8.0 (managed)
+│   (Database)                 │
+└──────────────────────────────┘
 ```
 
-- **Vercel** serves the compiled React app from its global CDN.
-- **Render** runs the Spring Boot JAR, handles authentication, matching logic, chat, and media uploads.
+- The **React frontend** (Vite 8, React 19) builds to `frontend_v2/dist/`. During the Maven build a script copies the dist output into `hobbybuddy-platform/src/main/resources/static/`, so the JAR serves both API and UI.
+- **Render** runs the single JAR — frontend and backend are served from the same origin on port 8080.
 - **Aiven** hosts the production MySQL instance with SSL.
 
 ---
@@ -36,11 +32,11 @@ Three-tier deployment — frontend, backend, database on separate managed servic
 | Layer | Technology |
 |---|---|
 | Frontend | React 19, Vite 8, React Router 7, CSS Modules |
-| Backend | Spring Boot 3, Java 17, Spring Security (JWT), Spring WebSocket (STOMP) |
+| Backend | Spring Boot 3, Java 21, Spring Security (JWT), Spring WebSocket (STOMP) |
 | Database | MySQL 8.0 with SSL (Aiven managed) |
 | Auth | JWT (Bearer token in `Authorization` header; cookie fallback server-side) |
-| Deploy | Vercel (frontend), Render Web Service (backend) |
-| Build | Maven Wrapper (`./mvnw`) for CI compatibility |
+| Deploy | Render (single JAR serves frontend + backend) |
+| Build | Maven Wrapper (`./mvnw`); `scripts\build-and-package.ps1` for full build |
 
 ---
 
@@ -48,7 +44,7 @@ Three-tier deployment — frontend, backend, database on separate managed servic
 
 ### Prerequisites
 - Node 18+
-- Java 17+
+- Java 21+
 - Maven (or use `./mvnw` — included)
 - MySQL 8.0 (local or Aiven)
 
@@ -59,7 +55,7 @@ git clone https://github.com/Yassi0022/hobbybuddy.git
 cd hobbybuddy
 ```
 
-### 2. Backend
+### 2. Backend (API-only for development)
 
 ```bash
 cd hobbybuddy-platform
@@ -68,13 +64,14 @@ cd hobbybuddy-platform
 #   spring.datasource.url=jdbc:mysql://localhost:3306/hobbybuddy_db?useSSL=false
 #   spring.datasource.username=root
 #   spring.datasource.password=yourpassword
+#   JWT_SECRET=<base64-encoded-32-byte-key>
 
 ./mvnw spring-boot:run
 ```
 
 The API runs at `http://localhost:8080`. Health check: `GET /api/health`.
 
-### 3. Frontend
+### 3. Frontend (Vite dev server, proxies API to backend)
 
 ```bash
 cd frontend_v2
@@ -82,49 +79,49 @@ npm install
 npm run dev
 ```
 
-The Vite dev server runs at `http://localhost:5173` and proxies `/api` to the backend.
+The Vite dev server runs at `http://localhost:5173` and proxies `/api` to `http://localhost:8080`.
 
-### 4. Production Build (local verification)
+### 4. Production Build (frontend + backend in one JAR)
 
 ```bash
+# Option A — single-command full build (from repo root):
+.\scripts\build-and-package.ps1
+
+# Option B — manual steps:
 cd frontend_v2
-npm run build          # outputs to dist/
+npm run build
 cd ../hobbybuddy-platform
-./mvnw package -DskipTests
-java -jar target/hobbybuddy-platform-0.0.1-SNAPSHOT.jar
+.\scripts\copy-frontend.ps1
+.\mvnw package -DskipTests
+java -jar target/demo-0.0.1-SNAPSHOT.jar
 ```
 
-The built JAR serves both the API and the static frontend on `http://localhost:8080`.
+The built JAR serves both the API and the static frontend at `http://localhost:8080`.
 
 ---
 
 ## Authentication Flow
 
-1. User submits email + password via `POST /api/users/login`.
-2. Server verifies credentials (BCrypt), generates a JWT, and returns it in the JSON response body **plus** a server-side `Set-Cookie` header.
-3. Frontend stores the token in `localStorage` (`hb_token`) and sends it as `Authorization: Bearer <token>` on every request.
-4. The cookie is a server-side fallback only — the frontend reads from `localStorage`.
+1. User registers via `POST /api/users` → account created, email verification sent, **no JWT issued**
+2. User clicks verification link → `GET /api/users/verify?token=...` → account activated
+3. User logs in via `POST /api/users/login`:
+   - If email not verified → 403 with `EMAIL_NOT_VERIFIED` (frontend shows resend option)
+   - If verified → JWT returned in response body **plus** server-side `Set-Cookie`
+4. Frontend stores the token in `localStorage` (`hb_token`) and sends it as `Authorization: Bearer <token>` on every request
+5. All API requests (except auth endpoints) require a valid JWT **and** verified email — unverified users get 403
+6. The cookie is a server-side fallback only — the frontend reads from `localStorage`
 
 ---
 
 ## Production Deploy
 
-### Vercel (Frontend)
+### Render (Single JAR — frontend + backend)
 
 | Setting | Value |
 |---|---|
-| Root directory | `frontend_v2/` |
-| Build command | `npm run build` |
-| Output directory | `dist` |
-| Framework preset | Vite |
-
-### Render (Backend Web Service)
-
-| Setting | Value |
-|---|---|
-| Root directory | `hobbybuddy-platform/` |
-| Build command | `./mvnw package -DskipTests` |
-| Start command | `java -jar target/hobbybuddy-platform-0.0.1-SNAPSHOT.jar` |
+| Root directory | (repo root) |
+| Build command | `powershell -ExecutionPolicy Bypass -File scripts\build-and-package.ps1` |
+| Start command | `java -jar hobbybuddy-platform/target/demo-0.0.1-SNAPSHOT.jar` |
 | Health check path | `/api/health` |
 
 **Environment variables on Render:**
@@ -134,6 +131,8 @@ The built JAR serves both the API and the static frontend on `http://localhost:8
 | `SPRING_DATASOURCE_URL` | `jdbc:mysql://<host>:18844/hobbybuddy_db?useSSL=true&requireSSL=true` | Aiven Console |
 | `SPRING_DATASOURCE_USERNAME` | `<username>` | Aiven Console |
 | `SPRING_DATASOURCE_PASSWORD` | `<password>` | Aiven Console |
+| `JWT_SECRET` | `<base64-encoded-32-byte-key>` | Generate: `openssl rand -base64 32` |
+| `FRONTEND_ORIGINS` | `https://your-app.onrender.com` | Your Render URL |
 | `FASTAPI_URL` | `http://localhost:8001` | Optional — Java matching fallback works without it |
 
 ---
@@ -151,6 +150,12 @@ The built JAR serves both the API and the static frontend on `http://localhost:8
 | GET | `/api/users/{id}/find-buddy` | JWT | Get compatibility matches |
 | DELETE | `/api/users/{id}` | JWT | Delete account |
 | GET | `/api/health` | Public | Health check — returns `{"status":"ok"}` |
+| GET | `/api/match-requests` | JWT | List match requests (incl. confirmed matches) |
+| POST | `/api/match-requests/{candidateId}` | JWT | Send a match request |
+| PATCH | `/api/match-requests/{id}/confirm` | JWT | Confirm a match request |
+| GET | `/api/messages/{user1}/{user2}` | JWT | Get conversation between two users |
+| POST | `/api/messages` | JWT | Send a message (REST; server broadcasts via WebSocket) |
+| WS | `/ws-chat` | JWT | WebSocket/STOMP endpoint for real-time chat |
 
 ---
 
@@ -158,7 +163,11 @@ The built JAR serves both the API and the static frontend on `http://localhost:8
 
 1. **FastAPI matching microservice is not deployed.** The Python microservice in `matching-engine/` provides richer `traitBreakdowns` per match. Without it, the Java fallback matching works but produces simpler results. Deploying the Python service and setting `FASTAPI_URL` restores full fidelity.
 
-2. **`JwtUtil` generates a new random `SecretKey` on every boot** (see `JwtUtil.java`). After a restart, all existing tokens become invalid and users must log in again. For a real production workload, inject a fixed secret via `JWT_SECRET` environment variable instead of calling `Keys.secretKeyFor()` each time.
+2. **`JWT_SECRET` must be set as an environment variable** in every deployment environment (Render, local dev). Without it, the application refuses to start. Generate with: `openssl rand -base64 32`.
+
+3. **Single-topic WebSocket subscription** — the user subscribes to `/topic/chat/{userId}` which delivers all messages for all conversations. The client filters by `buddyId`. This is fine for alpha but should be narrowed to per-conversation topics before beta.
+
+4. **Frontend build and copy** is scripted via PowerShell: `scripts/build-and-package.ps1` does a full build (frontend + copy + Maven package). For frontend-only rebuilds, run `npm run build` in `frontend_v2/` and then `scripts/copy-frontend.ps1`.
 
 ---
 

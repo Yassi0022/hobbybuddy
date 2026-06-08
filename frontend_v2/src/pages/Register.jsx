@@ -50,6 +50,9 @@ export default function Register() {
     }
   };
 
+  const [registered, setRegistered] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState('');
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -73,8 +76,9 @@ export default function Register() {
       const userData = { name, email, password };
       if (refId) userData.referredBy = parseInt(refId);
       await register(userData);
-      toast.success('Account created! Let\'s find your vibe.');
-      navigate('/quiz');
+      // Backend does NOT issue a JWT until email is verified — show verification prompt
+      setRegisteredEmail(email);
+      setRegistered(true);
     } catch (err) {
       const msg = err.message || 'Registration failed';
       if (err.isRateLimited) {
@@ -97,6 +101,37 @@ export default function Register() {
     marginTop: 4,
     fontWeight: 500,
   };
+
+  // ── Post-registration: prompt to verify email ──
+  if (registered) {
+    return (
+      <>
+        <div className="bg-mesh"><div className="orb orb-1"></div><div className="orb orb-2"></div><div className="orb orb-3"></div></div>
+        <nav className="navbar navbar-solid">
+          <div className="nav-container">
+            <Link to="/" className="logo"><i className="fas fa-users"></i><span>HobbyBuddy</span></Link>
+          </div>
+        </nav>
+        <div className="auth-page">
+          <div className="auth-container">
+            <div className="auth-card" style={{ textAlign: 'center' }}>
+              <div className="auth-icon" style={{ background: 'linear-gradient(135deg, #16a34a, #22c55e)' }}>
+                <i className="fas fa-envelope-open-text"></i>
+              </div>
+              <h1 className="auth-title">Check your email 📬</h1>
+              <p className="auth-subtitle">
+                We sent a verification link to <strong>{registeredEmail}</strong>.
+                Click the link to verify your account, then sign in.
+              </p>
+              <Link to="/login" className="btn-form-primary" style={{ marginTop: 20, display: 'inline-flex' }}>
+                Go to Login <i className="fas fa-arrow-right" style={{ marginLeft: 8 }}></i>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>

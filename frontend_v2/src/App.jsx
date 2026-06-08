@@ -11,6 +11,8 @@ import EventsPage from './pages/EventsPage';
 import Profile from './pages/Profile';
 import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
+import MessagesPage from './pages/MessagesPage';
+import VerifyEmail from './pages/VerifyEmail';
 import './styles/variables.css';
 import './styles/components.css';
 import './styles/layout.css';
@@ -54,6 +56,8 @@ function App() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />
+          <Route path="/messages" element={<MessagesPage />} />
+          <Route path="/verify" element={<VerifyEmail />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>

@@ -7,8 +7,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ActiveProfiles("test")
 class QuizPageTests {
 
     @LocalServerPort
@@ -22,7 +24,8 @@ class QuizPageTests {
         String url = "http://localhost:" + port + "/quiz";
         String body = this.restTemplate.getForObject(url, String.class);
         assertNotNull(body, "Quiz page should return a response body");
-        assertTrue(body.contains("id=\"screen-quiz\""), "Quiz HTML should contain the quiz screen element");
+        // The app serves a React SPA; verify the SPA shell is returned
+        assertTrue(body.contains("<div id=\"root\"></div>"), "Quiz page should contain the React root element");
     }
 
     @Test
@@ -30,8 +33,7 @@ class QuizPageTests {
         String url = "http://localhost:" + port + "/dashboard";
         String body = this.restTemplate.getForObject(url, String.class);
         assertNotNull(body, "Dashboard page should return a response body");
-        // Simple check for a known element on the dashboard
-        // The dashboard page may redirect based on user state; simply verify the response is not empty
-        assertNotNull(body, "Dashboard page response should not be null");
+        // The app serves a React SPA; verify the SPA shell is returned
+        assertTrue(body.contains("<div id=\"root\"></div>"), "Dashboard page should contain the React root element");
     }
 }
