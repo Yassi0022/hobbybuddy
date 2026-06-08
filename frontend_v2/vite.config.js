@@ -1,9 +1,27 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
+import fs from 'fs';
+
+const buildTimestamp = Date.now();
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    {
+      name: 'inject-build-version',
+      transformIndexHtml(html) {
+        return html.replace(
+          '</head>',
+          `<meta name="hb-build" content="${buildTimestamp}"/></head>`
+        );
+      },
+      closeBundle() {
+        const versionPath = path.resolve(__dirname, 'dist/version.json');
+        fs.writeFileSync(versionPath, JSON.stringify({ build: buildTimestamp }));
+      },
+    },
+  ],
   css: { transformer: 'postcss' },
   base: '/',
   build: {

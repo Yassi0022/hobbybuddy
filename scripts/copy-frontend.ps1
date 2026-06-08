@@ -35,5 +35,15 @@ Get-ChildItem $assetsSrcDir -File | Where-Object { $_.Extension -match '\.(js|cs
     Write-Host "  $($_.Name)"
 }
 
+# Copy root-level PWA files (service-worker.js, version.json, manifest.json, favicon)
+Write-Host "Copying PWA files..."
+@('service-worker.js', 'version.json', 'manifest.json', 'favicon.svg') | ForEach-Object {
+    $src = Join-Path $distDir $_
+    if (Test-Path $src) {
+        Copy-Item $src (Join-Path $staticDir $_) -Force
+        Write-Host "  $_"
+    }
+}
+
 Write-Host "`nDone. Frontend dist copied to Spring Boot static resources."
 Write-Host "Next: cd hobbybuddy-platform; .\mvnw package -DskipTests"

@@ -1,21 +1,23 @@
-const CACHE_NAME = 'hobbybuddy-v1';
+const CACHE_NAME = 'hobbybuddy-v2';
+const NAVIGATION_PATHS = ['/login', '/register', '/dashboard', '/discover', '/profile', '/messages', '/verify', '/quiz', '/events'];
 const urlsToCache = [
   '/',
   '/index.html',
-  '/manifest.json',
   '/favicon.svg',
   '/images/icon-192.png',
   '/images/icon-512.png',
-  '/images/og-card.svg',
 ];
 
+// Install: cache core app shell only (not index.html content, just the URL)
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(urlsToCache))
   );
+  // Force the new service worker to activate immediately
   self.skipWaiting();
 });
 
+// Activate: clean up old caches
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) =>
@@ -24,33 +26,55 @@ self.addEventListener('activate', (event) => {
       )
     )
   );
+  // Take control of all open tabs immediately
   self.clients.claim();
 });
 
+// Fetch: network-first for navigations (HTML), cache-first for everything else
 self.addEventListener('fetch', (event) => {
-  // Don't cache API calls
-  if (event.request.url.includes('/api/')) {
-    event.respondWith(fetch(event.request));
+  const { request } = event;
+
+  // Never cache API calls — always go to network
+  if (request.url.includes('/api/')) {
+    event.respondWith(fetch(request));
     return;
   }
 
+  const isNavigation = request.mode === 'navigate'
+    || (request.method === 'GET' && request.headers.get('accept')?.includes('text/html'));
+
+  if (isNavigation) {
+    // Network-first for HTML — always get fresh index.html
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          // Cache a fresh copy for offline fallback
+          if (response && response.status === 200) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+          }
+          return response;
+        })
+        .catch(() => {
+          // Offline fallback to cached index.html
+          return caches.match('/index.html').then((cached) => cached || caches.match('/'));
+        })
+    );
+    return;
+  }
+
+  // Cache-first for static assets (JS, CSS, images, fonts)
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      if (response) return response;
-      return fetch(event.request).then((fetchResponse) => {
-        if (!fetchResponse || fetchResponse.status !== 200 || fetchResponse.type !== 'basic') {
-          return fetchResponse;
+    caches.match(request).then((cached) => {
+      if (cached) return cached;
+      return fetch(request).then((response) => {
+        if (!response || response.status !== 200 || response.type !== 'basic') {
+          return response;
         }
-        const responseToCache = fetchResponse.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseToCache);
-        });
-        return fetchResponse;
-      }).catch(() => {
-        // Fallback to index.html for SPA routes
-        if (event.request.destination === 'document') {
-          return caches.match('/index.html');
-        }
+        // Cache new static assets
+        const clone = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+        return response;
       });
     })
   );
