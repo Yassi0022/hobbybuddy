@@ -2,9 +2,9 @@ package com.example.demo.config;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 
@@ -15,20 +15,18 @@ import java.util.Properties;
  *
  * <p>Two beans are defined:
  * <ul>
- *   <li><b>prod</b> ({@code EmailConfig.ProdMailSender}) — real SMTP sender that validates
- *       required env vars at construction time.  Missing or blank variables cause an
- *       {@link IllegalStateException} at startup so the app never boots with silent
- *       email failure.</li>
- *   <li><b>default / test</b> ({@code EmailConfig.DevMailSender}) — a no-op sender that
- *       silently discards every message.  No SMTP env vars needed.  This is active for
- *       the {@code test} profile and any local-dev scenario where SMTP is unavailable.</li>
+ *   <li><b>smtp</b> — real SMTP sender, active only when EMAIL_HOST is set (any profile).
+ *       Uses ENV vars for host, port, username, password, TLS.</li>
+ *   <li><b>fallback</b> ({@code EmailConfig.FallbackMailSender}) — a no-op sender that
+ *       silently discards every message.  Active when EMAIL_HOST is <b>not</b> set.
+ *       This ensures the app always boots, even without SMTP configured.</li>
  * </ul>
  *
- * <h3>Required env vars (prod only)</h3>
+ * <h3>Required env vars for real email</h3>
  * <pre>
  *   EMAIL_HOST       — SMTP hostname, e.g. smtp.gmail.com
  *   EMAIL_PORT       — SMTP port (default 587)
- *   EMAIL_USERNAME   ─ SMTP login
+ *   EMAIL_USERNAME   — SMTP login
  *   EMAIL_PASSWORD   — SMTP password or app-specific token
  *   EMAIL_FROM       — Envelope "From" address (e.g. no-reply@hobbybuddy.com)
  *   EMAIL_TLS        — true/false (default true)
@@ -40,24 +38,24 @@ public class EmailConfig {
     private static final Logger logger = LoggerFactory.getLogger(EmailConfig.class);
 
     /**
-     * Real SMTP mail sender — active only in the {@code prod} profile.
-     * Validates every required env var at bean-creation time so an invalid
-     * configuration fails fast at startup rather than silently at first send.
+     * Real SMTP mail sender — active when EMAIL_HOST env var is set and non-blank.
+     * No @Profile guard: condition is purely env-driven so it works in any profile
+     * (prod, test, dev) as long as SMTP credentials are provided.
      */
     @Bean
-    @Profile("prod")
-    public JavaMailSender javaMailSender() {
-        String host = requireEnv("EMAIL_HOST");
+    @ConditionalOnExpression("#{systemEnvironment['EMAIL_HOST'] != null && !systemEnvironment['EMAIL_HOST'].trim().isEmpty()}")
+    public JavaMailSender smtpMailSender() {
+        String host = System.getenv("EMAIL_HOST").trim();
         String portStr = System.getenv().getOrDefault("EMAIL_PORT", "587");
-        String username = requireEnv("EMAIL_USERNAME");
-        String password = requireEnv("EMAIL_PASSWORD");
+        String username = System.getenv("EMAIL_USERNAME");
+        String password = System.getenv("EMAIL_PASSWORD");
 
         int port;
         try {
-            port = Integer.parseInt(portStr);
+            port = Integer.parseInt(portStr.trim());
         } catch (NumberFormatException e) {
-            throw new IllegalStateException(
-                    "[EmailConfig] EMAIL_PORT must be a valid integer, got: " + portStr);
+            logger.warn("[EmailConfig] EMAIL_PORT invalid ({}), defaulting to 587", portStr);
+            port = 587;
         }
 
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
@@ -72,49 +70,36 @@ public class EmailConfig {
         props.put("mail.smtp.starttls.enable", System.getenv().getOrDefault("EMAIL_TLS", "true"));
         props.put("mail.debug", "false");
 
-        logger.info("[EmailConfig] Prod SMTP sender initialised — host={} port={} user={}",
+        logger.info("[EmailConfig] Real SMTP sender initialised — host={} port={} user={}",
                 host, port, username);
         return mailSender;
     }
 
     /**
-     * No-op mail sender — active for every profile <b>except</b> {@code prod}.
-     * Silently discards every message so tests and local dev work without SMTP.
+     * Fallback no-op mail sender — active when EMAIL_HOST is missing or blank.
+     * Silently discards every message so the app boots without SMTP.
      */
     @Bean
-    @Profile("!prod")
-    public JavaMailSender devMailSender() {
-        logger.info("[EmailConfig] Dev/test no-op mail sender active — emails are not sent");
+    @ConditionalOnExpression("#{systemEnvironment['EMAIL_HOST'] == null || systemEnvironment['EMAIL_HOST'].trim().isEmpty()}")
+    public JavaMailSender fallbackMailSender() {
+        logger.warn("[EmailConfig] EMAIL_HOST not set — using no-op mail sender. " +
+                "Email will not work until EMAIL_HOST, EMAIL_USERNAME, EMAIL_PASSWORD are configured.");
         return new NoOpMailSender();
     }
 
     /**
      * A {@link JavaMailSender} implementation that silently discards every message.
-     * Used in dev/test profiles where no SMTP server is available.
+     * Used when SMTP env vars are not configured.
      */
     private static class NoOpMailSender extends JavaMailSenderImpl {
         @Override
         public void send(org.springframework.mail.SimpleMailMessage simpleMessage) {
-            // silently discard
+            logger.debug("[NoOpMailSender] Email silently discarded: {}", simpleMessage.getSubject());
         }
 
         @Override
         public void send(org.springframework.mail.SimpleMailMessage... simpleMessages) {
-            // silently discard
+            logger.debug("[NoOpMailSender] {} email(s) silently discarded", simpleMessages.length);
         }
-    }
-
-    /**
-     * Returns the value for the given environment variable name,
-     * throwing {@link IllegalStateException} if it is missing or blank.
-     */
-    private static String requireEnv(String name) {
-        String value = System.getenv(name);
-        if (value == null || value.isBlank()) {
-            throw new IllegalStateException(
-                    "[EmailConfig] Missing required env var: " + name
-                            + ". Email will not work without it.");
-        }
-        return value;
     }
 }

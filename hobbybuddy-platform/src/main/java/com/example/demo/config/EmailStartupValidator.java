@@ -3,23 +3,23 @@ package com.example.demo.config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.context.annotation.Profile;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.stereotype.Component;
 
 /**
- * Validates SMTP connectivity at startup when the {@code prod} profile is active.
+ * Validates SMTP connectivity at startup — only when EMAIL_HOST is configured.
  *
  * <p>Runs a lightweight {@code transport.connect()} against the configured SMTP
  * host.  If the connection fails the application refuses to start, preventing
  * a situation where users register but never receive verification emails.
  *
- * <p>In all other profiles (dev, test) this bean is skipped — the no-op
+ * <p>When EMAIL_HOST is not set this bean is skipped entirely — the no-op
  * {@link JavaMailSender} requires no connectivity.
  */
 @Component
-@Profile("prod")
+@ConditionalOnExpression("#{systemEnvironment['EMAIL_HOST'] != null && !systemEnvironment['EMAIL_HOST'].trim().isEmpty()}")
 public class EmailStartupValidator implements CommandLineRunner {
 
     private static final Logger logger = LoggerFactory.getLogger(EmailStartupValidator.class);
