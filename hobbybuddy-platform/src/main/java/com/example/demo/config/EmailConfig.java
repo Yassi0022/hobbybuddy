@@ -2,6 +2,7 @@ package com.example.demo.config;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,9 +18,19 @@ import java.util.Properties;
  * <ul>
  *   <li><b>smtp</b> — real SMTP sender, active only when EMAIL_HOST is set (any profile).
  *       Uses ENV vars for host, port, username, password, TLS.</li>
- *   <li><b>fallback</b> ({@code EmailConfig.FallbackMailSender}) — a no-op sender that
- *       silently discards every message.  Active when EMAIL_HOST is <b>not</b> set.
+ *   <li><b>fallback</b> ({@link NoOpMailSender}) — a no-op sender that
+ *       silently discards every message. Active when EMAIL_HOST is <b>not</b> set.
  *       This ensures the app always boots, even without SMTP configured.</li>
+ * </ul>
+ *
+ * <h3>Master switch</h3>
+ * <ul>
+ *   <li>{@code app.email.enabled=false} (default) — missing SMTP env vars are fine,
+ *       NoOpMailSender is used. If SMTP env vars are present but invalid, a warning
+ *       is logged and the app still starts.</li>
+ *   <li>{@code app.email.enabled=true} — SMTP is expected to work. If EMAIL_HOST is
+ *       missing, a startup warning is logged. The app still starts (non-fatal) but
+ *       the operator is alerted.</li>
  * </ul>
  *
  * <h3>Required env vars for real email</h3>
@@ -31,16 +42,29 @@ import java.util.Properties;
  *   EMAIL_FROM       — Envelope "From" address (e.g. no-reply@hobbybuddy.com)
  *   EMAIL_TLS        — true/false (default true)
  * </pre>
+ *
+ * <h3>Enabling SMTP in production</h3>
+ * Set the above env vars in the Render dashboard, then flip
+ * {@code app.email.enabled=true} (or set {@code EMAIL_ENABLED=true}).
  */
 @Configuration
 public class EmailConfig {
 
     private static final Logger logger = LoggerFactory.getLogger(EmailConfig.class);
 
+    @Value("${app.email.enabled:false}")
+    private boolean emailEnabled;
+
     /**
      * Real SMTP mail sender — active when EMAIL_HOST env var is set and non-blank.
      * No @Profile guard: condition is purely env-driven so it works in any profile
      * (prod, test, dev) as long as SMTP credentials are provided.
+     *
+     * <p>Includes sensible timeouts so email never hangs the calling thread forever:
+     * <ul>
+     *   <li>Connection timeout: 10 seconds</li>
+     *   <li>Read/write timeout: 10 seconds</li>
+     * </ul>
      */
     @Bean
     @ConditionalOnExpression("#{systemEnvironment['EMAIL_HOST'] != null && !systemEnvironment['EMAIL_HOST'].trim().isEmpty()}")
@@ -70,7 +94,12 @@ public class EmailConfig {
         props.put("mail.smtp.starttls.enable", System.getenv().getOrDefault("EMAIL_TLS", "true"));
         props.put("mail.debug", "false");
 
-        logger.info("[EmailConfig] Real SMTP sender initialised — host={} port={} user={}",
+        // ── Timeouts: never hang forever waiting for SMTP ──
+        props.put("mail.smtp.connectiontimeout", "10000");  // 10s to establish TCP
+        props.put("mail.smtp.timeout", "10000");            // 10s to read/write
+        props.put("mail.smtp.writetimeout", "10000");       // 10s to write
+
+        logger.info("[EmailConfig] Real SMTP sender initialised — host={} port={} user={} timeouts=10s",
                 host, port, username);
         return mailSender;
     }
@@ -82,8 +111,15 @@ public class EmailConfig {
     @Bean
     @ConditionalOnExpression("#{systemEnvironment['EMAIL_HOST'] == null || systemEnvironment['EMAIL_HOST'].trim().isEmpty()}")
     public JavaMailSender fallbackMailSender() {
-        logger.warn("[EmailConfig] EMAIL_HOST not set — using no-op mail sender. " +
-                "Email will not work until EMAIL_HOST, EMAIL_USERNAME, EMAIL_PASSWORD are configured.");
+        if (emailEnabled) {
+            // Operator said email should be working, but we have no SMTP config
+            logger.warn("[EmailConfig] app.email.enabled=true but EMAIL_HOST is not set. "
+                    + "Email will NOT work. Set EMAIL_HOST, EMAIL_PORT, EMAIL_USERNAME, EMAIL_PASSWORD "
+                    + "in the Render dashboard, or set app.email.enabled=false to suppress this warning.");
+        } else {
+            logger.info("[EmailConfig] EMAIL_HOST not set — using no-op mail sender. "
+                    + "Email delivery is disabled. Set EMAIL_HOST + app.email.enabled=true to enable.");
+        }
         return new NoOpMailSender();
     }
 

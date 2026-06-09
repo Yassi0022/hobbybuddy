@@ -11,12 +11,13 @@ import org.springframework.stereotype.Component;
 /**
  * Validates SMTP connectivity at startup — only when EMAIL_HOST is configured.
  *
- * <p>Runs a lightweight {@code transport.connect()} against the configured SMTP
- * host.  If the connection fails the application refuses to start, preventing
- * a situation where users register but never receive verification emails.
+ * <p>Runs a lightweight {@code transport.connect()} against the configured SMTP host.
+ * If the connection fails the application logs a clear warning but <b>does not crash</b>.
+ * Password reset and verification emails will silently fail via the NoOpMailSender
+ * fallback until SMTP is fixed — but the app stays up.
  *
- * <p>When EMAIL_HOST is not set this bean is skipped entirely — the no-op
- * {@link JavaMailSender} requires no connectivity.
+ * <p>When EMAIL_HOST is not set this bean is skipped entirely — the
+ * fallback {@link JavaMailSender} requires no connectivity.
  */
 @Component
 @ConditionalOnExpression("#{systemEnvironment['EMAIL_HOST'] != null && !systemEnvironment['EMAIL_HOST'].trim().isEmpty()}")
@@ -44,18 +45,18 @@ public class EmailStartupValidator implements CommandLineRunner {
         logger.info("[EmailStartupValidator] Verifying SMTP connectivity to {}:{} …", host, port);
 
         try {
-            // transport.connect() validates host/port/auth without sending a message
             jakarta.mail.Transport transport = impl.getSession().getTransport("smtp");
             transport.connect(host, port, username, impl.getPassword());
             transport.close();
             logger.info("[EmailStartupValidator] SMTP connectivity OK — host={} port={} user={}",
                     host, port, username);
         } catch (Exception e) {
-            logger.error("[EmailStartupValidator] SMTP connectivity check FAILED — host={} port={} user={}: {}",
+            // Non-fatal: log clearly but do not crash the app.
+            // The NoOpMailSender fallback handles email gracefully.
+            logger.error("[EmailStartupValidator] SMTP connectivity check FAILED — host={} port={} user={}: {}. "
+                    + "The app will continue starting, but email delivery will not work. "
+                    + "Fix EMAIL_HOST / EMAIL_PORT / EMAIL_USERNAME / EMAIL_PASSWORD.",
                     host, port, username, e.getMessage());
-            throw new IllegalStateException(
-                    "[EmailStartupValidator] Cannot connect to SMTP at " + host + ":" + port
-                            + ". Fix EMAIL_HOST / EMAIL_PORT / EMAIL_USERNAME / EMAIL_PASSWORD.", e);
         }
     }
 }
