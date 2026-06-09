@@ -3,6 +3,12 @@
 -- Design: SHA-256(token) is stored for deterministic O(1) lookup.
 -- Rows are retained after use (used_at set, not deleted) for audit.
 -- Multiple rows per user allowed; only one should be active at a time.
+--
+-- Safety: V1__init.sql may have already created a password_reset_tokens table
+-- with a different schema (BIGSERIAL, VARCHAR(255), UNIQUE(user_id), expiry).
+-- Drop it if present so this migration is idempotent.
+
+DROP TABLE IF EXISTS password_reset_tokens;
 
 CREATE TABLE password_reset_tokens (
     id                 BIGINT   NOT NULL AUTO_INCREMENT PRIMARY KEY,
