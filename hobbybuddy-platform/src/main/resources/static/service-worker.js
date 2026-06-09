@@ -1,5 +1,4 @@
 const CACHE_NAME = 'hobbybuddy-v2';
-const NAVIGATION_PATHS = ['/login', '/register', '/dashboard', '/discover', '/profile', '/messages', '/verify', '/quiz', '/events'];
 const urlsToCache = [
   '/',
   '/index.html',
