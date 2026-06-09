@@ -7,8 +7,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -152,10 +154,16 @@ public class UserController {
                 }
             }
 
-            // Generate email verification token (reuse PasswordResetToken as generic token store)
-            String rawVerifyToken = java.util.UUID.randomUUID().toString();
+            // Generate email verification token — store only BCrypt hash
+            byte[] verifyBytes = new byte[32];
+            try {
+                SecureRandom.getInstanceStrong().nextBytes(verifyBytes);
+            } catch (java.security.NoSuchAlgorithmException e) {
+                new SecureRandom().nextBytes(verifyBytes);
+            }
+            String rawVerifyToken = Base64.getUrlEncoder().withoutPadding().encodeToString(verifyBytes);
             PasswordResetToken verificationToken = new PasswordResetToken(
-                    rawVerifyToken, user, LocalDateTime.now().plusHours(24));
+                    passwordEncoder.encode(rawVerifyToken), user, LocalDateTime.now().plusHours(24));
             passwordResetTokenRepository.save(verificationToken);
 
             // Send verification email (best-effort; don't fail registration if email fails)
@@ -513,6 +521,8 @@ public class UserController {
     /**
      * Request a password reset link by email.
      * Always returns the same generic success message to prevent email enumeration.
+     * Generates a cryptographically secure random token, BCrypt-hashes it for storage,
+     * and sends the raw token in the reset link email.
      */
     @PostMapping("/forgot-password")
     public ResponseEntity<?> forgotPassword(@RequestBody Map<String, String> body) {
@@ -526,17 +536,28 @@ public class UserController {
             // Delete any existing reset tokens for this user
             passwordResetTokenRepository.findByUser(user).ifPresent(passwordResetTokenRepository::delete);
 
-            // Generate a fresh reset token (reuse PasswordResetToken as generic token store)
-            String rawToken = java.util.UUID.randomUUID().toString();
+            // Generate a cryptographically secure random token
+            byte[] randomBytes = new byte[32];
+            try {
+                SecureRandom.getInstanceStrong().nextBytes(randomBytes);
+            } catch (java.security.NoSuchAlgorithmException e) {
+                // Fallback to default SecureRandom if strong algorithm unavailable
+                new SecureRandom().nextBytes(randomBytes);
+            }
+            String rawToken = Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
+
+            // Store only the BCrypt hash — never the raw token
+            String tokenHash = passwordEncoder.encode(rawToken);
             PasswordResetToken resetToken = new PasswordResetToken(
-                    rawToken, user, LocalDateTime.now().plusHours(1));
+                    tokenHash, user, LocalDateTime.now().plusHours(1));
             passwordResetTokenRepository.save(resetToken);
 
-            // Send reset email (best-effort)
+            // Send reset email with the raw token in the link (best-effort)
             sendMailSafely(user.getEmail(), "Reset your HobbyBuddy password",
                     "Click the link to reset your password:\n"
                             + frontendUrl + "/reset-password?token=" + rawToken
-                            + "\n\nThis link expires in 1 hour.",
+                            + "\n\nThis link expires in 1 hour.\n"
+                            + "If you did not request this, ignore this email.",
                     "RESET");
         }
 
@@ -548,14 +569,16 @@ public class UserController {
 
     /**
      * Reset password using the token from the email link.
-     * Requires the token and a new password.
+     * The raw token from the URL is verified against stored BCrypt hashes.
+     * Tokens are one-use only — deleted immediately after successful reset.
      */
     @PostMapping("/reset-password")
+    @Transactional
     public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> body) {
-        String token = body.get("token");
+        String rawToken = body.get("token");
         String newPassword = body.get("newPassword");
 
-        if (token == null || token.isBlank()) {
+        if (rawToken == null || rawToken.isBlank()) {
             return ResponseEntity.badRequest().body(Map.of("error", "Reset token is required"));
         }
         if (newPassword == null || newPassword.isBlank()) {
@@ -565,20 +588,29 @@ public class UserController {
             return ResponseEntity.badRequest().body(Map.of("error", "Password must be at least 6 characters"));
         }
 
-        // Look up the token
-        PasswordResetToken resetToken = passwordResetTokenRepository.findByTokenHash(token).orElse(null);
-        if (resetToken == null || resetToken.getExpiry().isBefore(LocalDateTime.now())) {
+        // Find the matching token: scan active tokens and verify against BCrypt hashes.
+        // This is safe because there are typically very few active reset tokens.
+        PasswordResetToken matchedToken = null;
+        java.util.List<PasswordResetToken> allTokens = passwordResetTokenRepository.findAll();
+        for (PasswordResetToken t : allTokens) {
+            if (t.getExpiry().isAfter(LocalDateTime.now()) && passwordEncoder.matches(rawToken, t.getTokenHash())) {
+                matchedToken = t;
+                break;
+            }
+        }
+
+        if (matchedToken == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("error", "Invalid or expired reset token"));
         }
 
-        // Update password
-        User user = resetToken.getUser();
+        // Update password using the project's existing BCrypt password encoder
+        User user = matchedToken.getUser();
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
 
-        // Delete the used token
-        passwordResetTokenRepository.delete(resetToken);
+        // Delete the used token — one-time use enforced
+        passwordResetTokenRepository.delete(matchedToken);
 
         logger.info("[RESET] Password reset successful for user {}", user.getId());
 
@@ -588,13 +620,21 @@ public class UserController {
     /**
      * Verify email using the token sent via email.
      * Grants the inviter a priority-match credit if this user was referred.
+     * Tokens are BCrypt-hashed; we scan active tokens to find a match.
      */
     @GetMapping("/verify")
     public ResponseEntity<?> verifyEmail(@RequestParam("token") String rawToken) {
-        // Look up token directly by hash value
-        PasswordResetToken matchedToken = passwordResetTokenRepository.findByTokenHash(rawToken).orElse(null);
+        // Find matching token by scanning active (non-expired) tokens
+        PasswordResetToken matchedToken = null;
+        java.util.List<PasswordResetToken> allTokens = passwordResetTokenRepository.findAll();
+        for (PasswordResetToken t : allTokens) {
+            if (t.getExpiry().isAfter(LocalDateTime.now()) && passwordEncoder.matches(rawToken, t.getTokenHash())) {
+                matchedToken = t;
+                break;
+            }
+        }
 
-        if (matchedToken == null || matchedToken.getExpiry().isBefore(LocalDateTime.now())) {
+        if (matchedToken == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("error", "Invalid or expired verification token"));
         }
@@ -645,10 +685,16 @@ public class UserController {
         // Delete any existing tokens for this user
         passwordResetTokenRepository.findByUser(user).ifPresent(passwordResetTokenRepository::delete);
 
-        // Generate new verification token
-        String rawVerifyToken = java.util.UUID.randomUUID().toString();
+        // Generate new verification token — store only BCrypt hash
+        byte[] verifyBytes = new byte[32];
+        try {
+            SecureRandom.getInstanceStrong().nextBytes(verifyBytes);
+        } catch (java.security.NoSuchAlgorithmException e) {
+            new SecureRandom().nextBytes(verifyBytes);
+        }
+        String rawVerifyToken = Base64.getUrlEncoder().withoutPadding().encodeToString(verifyBytes);
         PasswordResetToken verificationToken = new PasswordResetToken(
-                rawVerifyToken, user, LocalDateTime.now().plusHours(24));
+                passwordEncoder.encode(rawVerifyToken), user, LocalDateTime.now().plusHours(24));
         passwordResetTokenRepository.save(verificationToken);
 
         // Send email (best-effort)

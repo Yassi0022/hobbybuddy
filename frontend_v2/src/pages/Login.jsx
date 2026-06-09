@@ -110,6 +110,12 @@ export default function Login() {
                 </div>
               </div>
 
+              <div style={{ textAlign: 'right', marginBottom: '12px' }}>
+                <Link to="/forgot-password" style={{ fontSize: '0.82rem', color: 'var(--color-primary)', fontWeight: 600, textDecoration: 'none' }}>
+                  Forgot password?
+                </Link>
+              </div>
+
               {error && error.rateLimited && (
                 <div className="form-error" style={{ display: 'block', background: '#fff7ed', borderColor: '#f59e0b', color: '#92400e' }} role="alert">
                   <i className="fas fa-clock"></i> {error.message}

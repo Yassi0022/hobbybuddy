@@ -14,6 +14,8 @@ import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
 import MessagesPage from './pages/MessagesPage';
 import VerifyEmail from './pages/VerifyEmail';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import './styles/variables.css';
 import './styles/components.css';
 import './styles/layout.css';
@@ -60,6 +62,8 @@ function App() {
           <Route path="/terms" element={<Terms />} />
           <Route path="/messages" element={<MessagesPage />} />
           <Route path="/verify" element={<VerifyEmail />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
