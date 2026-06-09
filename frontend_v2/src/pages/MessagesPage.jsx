@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { API_BASE_URL } from '../utils/constants';
+import { API_BASE_URL, WS_BASE_URL } from '../utils/constants';
 import { showToast } from '../utils/toast';
 import EmptyState from '../components/ui/EmptyState';
 import Navbar from '../components/ui/Navbar';
@@ -109,7 +109,7 @@ export default function MessagesPage() {
     // Avoid double-connecting
     if (wsClientRef.current?.connected) return;
 
-    const wsUrl = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws-chat`;
+    const wsUrl = WS_BASE_URL ? `${WS_BASE_URL}/ws-chat` : `/ws-chat`;
 
     try {
       // Deactivate previous client if any
