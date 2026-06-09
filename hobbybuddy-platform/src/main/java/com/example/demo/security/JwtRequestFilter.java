@@ -87,6 +87,22 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             if (jwtUtil.validateToken(jwt)) {
+                // ── Auth version check ──
+                // Reject tokens issued before the last password change/reset.
+                int tokenAuthVersion = jwtUtil.extractAuthVersion(jwt);
+                User user = userRepository.findByEmail(username).orElse(null);
+                if (user != null && tokenAuthVersion < user.getAuthVersion()) {
+                    logger.warn("[AUTH] Rejected stale JWT for user {} (token authVersion={}, current={})",
+                            username, tokenAuthVersion, user.getAuthVersion());
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setContentType("application/json");
+                    response.setCharacterEncoding("UTF-8");
+                    response.getWriter().write(
+                            "{\"error\":\"TOKEN_INVALIDATED\",\"message\":\"Your session was invalidated after a password change. Please log in again.\"}");
+                    response.getWriter().flush();
+                    return;
+                }
+
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
                 if (userDetails != null) {
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
@@ -111,8 +127,8 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             }
             if (needsVerificationCheck) {
                 String email = SecurityContextHolder.getContext().getAuthentication().getName();
-                User user = userRepository.findByEmail(email).orElse(null);
-                if (user != null && !user.isEmailVerified()) {
+                User verifiedUser = userRepository.findByEmail(email).orElse(null);
+                if (verifiedUser != null && !verifiedUser.isEmailVerified()) {
                     logger.warn("[AUTH] Blocked unverified user {} from accessing {}", email, path);
                     response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                     response.setContentType("application/json");

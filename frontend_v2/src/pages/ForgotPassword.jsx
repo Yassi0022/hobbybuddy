@@ -6,10 +6,12 @@ export default function ForgotPassword() {
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState('idle'); // idle | loading | success | error
   const [errorMsg, setErrorMsg] = useState('');
+  const [retryAfter, setRetryAfter] = useState(0);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg('');
+    setRetryAfter(0);
 
     if (!email || !email.trim()) {
       setErrorMsg('Please enter your email address.');
@@ -26,6 +28,12 @@ export default function ForgotPassword() {
 
       if (res.ok) {
         setStatus('success');
+      } else if (res.status === 429) {
+        const retry = parseInt(res.headers.get('Retry-After') || '900', 10);
+        setRetryAfter(retry);
+        const minutes = Math.ceil(retry / 60);
+        setStatus('error');
+        setErrorMsg(`Too many requests. Please try again in ${minutes} minute${minutes > 1 ? 's' : ''}.`);
       } else {
         const data = await res.json().catch(() => ({}));
         setStatus('error');
@@ -99,8 +107,13 @@ export default function ForgotPassword() {
                 </div>
 
                 {status === 'error' && errorMsg && (
-                  <div className="form-error" style={{ display: 'block' }} role="alert">
-                    <i className="fas fa-exclamation-triangle"></i> {errorMsg}
+                  <div className="form-error" style={{
+                    display: 'block',
+                    background: retryAfter > 0 ? '#fff7ed' : undefined,
+                    borderColor: retryAfter > 0 ? '#f59e0b' : undefined,
+                    color: retryAfter > 0 ? '#92400e' : undefined,
+                  }} role="alert">
+                    <i className={`fas ${retryAfter > 0 ? 'fa-clock' : 'fa-exclamation-triangle'}`}></i> {errorMsg}
                   </div>
                 )}
 

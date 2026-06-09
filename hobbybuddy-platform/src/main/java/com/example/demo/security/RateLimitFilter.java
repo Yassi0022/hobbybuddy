@@ -57,6 +57,15 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private static final int REGISTER_MAX_REQUESTS = 5;
     private static final long REGISTER_WINDOW_MS = TimeUnit.MINUTES.toMillis(15);
 
+    /**
+     * Forgot-password: 3 attempts per 15-minute window per IP, and
+     * 3 attempts per 15-minute window per email address.
+     * Two-layer keying prevents a single IP from spamming many emails
+     * while still allowing legitimate users behind shared NAT.
+     */
+    private static final int FORGOT_PASSWORD_MAX_REQUESTS = 10;
+    private static final long FORGOT_PASSWORD_WINDOW_MS = TimeUnit.MINUTES.toMillis(15);
+
     // ── State ─────────────────────────────────────────────────────────
 
     /**
@@ -90,8 +99,31 @@ public class RateLimitFilter extends OncePerRequestFilter {
         // (once by us for email extraction, once by the controller)
         HttpServletRequest wrappedRequest = new CachedBodyHttpServletRequest(request);
 
-        // Build the rate-limit key
+        // Build the rate-limit key(s)
         String key = buildKey(policy.type, clientIp, wrappedRequest);
+
+        // For forgot-password, apply two-layer rate limiting: per-IP AND per-email
+        if ("forgot-password".equals(policy.type)) {
+            String emailKey = buildEmailKey(wrappedRequest);
+            if (emailKey != null) {
+                TokenBucket emailBucket = buckets.computeIfAbsent(emailKey,
+                        k -> new TokenBucket(policy.maxRequests, policy.windowMs));
+                BucketResult emailResult = emailBucket.tryAcquire();
+                if (!emailResult.allowed) {
+                    int retryAfterSeconds = (int) Math.ceil((double) emailResult.retryAfterMs / 1000.0);
+                    response.setHeader("Retry-After", String.valueOf(retryAfterSeconds));
+                    response.setHeader("X-RateLimit-Limit", String.valueOf(policy.maxRequests));
+                    response.setHeader("X-RateLimit-Remaining", "0");
+                    response.setHeader("X-RateLimit-Reset", String.valueOf(emailResult.windowResetEpoch));
+
+                    logger.warn("[RATE-LIMIT] Blocked {} from IP {} (email key, retryAfter={}s)",
+                            policy.name, clientIp, retryAfterSeconds);
+
+                    writeRateLimitResponse(response, policy, retryAfterSeconds);
+                    return;
+                }
+            }
+        }
 
         TokenBucket bucket = buckets.computeIfAbsent(key,
                 k -> new TokenBucket(policy.maxRequests, policy.windowMs));
@@ -111,17 +143,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
             logger.warn("[RATE-LIMIT] Blocked {} from IP {} (key={}, count={}/{}, retryAfter={}s)",
                     policy.name, clientIp, key, result.count, policy.maxRequests, retryAfterSeconds);
 
-            response.setStatus(429);
-            response.setContentType("application/json");
-            response.setCharacterEncoding("UTF-8");
-            String json = String.format(
-                    "{\"error\":\"Too Many Requests\","
-                    + "\"message\":\"Rate limit exceeded for %s. Please try again in %d seconds.\","
-                    + "\"status\":429,"
-                    + "\"retryAfter\":%d}",
-                    policy.description, retryAfterSeconds, retryAfterSeconds);
-            response.getWriter().write(json);
-            response.getWriter().flush();
+            writeRateLimitResponse(response, policy, retryAfterSeconds);
             return;
         }
 
@@ -137,20 +159,41 @@ public class RateLimitFilter extends OncePerRequestFilter {
         if ("/api/users".equals(path) || "/api/users/register".equals(path)) {
             return new RateLimitPolicy("register", "registration", REGISTER_MAX_REQUESTS, REGISTER_WINDOW_MS);
         }
+        if ("/api/users/forgot-password".equals(path)) {
+            return new RateLimitPolicy("forgot-password", "password reset", FORGOT_PASSWORD_MAX_REQUESTS, FORGOT_PASSWORD_WINDOW_MS);
+        }
         return null;
     }
 
     // ── Key building ──────────────────────────────────────────────────
 
+    /**
+     * Build a rate-limit key. For forgot-password we use two-layer keying:
+     * one bucket per IP, and a separate bucket per email address.
+     * Both must pass for the request to proceed.
+     *
+     * @return the primary key (caller should also check secondary for forgot-password).
+     */
     private String buildKey(String type, String clientIp, HttpServletRequest request) {
         if ("login".equals(type)) {
-            // Key by IP + email to prevent credential stuffing while allowing
-            // multiple legitimate users behind the same proxy/NAT IP
             String email = extractEmailSafely(request);
             return "login:" + clientIp + ":" + (email != null ? email : "unknown");
         }
-        // Register: key by IP only
+        if ("forgot-password".equals(type)) {
+            // Primary key is IP-based; the filter will also check email-based key
+            return "forgot-pw:ip:" + clientIp;
+        }
         return "register:" + clientIp;
+    }
+
+    /**
+     * For forgot-password, build the secondary email-based key.
+     * Returns null if email cannot be extracted.
+     */
+    private String buildEmailKey(HttpServletRequest request) {
+        String email = extractEmailSafely(request);
+        if (email == null) return null;
+        return "forgot-pw:email:" + email;
     }
 
     /**
@@ -194,6 +237,23 @@ public class RateLimitFilter extends OncePerRequestFilter {
             logger.debug("[RATE-LIMIT] Could not extract email from body: {}", e.getMessage());
         }
         return null;
+    }
+
+    // ── Response helper ────────────────────────────────────────────────
+
+    private void writeRateLimitResponse(HttpServletResponse response, RateLimitPolicy policy, int retryAfterSeconds)
+            throws IOException {
+        response.setStatus(429);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        String json = String.format(
+                "{\"error\":\"Too Many Requests\","
+                + "\"message\":\"Rate limit exceeded for %s. Please try again in %d seconds.\","
+                + "\"status\":429,"
+                + "\"retryAfter\":%d}",
+                policy.description, retryAfterSeconds, retryAfterSeconds);
+        response.getWriter().write(json);
+        response.getWriter().flush();
     }
 
     // ── Token bucket ──────────────────────────────────────────────────

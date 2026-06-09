@@ -13,6 +13,14 @@ import java.util.Base64;
 import java.util.Date;
 import java.util.function.Function;
 
+/**
+ * JWT utility: generates and validates tokens containing:
+ * <ul>
+ *   <li>{@code sub} — user email (subject)</li>
+ *   <li>{@code authVersion} — incremented on password change/reset; used to invalidate stale tokens</li>
+ *   <li>{@code iat} / {@code exp} — issued-at and expiration timestamps</li>
+ * </ul>
+ */
 @Component
 public class JwtUtil {
 
@@ -20,10 +28,12 @@ public class JwtUtil {
     private final SecretKey SECRET_KEY;
     private final long EXPIRATION_TIME = 86400000L; // 24 hours
 
+    /** Claim key for the user's auth version. */
+    public static final String CLAIM_AUTH_VERSION = "authVersion";
+
     public JwtUtil(Environment env) {
         String jwtSecret = env.getProperty("JWT_SECRET");
         if (jwtSecret == null || jwtSecret.isBlank()) {
-            // Fallback: try system env directly (e.g. when Spring property sources don't include env vars)
             jwtSecret = System.getenv("JWT_SECRET");
         }
         if (jwtSecret == null || jwtSecret.isBlank()) {
@@ -53,6 +63,15 @@ public class JwtUtil {
         return extractClaim(token, Claims::getExpiration);
     }
 
+    public int extractAuthVersion(String token) {
+        Claims claims = extractAllClaims(token);
+        Object v = claims.get(CLAIM_AUTH_VERSION);
+        if (v instanceof Integer) return (Integer) v;
+        if (v instanceof Number) return ((Number) v).intValue();
+        // Missing claim means pre-migration token — treat as version 0
+        return 0;
+    }
+
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
@@ -70,13 +89,26 @@ public class JwtUtil {
         return extractExpiration(token).before(new Date());
     }
 
-    public String generateToken(String username) {
+    /**
+     * Generate a new JWT for the given email with the provided authVersion embedded as a claim.
+     */
+    public String generateToken(String email, int authVersion) {
         return Jwts.builder()
-                .setSubject(username)
+                .setSubject(email)
+                .claim(CLAIM_AUTH_VERSION, authVersion)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
                 .signWith(SECRET_KEY)
                 .compact();
+    }
+
+    /**
+     * Legacy overload — generates token with authVersion 0.
+     * @deprecated Use {@link #generateToken(String, int)} instead.
+     */
+    @Deprecated
+    public String generateToken(String username) {
+        return generateToken(username, 0);
     }
 
     public Boolean validateToken(String token) {

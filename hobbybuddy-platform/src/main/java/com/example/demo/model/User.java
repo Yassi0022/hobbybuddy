@@ -73,6 +73,14 @@ public class User {
     @Column(nullable = false)
     private boolean emailVerified = false;
 
+    /**
+     * Incremented on every password change or reset.
+     * Embedded in JWT claims; validated on each authenticated request
+     * to invalidate tokens issued before the password was changed.
+     */
+    @Column(name = "auth_version", nullable = false)
+    private int authVersion = 0;
+
     // ----- New: List of PhotoInfo (transient, not persisted directly) -----
     @jakarta.persistence.Transient
     private java.util.List<com.example.demo.model.PhotoInfo> photoList = new java.util.ArrayList<>();
@@ -286,6 +294,19 @@ public class User {
 
     public void setEmailVerified(boolean emailVerified) {
         this.emailVerified = emailVerified;
+    }
+
+    public int getAuthVersion() {
+        return authVersion;
+    }
+
+    public void setAuthVersion(int authVersion) {
+        this.authVersion = authVersion;
+    }
+
+    /** Increment authVersion to invalidate all previously issued JWTs. */
+    public void incrementAuthVersion() {
+        this.authVersion++;
     }
 
     public java.util.List<com.example.demo.model.PhotoInfo> getPhotoList() {

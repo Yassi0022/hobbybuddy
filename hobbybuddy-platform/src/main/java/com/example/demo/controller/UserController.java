@@ -32,6 +32,7 @@ import com.example.demo.repository.InviteTokenRepository;
 import com.example.demo.repository.PasswordResetTokenRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.service.MatchingService;
+import com.example.demo.service.PasswordResetService;
 import com.example.demo.service.UserService;
 import com.example.demo.security.JwtUtil;
 
@@ -72,6 +73,9 @@ public class UserController {
     private PasswordResetTokenRepository passwordResetTokenRepository;
 
     @Autowired
+    private PasswordResetService passwordResetService;
+
+    @Autowired
     private JavaMailSender javaMailSender;
 
     @Autowired
@@ -86,10 +90,6 @@ public class UserController {
     private String emailFrom;
 
     private void addJwtCookie(HttpServletResponse response, String token) {
-        // Single Set-Cookie header — no duplicates.
-        // SameSite=None allows the cookie to be sent on cross-origin requests.
-        // Secure is added only when the request comes over HTTPS (detected via
-        // X-Forwarded-Proto for reverse-proxy setups like Render).
         jakarta.servlet.http.HttpServletRequest req =
                 ((org.springframework.web.context.request.ServletRequestAttributes)
                         org.springframework.web.context.request.RequestContextHolder.currentRequestAttributes())
@@ -104,8 +104,6 @@ public class UserController {
 
     /**
      * Send an email, swallowing exceptions so the caller's flow is never broken.
-     * Logs at WARN in dev/test and at ERROR with structured context in prod so
-     * that ops alerts fire when SMTP is unreachable.
      */
     private void sendMailSafely(String to, String subject, String text, String tag) {
         try {
@@ -116,11 +114,12 @@ public class UserController {
             msg.setText(text);
             javaMailSender.send(msg);
         } catch (Exception e) {
-            // Include the exception class so grepable alerts can filter by it
-            logger.error("[EMAIL_FAILURE][{}] Failed to send {} email to {} — {}: {}",
-                    tag, tag, to, e.getClass().getSimpleName(), e.getMessage());
+            logger.error("[EMAIL_FAILURE][{}] Failed to send {} email — {}: {}",
+                    tag, tag, e.getClass().getSimpleName(), e.getMessage());
         }
     }
+
+    // ── Registration ───────────────────────────────────────────────────
 
     @PostMapping
     public ResponseEntity<?> createUser(@RequestBody User user, HttpServletResponse response) {
@@ -145,7 +144,6 @@ public class UserController {
                     referrer.setReferralCount(referrer.getReferralCount() + 1);
                     userRepository.save(referrer);
                 });
-                // Mark invite token as used
                 if (user.getInviteToken() != null) {
                     inviteTokenRepository.findByTokenHash(user.getInviteToken()).ifPresent(inv -> {
                         inv.setUsed(true);
@@ -154,7 +152,7 @@ public class UserController {
                 }
             }
 
-            // Generate email verification token — store only BCrypt hash
+            // Generate email verification token — store only SHA-256 hash
             byte[] verifyBytes = new byte[32];
             try {
                 SecureRandom.getInstanceStrong().nextBytes(verifyBytes);
@@ -163,7 +161,7 @@ public class UserController {
             }
             String rawVerifyToken = Base64.getUrlEncoder().withoutPadding().encodeToString(verifyBytes);
             PasswordResetToken verificationToken = new PasswordResetToken(
-                    passwordEncoder.encode(rawVerifyToken), user, LocalDateTime.now().plusHours(24));
+                    passwordResetService.sha256Hex(rawVerifyToken), user, LocalDateTime.now().plusHours(24));
             passwordResetTokenRepository.save(verificationToken);
 
             // Send verification email (best-effort; don't fail registration if email fails)
@@ -186,7 +184,7 @@ public class UserController {
             if ("Email already exists".equals(e.getMessage())) {
                 return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", "Email already registered"));
             }
-            throw e; // Rethrow others
+            throw e;
         } catch (Exception e) {
             logger.error("Registration failure for {}: {}", user.getEmail(), e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
@@ -196,12 +194,14 @@ public class UserController {
         }
     }
 
+    // ── Login ──────────────────────────────────────────────────────────
+
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequestDTO loginRequest, HttpServletResponse response) {
         String email = loginRequest.getEmail();
         String password = loginRequest.getPassword();
         logger.info("Login attempt: {}", email);
-        
+
         try {
             if (email == null || password == null) {
                 return ResponseEntity.badRequest().body(Map.of("error", "Email/password required"));
@@ -215,7 +215,6 @@ public class UserController {
                 if (user.getPassword() != null && !user.getPassword().startsWith("$2a$") && user.getPassword().equals(password)) {
                     logger.info("Migrating user password for: {}", email);
                     userService.saveUser(user);
-                    // Password was just hashed — skip re-authentication, we already verified it
                 } else {
                     throw e;
                 }
@@ -232,7 +231,8 @@ public class UserController {
                 ));
             }
 
-            String token = jwtUtil.generateToken(user.getEmail());
+            // Include authVersion in JWT so we can invalidate on password change
+            String token = jwtUtil.generateToken(user.getEmail(), user.getAuthVersion());
             addJwtCookie(response, token);
 
             Map<String, Object> resp = new HashMap<>();
@@ -267,6 +267,158 @@ public class UserController {
         return createUser(user, response);
     }
 
+    // ── Password Reset ─────────────────────────────────────────────────
+
+    /**
+     * Request a password reset link by email.
+     * Always returns a neutral 200 response to prevent email enumeration.
+     * Rate-limited by RateLimitFilter (3 req / 15 min per IP + per email).
+     */
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody Map<String, String> body) {
+        String email = body.get("email");
+        if (email == null || email.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Email is required"));
+        }
+
+        passwordResetService.requestReset(email.trim());
+
+        // Neutral response — same whether or not the email exists
+        return ResponseEntity.ok(Map.of(
+                "message", "If the email exists, a password reset link has been sent."
+        ));
+    }
+
+    /**
+     * Reset password using the token from the email link.
+     * On success, the user's authVersion is incremented, invalidating all prior JWTs.
+     */
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> body) {
+        String token = body.get("token");
+        String newPassword = body.get("newPassword");
+
+        if (token == null || token.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Reset token is required"));
+        }
+        if (newPassword == null || newPassword.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "New password is required"));
+        }
+        if (newPassword.length() < 6) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Password must be at least 6 characters"));
+        }
+
+        // Encode the new password before passing to service
+        String encodedPassword = passwordEncoder.encode(newPassword);
+        PasswordResetService.ResetResult result = passwordResetService.resetPassword(token, encodedPassword);
+
+        switch (result) {
+            case SUCCESS:
+                return ResponseEntity.ok(Map.of(
+                        "message", "Password reset successfully. You can now log in with your new password."
+                ));
+            case TOKEN_EXPIRED:
+            case INVALID_TOKEN:
+            case TOKEN_REUSED:
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of("error", "Invalid or expired reset token"));
+            default:
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of("error", "Invalid or expired reset token"));
+        }
+    }
+
+    // ── Email Verification ─────────────────────────────────────────────
+
+    /**
+     * Verify email using the token sent via email.
+     * Tokens are SHA-256-hashed; we look up by hash.
+     */
+    @GetMapping("/verify")
+    public ResponseEntity<?> verifyEmail(@RequestParam("token") String rawToken) {
+        String sha256Hash = passwordResetService.sha256Hex(rawToken);
+        PasswordResetToken matchedToken = passwordResetTokenRepository.findByTokenHashSha256(sha256Hash).orElse(null);
+
+        if (matchedToken == null || matchedToken.isExpired()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", "Invalid or expired verification token"));
+        }
+
+        if (matchedToken.isUsed()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", "Invalid or expired verification token"));
+        }
+
+        // Mark token as used
+        matchedToken.markUsed();
+        passwordResetTokenRepository.save(matchedToken);
+
+        User user = matchedToken.getUser();
+        user.setEmailVerified(true);
+        userRepository.save(user);
+
+        // Grant priority-match credit to the inviter (if referred)
+        boolean priorityGranted = false;
+        if (user.getReferredBy() != null) {
+            userRepository.findById(user.getReferredBy()).ifPresent(inviter -> {
+                inviter.setPriorityMatchAvailable(true);
+                userRepository.save(inviter);
+                logger.info("[REFERRAL] User {} verified — granted priority match to inviter {}",
+                        user.getId(), inviter.getId());
+            });
+            priorityGranted = true;
+        }
+
+        return ResponseEntity.ok(Map.of(
+                "verified", true,
+                "email", user.getEmail(),
+                "message", "Email verified successfully!"
+                    + (priorityGranted ? " Your inviter received a priority match credit!" : "")
+        ));
+    }
+
+    /**
+     * Re-send verification email (for users who lost the first email).
+     */
+    @PostMapping("/send-verification")
+    public ResponseEntity<?> sendVerification(@RequestBody Map<String, String> body) {
+        String email = body.get("email");
+        if (email == null || email.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Email is required"));
+        }
+
+        // Always return success to prevent email enumeration
+        User user = userRepository.findByEmail(email).orElse(null);
+        if (user == null || user.isEmailVerified()) {
+            return ResponseEntity.ok(Map.of("message", "If the email exists and is unverified, a verification link has been sent."));
+        }
+
+        // Invalidate any existing tokens for this user
+        passwordResetTokenRepository.markAllActiveAsUsed(user);
+
+        // Generate new verification token — store only SHA-256 hash
+        byte[] verifyBytes = new byte[32];
+        try {
+            SecureRandom.getInstanceStrong().nextBytes(verifyBytes);
+        } catch (java.security.NoSuchAlgorithmException e) {
+            new SecureRandom().nextBytes(verifyBytes);
+        }
+        String rawVerifyToken = Base64.getUrlEncoder().withoutPadding().encodeToString(verifyBytes);
+        PasswordResetToken verificationToken = new PasswordResetToken(
+                passwordResetService.sha256Hex(rawVerifyToken), user, LocalDateTime.now().plusHours(24));
+        passwordResetTokenRepository.save(verificationToken);
+
+        // Send email (best-effort)
+        sendMailSafely(user.getEmail(), "Verify your HobbyBuddy account",
+                "Click the link to verify your email:\n"
+                        + frontendUrl + "/verify?token=" + rawVerifyToken,
+                "VERIFY");
+
+        return ResponseEntity.ok(Map.of("message", "If the email exists and is unverified, a verification link has been sent."));
+    }
+
+    // ── User CRUD (unchanged) ──────────────────────────────────────────
+
     @GetMapping("/me")
     public ResponseEntity<?> getCurrentUser(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
@@ -295,11 +447,6 @@ public class UserController {
         return ResponseEntity.ok(resp);
     }
 
-    /**
-     * Get the authenticated user's profile data.
-     * Returns the same shape the frontend expects for the profile page.
-     * Only the owner can access their own profile.
-     */
     @GetMapping("/{id}/profile")
     public ResponseEntity<?> getProfile(@PathVariable("id") java.lang.Long id,
                                         Authentication authentication) {
@@ -335,20 +482,15 @@ public class UserController {
     public ResponseEntity<?> updateProfile(@PathVariable("id") java.lang.Long id,
                                            @RequestBody Map<String, Object> payload,
                                            Authentication authentication) {
-        // Auth check
         User currentUser = getAuthenticatedUser(authentication);
         if (currentUser == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Authentication required"));
         }
-        // Authorization check: user can only update their own profile
         if (!currentUser.getId().equals(id)) {
             logger.warn("[AUTHZ] User {} attempted to update profile of user {}", currentUser.getId(), id);
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "You can only update your own profile"));
         }
-
-        // User is updating their own profile — use the authenticated user entity
         User user = currentUser;
-
         if (payload.containsKey("name")) user.setName((String) payload.get("name"));
         if (payload.containsKey("prompt1")) user.setPrompt1((String) payload.get("prompt1"));
         if (payload.containsKey("prompt2")) user.setPrompt2((String) payload.get("prompt2"));
@@ -358,7 +500,6 @@ public class UserController {
         if (payload.containsKey("personalityTagline")) user.setPersonalityTagline((String) payload.get("personalityTagline"));
         if (payload.containsKey("hobbies")) user.setHobbies((String) payload.get("hobbies"));
         if (payload.containsKey("photosJson")) user.setPhotosJson((String) payload.get("photosJson"));
-
         userRepository.save(user);
         return ResponseEntity.ok(Map.of("message", "Profile updated successfully"));
     }
@@ -368,38 +509,31 @@ public class UserController {
     public ResponseEntity<?> submitQuiz(@PathVariable("id") java.lang.Long id,
                                         @RequestBody Map<String, Object> payload,
                                         Authentication authentication) {
-        // Auth check
         User currentUser = getAuthenticatedUser(authentication);
         if (currentUser == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Authentication required"));
         }
-        // Authorization check: user can only submit quiz for themselves
         if (!currentUser.getId().equals(id)) {
             logger.warn("[AUTHZ] User {} attempted to submit quiz for user {}", currentUser.getId(), id);
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "You can only submit the quiz for your own account"));
         }
-
         if (!payload.containsKey("gdprConsent") || !(Boolean) payload.get("gdprConsent")) {
             return ResponseEntity.status(400).body(Map.of("error", "GDPR consent required"));
         }
         User user = currentUser;
-        
         Double o = Double.valueOf(payload.get("openness").toString());
         Double c = Double.valueOf(payload.get("conscientiousness").toString());
         Double e = Double.valueOf(payload.get("extraversion").toString());
         Double a = Double.valueOf(payload.get("agreeableness").toString());
         Double n = Double.valueOf(payload.get("neuroticism").toString());
-        
         user.setOpenness(o);
         user.setConscientiousness(c);
         user.setExtraversion(e);
         user.setAgreeableness(a);
         user.setNeuroticism(n);
-        
         String archetype = archetypeService.calculateArchetype(o, c, e, a, n);
         user.setArchetype(archetype);
         if (payload.containsKey("hobbies")) user.setHobbies((String) payload.get("hobbies"));
-        
         userRepository.save(user);
         System.out.println("[QUIZ] Archetype persisted for user " + id + ": " + user.getArchetype());
         return ResponseEntity.ok(Map.of("message", "Quiz results saved", "archetype", user.getArchetype()));
@@ -411,7 +545,6 @@ public class UserController {
         if (currentUser == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Authentication required"));
         }
-        // Users can only view their own profile via this endpoint
         if (!currentUser.getId().equals(id)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "You can only view your own profile"));
         }
@@ -439,7 +572,6 @@ public class UserController {
         if (currentUser == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Authentication required"));
         }
-        // Users can only find buddies for themselves
         if (!currentUser.getId().equals(id)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "You can only find buddies for your own account"));
         }
@@ -451,11 +583,8 @@ public class UserController {
                 .filter(u -> !u.getId().equals(id))
                 .collect(java.util.stream.Collectors.toList());
         List<MatchResponseDTO> matches = matchingService.calculateMatches(currentUser, otherUsers);
-
-        // Build response: DTO fields already populated by service + full user details from DB
         Map<Long, User> userById = allUsers.stream()
                 .collect(java.util.stream.Collectors.toMap(User::getId, java.util.function.Function.identity()));
-
         List<Map<String, Object>> richMatches = new ArrayList<>();
         for (MatchResponseDTO match : matches) {
             Map<String, Object> m = new HashMap<>();
@@ -467,12 +596,11 @@ public class UserController {
             m.put("sharedStrengths", match.getSharedStrengths());
             m.put("complementaryTraits", match.getComplementaryTraits());
             m.put("traitBreakdowns", match.getTraitBreakdowns());
-            // Enrich with full user details from DB by name (may match multiple; pick first)
             allUsers.stream()
                 .filter(u -> u.getName() != null && u.getName().equals(match.getName()))
                 .findFirst()
                 .ifPresent(u -> {
-                    m.put("id", u.getId()); // prefer DB id
+                    m.put("id", u.getId());
                     m.put("age", u.getAge());
                     m.put("photosJson", u.getPhotosJson() != null ? u.getPhotosJson() : "[]");
                     m.put("personalityTagline", u.getPersonalityTagline() != null ? u.getPersonalityTagline() : "");
@@ -483,10 +611,6 @@ public class UserController {
         return ResponseEntity.ok(Map.of("matches", richMatches));
     }
 
-    /**
-     * Resolve the authenticated user from the SecurityContext.
-     * Returns null if not authenticated.
-     */
     private User getAuthenticatedUser(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()
                 || "anonymousUser".equals(authentication.getPrincipal())) {
@@ -497,17 +621,14 @@ public class UserController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable("id") java.lang.Long id, Authentication authentication) {
-        // Auth check
         User currentUser = getAuthenticatedUser(authentication);
         if (currentUser == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Authentication required"));
         }
-        // Authorization check: user can only delete their own account
         if (!currentUser.getId().equals(id)) {
             logger.warn("[AUTHZ] User {} attempted to delete user {}", currentUser.getId(), id);
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "You can only delete your own account"));
         }
-
         logger.info("[DEBUG-AUTH] Deletion request for user id: " + id);
         try {
             userService.deleteUser(id);
@@ -516,193 +637,5 @@ public class UserController {
             logger.error("[DEBUG-AUTH] Deletion failed: ", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "Failed to delete user"));
         }
-    }
-
-    /**
-     * Request a password reset link by email.
-     * Always returns the same generic success message to prevent email enumeration.
-     * Generates a cryptographically secure random token, BCrypt-hashes it for storage,
-     * and sends the raw token in the reset link email.
-     */
-    @PostMapping("/forgot-password")
-    public ResponseEntity<?> forgotPassword(@RequestBody Map<String, String> body) {
-        String email = body.get("email");
-        if (email == null || email.isBlank()) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Email is required"));
-        }
-
-        User user = userRepository.findByEmail(email).orElse(null);
-        if (user != null) {
-            // Delete any existing reset tokens for this user
-            passwordResetTokenRepository.findByUser(user).ifPresent(passwordResetTokenRepository::delete);
-
-            // Generate a cryptographically secure random token
-            byte[] randomBytes = new byte[32];
-            try {
-                SecureRandom.getInstanceStrong().nextBytes(randomBytes);
-            } catch (java.security.NoSuchAlgorithmException e) {
-                // Fallback to default SecureRandom if strong algorithm unavailable
-                new SecureRandom().nextBytes(randomBytes);
-            }
-            String rawToken = Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
-
-            // Store only the BCrypt hash — never the raw token
-            String tokenHash = passwordEncoder.encode(rawToken);
-            PasswordResetToken resetToken = new PasswordResetToken(
-                    tokenHash, user, LocalDateTime.now().plusHours(1));
-            passwordResetTokenRepository.save(resetToken);
-
-            // Send reset email with the raw token in the link (best-effort)
-            sendMailSafely(user.getEmail(), "Reset your HobbyBuddy password",
-                    "Click the link to reset your password:\n"
-                            + frontendUrl + "/reset-password?token=" + rawToken
-                            + "\n\nThis link expires in 1 hour.\n"
-                            + "If you did not request this, ignore this email.",
-                    "RESET");
-        }
-
-        // Always return the same message regardless of whether the email exists
-        return ResponseEntity.ok(Map.of(
-                "message", "If the email exists, a password reset link has been sent."
-        ));
-    }
-
-    /**
-     * Reset password using the token from the email link.
-     * The raw token from the URL is verified against stored BCrypt hashes.
-     * Tokens are one-use only — deleted immediately after successful reset.
-     */
-    @PostMapping("/reset-password")
-    @Transactional
-    public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> body) {
-        String rawToken = body.get("token");
-        String newPassword = body.get("newPassword");
-
-        if (rawToken == null || rawToken.isBlank()) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Reset token is required"));
-        }
-        if (newPassword == null || newPassword.isBlank()) {
-            return ResponseEntity.badRequest().body(Map.of("error", "New password is required"));
-        }
-        if (newPassword.length() < 6) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Password must be at least 6 characters"));
-        }
-
-        // Find the matching token: scan active tokens and verify against BCrypt hashes.
-        // This is safe because there are typically very few active reset tokens.
-        PasswordResetToken matchedToken = null;
-        java.util.List<PasswordResetToken> allTokens = passwordResetTokenRepository.findAll();
-        for (PasswordResetToken t : allTokens) {
-            if (t.getExpiry().isAfter(LocalDateTime.now()) && passwordEncoder.matches(rawToken, t.getTokenHash())) {
-                matchedToken = t;
-                break;
-            }
-        }
-
-        if (matchedToken == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", "Invalid or expired reset token"));
-        }
-
-        // Update password using the project's existing BCrypt password encoder
-        User user = matchedToken.getUser();
-        user.setPassword(passwordEncoder.encode(newPassword));
-        userRepository.save(user);
-
-        // Delete the used token — one-time use enforced
-        passwordResetTokenRepository.delete(matchedToken);
-
-        logger.info("[RESET] Password reset successful for user {}", user.getId());
-
-        return ResponseEntity.ok(Map.of("message", "Password reset successfully. You can now log in with your new password."));
-    }
-
-    /**
-     * Verify email using the token sent via email.
-     * Grants the inviter a priority-match credit if this user was referred.
-     * Tokens are BCrypt-hashed; we scan active tokens to find a match.
-     */
-    @GetMapping("/verify")
-    public ResponseEntity<?> verifyEmail(@RequestParam("token") String rawToken) {
-        // Find matching token by scanning active (non-expired) tokens
-        PasswordResetToken matchedToken = null;
-        java.util.List<PasswordResetToken> allTokens = passwordResetTokenRepository.findAll();
-        for (PasswordResetToken t : allTokens) {
-            if (t.getExpiry().isAfter(LocalDateTime.now()) && passwordEncoder.matches(rawToken, t.getTokenHash())) {
-                matchedToken = t;
-                break;
-            }
-        }
-
-        if (matchedToken == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", "Invalid or expired verification token"));
-        }
-
-        User user = matchedToken.getUser();
-        user.setEmailVerified(true);
-        userRepository.save(user);
-
-        // Grant priority-match credit to the inviter (if referred)
-        boolean priorityGranted = false;
-        if (user.getReferredBy() != null) {
-            userRepository.findById(user.getReferredBy()).ifPresent(inviter -> {
-                inviter.setPriorityMatchAvailable(true);
-                userRepository.save(inviter);
-                logger.info("[REFERRAL] User {} verified — granted priority match to inviter {}",
-                        user.getId(), inviter.getId());
-            });
-            priorityGranted = true;
-        }
-
-        // Delete the used token
-        passwordResetTokenRepository.delete(matchedToken);
-
-        return ResponseEntity.ok(Map.of(
-                "verified", true,
-                "email", user.getEmail(),
-                "message", "Email verified successfully!"
-                    + (priorityGranted ? " Your inviter received a priority match credit!" : "")
-        ));
-    }
-
-    /**
-     * Re-send verification email (for users who lost the first email).
-     */
-    @PostMapping("/send-verification")
-    public ResponseEntity<?> sendVerification(@RequestBody Map<String, String> body) {
-        String email = body.get("email");
-        if (email == null || email.isBlank()) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Email is required"));
-        }
-
-        // Always return success to prevent email enumeration
-        User user = userRepository.findByEmail(email).orElse(null);
-        if (user == null || user.isEmailVerified()) {
-            return ResponseEntity.ok(Map.of("message", "If the email exists and is unverified, a verification link has been sent."));
-        }
-
-        // Delete any existing tokens for this user
-        passwordResetTokenRepository.findByUser(user).ifPresent(passwordResetTokenRepository::delete);
-
-        // Generate new verification token — store only BCrypt hash
-        byte[] verifyBytes = new byte[32];
-        try {
-            SecureRandom.getInstanceStrong().nextBytes(verifyBytes);
-        } catch (java.security.NoSuchAlgorithmException e) {
-            new SecureRandom().nextBytes(verifyBytes);
-        }
-        String rawVerifyToken = Base64.getUrlEncoder().withoutPadding().encodeToString(verifyBytes);
-        PasswordResetToken verificationToken = new PasswordResetToken(
-                passwordEncoder.encode(rawVerifyToken), user, LocalDateTime.now().plusHours(24));
-        passwordResetTokenRepository.save(verificationToken);
-
-        // Send email (best-effort)
-        sendMailSafely(user.getEmail(), "Verify your HobbyBuddy account",
-                "Click the link to verify your email:\n"
-                        + frontendUrl + "/verify?token=" + rawVerifyToken,
-                "VERIFY");
-
-        return ResponseEntity.ok(Map.of("message", "If the email exists and is unverified, a verification link has been sent."));
     }
 }
