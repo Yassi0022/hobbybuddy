@@ -24,6 +24,9 @@ export default defineConfig({
   ],
   css: { transformer: 'postcss' },
   base: '/',
+  define: {
+    global: 'globalThis',
+  },
   build: {
     outDir: 'dist',
     emptyOutDir: true,
