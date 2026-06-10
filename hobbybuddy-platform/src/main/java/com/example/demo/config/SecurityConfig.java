@@ -11,7 +11,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -78,6 +77,14 @@ public class SecurityConfig {
         http.csrf(csrf -> csrf.disable())
             .cors(cors -> cors.configurationSource(corsConfigurationSource))
             .authorizeHttpRequests(auth -> auth
+                // Static resources — permitAll (replaces web.ignoring() for proper filter-chain traversal)
+                .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
+                .requestMatchers(
+                    "/index.html", "/css/**", "/js/**", "/images/**", "/assets/**",
+                    "/manifest.json", "/service-worker.js", "/favicon.ico",
+                    "/favicon.svg", "/icons.svg", "/error"
+                ).permitAll()
+                // API public endpoints
                 .requestMatchers("/api/health").permitAll()
                 .requestMatchers("/api/users/login", "/api/users/register", "/api/users").permitAll()
                 .requestMatchers("/api/users/forgot-password", "/api/users/reset-password").permitAll()
@@ -85,8 +92,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/messages/**").authenticated()
                 // Events: GET is public (browsing), POST/PUT/DELETE require auth
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/events", "/api/events/**").permitAll()
-                // /api/discover requires auth (removed permitAll — was leaking empty results to anonymous)
                 .requestMatchers("/api/**").authenticated()
+                // SPA routes
                 .requestMatchers("/", "/login", "/register", "/quiz", "/dashboard", "/discover", "/events", "/profile", "/privacy", "/terms", "/messages", "/feed", "/settings", "/verify").permitAll()
                 .anyRequest().authenticated()
             )
@@ -118,22 +125,7 @@ public class SecurityConfig {
         return http.build();
     }
 
-    @Bean
-    public WebSecurityCustomizer webSecurityCustomizer() {
-        return (web) -> web.ignoring()
-            .requestMatchers(PathRequest.toStaticResources().atCommonLocations())
-            .requestMatchers(
-                "/index.html",
-                "/css/**",
-                "/js/**",
-                "/images/**",
-                "/assets/**",
-                "/manifest.json",
-                "/service-worker.js",
-                "/favicon.ico",
-                "/favicon.svg",
-                "/icons.svg",
-                "/error"
-            );
-    }
+    // Note: web.ignoring() has been replaced with permitAll() in the filter chain
+    // above. This ensures static resources still go through the security filter chain
+    // (getting proper security headers) while remaining publicly accessible.
 }

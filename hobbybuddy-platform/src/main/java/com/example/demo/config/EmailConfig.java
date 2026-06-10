@@ -4,7 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.boot.autoconfigure.mail.MailProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -69,11 +68,13 @@ public class EmailConfig {
      * Real SMTP mail sender — active when EMAIL_HOST env var is set and non-blank.
      * Includes sensible timeouts so email never hangs the calling thread forever.
      *
-     * <p>Disables Spring Boot's auto-configured JavaMailSender to avoid duplicate beans.
+     * <p>All SMTP settings come directly from environment variables — no dependency
+     * on Spring Boot's MailProperties. Only one bean (SMTP or NoOp) is active at runtime
+     * thanks to @ConditionalOnExpression guards.
      */
     @Bean
     @ConditionalOnExpression("#{systemEnvironment['EMAIL_HOST'] != null && !systemEnvironment['EMAIL_HOST'].trim().isEmpty()}")
-    public JavaMailSender smtpMailSender(MailProperties mailProperties) {
+    public JavaMailSender smtpMailSender() {
         String host = System.getenv("EMAIL_HOST").trim();
         String portStr = System.getenv().getOrDefault("EMAIL_PORT", "587");
         String username = System.getenv("EMAIL_USERNAME");
@@ -92,12 +93,6 @@ public class EmailConfig {
         mailSender.setPort(port);
         mailSender.setUsername(username);
         mailSender.setPassword(password);
-
-        // Apply Spring Boot MailProperties defaults (e.g. from application.properties)
-        // then override with our env-var-driven settings
-        if (mailProperties.getProperties() != null) {
-            mailSender.getJavaMailProperties().putAll(mailProperties.getProperties());
-        }
 
         Properties props = mailSender.getJavaMailProperties();
         props.put("mail.transport.protocol", "smtp");

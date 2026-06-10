@@ -13,11 +13,11 @@ import org.springframework.stereotype.Component;
  *
  * <p>Runs a lightweight {@code transport.connect()} against the configured SMTP host.
  * If the connection fails the application logs a clear warning but <b>does not crash</b>.
- * Password reset and verification emails will silently fail via the NoOpMailSender
- * fallback until SMTP is fixed — but the app stays up.
+ * Password reset and verification emails will fail with clear error logs until SMTP
+ * is fixed — but the app stays up.
  *
  * <p>When EMAIL_HOST is not set this bean is skipped entirely — the
- * fallback {@link JavaMailSender} requires no connectivity.
+ * fallback no-op mail sender requires no connectivity.
  */
 @Component
 @ConditionalOnExpression("#{systemEnvironment['EMAIL_HOST'] != null && !systemEnvironment['EMAIL_HOST'].trim().isEmpty()}")
