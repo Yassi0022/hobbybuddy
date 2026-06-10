@@ -60,7 +60,7 @@ public class PasswordResetService {
             PasswordResetTokenRepository tokenRepository,
             UserRepository userRepository,
             JavaMailSender mailSender,
-            @Value("${EMAIL_FROM:noreply@hobbybuddy.com}") String emailFrom,
+            @Value("${app.email.from:noreply@hobbybuddy.com}") String emailFrom,
             @Value("${app.frontend-url:http://localhost:3000}") String frontendUrl) {
         this.tokenRepository = tokenRepository;
         this.userRepository = userRepository;
@@ -165,16 +165,19 @@ public class PasswordResetService {
             SimpleMailMessage msg = new SimpleMailMessage();
             msg.setFrom(emailFrom);
             msg.setTo(to);
-            msg.setSubject("Reset your HobbyBuddy password");
+            msg.setSubject("Reset your password");
             msg.setText("Click the link to reset your password:\n"
                     + resetLink
                     + "\n\nThis link expires in 1 hour.\n"
                     + "If you did not request this, you can safely ignore this email.");
             mailSender.send(msg);
+            logger.info("[PASSWORD_RESET] Reset email sent successfully to {}", to);
         } catch (Exception e) {
-            // Never fail the request because of email issues
-            logger.error("[PASSWORD_RESET][EMAIL_FAILURE] Failed to send reset email — {}: {}",
-                    e.getClass().getSimpleName(), e.getMessage());
+            // Never fail the request because of email issues — but log loudly
+            // so operators know email is broken
+            logger.error("[PASSWORD_RESET][EMAIL_FAILURE] Failed to send reset email to {} — {}: {}. "
+                    + "Check EMAIL_HOST / EMAIL_PORT / EMAIL_USERNAME / EMAIL_PASSWORD.",
+                    to, e.getClass().getSimpleName(), e.getMessage());
         }
     }
 

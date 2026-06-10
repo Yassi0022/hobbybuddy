@@ -86,7 +86,7 @@ public class UserController {
     private String frontendUrl;
 
     /** Envelope "From" address for all outgoing emails. */
-    @Value("${EMAIL_FROM:noreply@hobbybuddy.com}")
+    @Value("${app.email.from:noreply@hobbybuddy.com}")
     private String emailFrom;
 
     private void addJwtCookie(HttpServletResponse response, String token) {
@@ -104,6 +104,7 @@ public class UserController {
 
     /**
      * Send an email, swallowing exceptions so the caller's flow is never broken.
+     * Logs success and failure clearly so operators can verify email delivery.
      */
     private void sendMailSafely(String to, String subject, String text, String tag) {
         try {
@@ -113,9 +114,11 @@ public class UserController {
             msg.setSubject(subject);
             msg.setText(text);
             javaMailSender.send(msg);
+            logger.info("[EMAIL][{}] Sent to {} — subject: {}", tag, to, subject);
         } catch (Exception e) {
-            logger.error("[EMAIL_FAILURE][{}] Failed to send {} email — {}: {}",
-                    tag, tag, e.getClass().getSimpleName(), e.getMessage());
+            logger.error("[EMAIL][{}] FAILED to send to {} — {}: {}. "
+                    + "Check EMAIL_HOST / EMAIL_PORT / EMAIL_USERNAME / EMAIL_PASSWORD.",
+                    tag, to, e.getClass().getSimpleName(), e.getMessage());
         }
     }
 

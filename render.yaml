@@ -18,6 +18,14 @@ services:
         value: "false"
       - key: EMAIL_FROM
         value: "noreply@hobbybuddy.com"
+      - key: EMAIL_HOST
+        sync: false
+      - key: EMAIL_PORT
+        sync: false
+      - key: EMAIL_USERNAME
+        sync: false
+      - key: EMAIL_PASSWORD
+        sync: false
       - key: FASTAPI_URL
         fromService:
           type: web

@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.mail.MailProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -37,11 +38,20 @@ import java.util.Properties;
  * <pre>
  *   EMAIL_HOST       — SMTP hostname, e.g. smtp.gmail.com
  *   EMAIL_PORT       — SMTP port (default 587)
- *   EMAIL_USERNAME   — SMTP login
- *   EMAIL_PASSWORD   — SMTP password or app-specific token
- *   EMAIL_FROM       — Envelope "From" address (e.g. no-reply@hobbybuddy.com)
+ *   EMAIL_USERNAME   — SMTP login (your Gmail address)
+ *   EMAIL_PASSWORD   — Gmail App Password (NOT your normal password)
+ *   EMAIL_FROM       — Envelope "From" address (e.g. noreply@hobbybuddy.com)
  *   EMAIL_TLS        — true/false (default true)
  * </pre>
+ *
+ * <h3>Gmail setup</h3>
+ * <ol>
+ *   <li>Enable 2-Factor Authentication on your Google Account</li>
+ *   <li>Generate an App Password at: https://myaccount.google.com/apppasswords</li>
+ *   <li>Use that 16-char password as EMAIL_PASSWORD (not your real password)</li>
+ *   <li>Set EMAIL_HOST=smtp.gmail.com, EMAIL_PORT=587</li>
+ *   <li>Set EMAIL_FROM to any valid sender address</li>
+ * </ol>
  *
  * <h3>Enabling SMTP in production</h3>
  * Set the above env vars in the Render dashboard, then flip
@@ -57,18 +67,13 @@ public class EmailConfig {
 
     /**
      * Real SMTP mail sender — active when EMAIL_HOST env var is set and non-blank.
-     * No @Profile guard: condition is purely env-driven so it works in any profile
-     * (prod, test, dev) as long as SMTP credentials are provided.
+     * Includes sensible timeouts so email never hangs the calling thread forever.
      *
-     * <p>Includes sensible timeouts so email never hangs the calling thread forever:
-     * <ul>
-     *   <li>Connection timeout: 10 seconds</li>
-     *   <li>Read/write timeout: 10 seconds</li>
-     * </ul>
+     * <p>Disables Spring Boot's auto-configured JavaMailSender to avoid duplicate beans.
      */
     @Bean
     @ConditionalOnExpression("#{systemEnvironment['EMAIL_HOST'] != null && !systemEnvironment['EMAIL_HOST'].trim().isEmpty()}")
-    public JavaMailSender smtpMailSender() {
+    public JavaMailSender smtpMailSender(MailProperties mailProperties) {
         String host = System.getenv("EMAIL_HOST").trim();
         String portStr = System.getenv().getOrDefault("EMAIL_PORT", "587");
         String username = System.getenv("EMAIL_USERNAME");
@@ -87,6 +92,12 @@ public class EmailConfig {
         mailSender.setPort(port);
         mailSender.setUsername(username);
         mailSender.setPassword(password);
+
+        // Apply Spring Boot MailProperties defaults (e.g. from application.properties)
+        // then override with our env-var-driven settings
+        if (mailProperties.getProperties() != null) {
+            mailSender.getJavaMailProperties().putAll(mailProperties.getProperties());
+        }
 
         Properties props = mailSender.getJavaMailProperties();
         props.put("mail.transport.protocol", "smtp");
