@@ -32,7 +32,7 @@ export default function Terms() {
 
       <footer style={{ marginTop: '80px', paddingTop: '40px', borderTop: '1px solid #e2e8f0', textAlign: 'center', color: '#94a3b8', fontSize: '0.9rem' }}>
         <Link to="/" style={{ color: '#c2410c', textDecoration: 'none', fontWeight: 600 }}>Back to Home</Link>
-        <p style={{ marginTop: '20px' }}>&copy; 2026 HobbyBuddy. Personality-based matching for real friendships.</p>
+        <p style={{ marginTop: '20px' }}>&copy; {new Date().getFullYear()} HobbyBuddy. Personality-based matching for real friendships.</p>
       </footer>
     </div>
   );

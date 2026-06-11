@@ -317,7 +317,6 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                {/* ── Comment placeholder (coming soon) ── */}
                 {expandedComments[post.id] && (
                   <div style={{
                     marginTop: 14, borderTop: '1px solid var(--color-border)', paddingTop: 14,
@@ -325,7 +324,7 @@ export default function Dashboard() {
                   }}>
                     <span style={{ fontSize: '0.85rem' }}>💬</span>
                     <span style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', fontStyle: 'italic' }}>
-                      Conversations open here soon
+                      Comments coming soon
                     </span>
                   </div>
                 )}

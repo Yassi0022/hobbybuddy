@@ -147,7 +147,7 @@ export default function ForgotPassword() {
           <Link to="/privacy" style={{ color: 'inherit', textDecoration: 'none' }}>Privacy Policy</Link>
           <Link to="/terms" style={{ color: 'inherit', textDecoration: 'none' }}>Terms of Use</Link>
         </div>
-        <p style={{ marginTop: '10px' }}>&copy; 2026 HobbyBuddy. Real friendships start here.</p>
+        <p style={{ marginTop: '10px' }}>&copy; {new Date().getFullYear()} HobbyBuddy. Real friendships start here.</p>
       </footer>
     </>
   );
