@@ -12,13 +12,13 @@ createRoot(document.getElementById('root')).render(
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/service-worker.js').then((registration) => {
-      // When a new service worker is found, activate it immediately
+      // When a new service worker is found, let UpdateBanner know so it can
+      // prompt the user. We do NOT auto-reload — the user decides.
       registration.addEventListener('updatefound', () => {
         const newWorker = registration.installing;
         if (!newWorker) return;
         newWorker.addEventListener('statechange', () => {
           if (newWorker.state === 'activated' && navigator.serviceWorker.controller) {
-            // New SW activated — dispatch event so UpdateBanner can react
             window.dispatchEvent(new Event('sw-updated'));
           }
         });
@@ -26,14 +26,5 @@ if ('serviceWorker' in navigator) {
     }).catch(() => {
       console.log('Service worker registration failed');
     });
-  });
-
-  // Listen for controller change (new SW took over)
-  let refreshing = false;
-  navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (!refreshing) {
-      refreshing = true;
-      window.location.reload();
-    }
   });
 }

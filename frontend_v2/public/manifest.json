@@ -2,7 +2,7 @@
   "name": "HobbyBuddy — Find Your Vibe",
   "short_name": "HobbyBuddy",
   "description": "AI-powered personality matching platform. Discover your ideal hobby buddies through a scientifically validated personality quiz.",
-  "start_url": "./login.html",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",

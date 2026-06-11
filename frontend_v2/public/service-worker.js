@@ -1,22 +1,23 @@
-const CACHE_NAME = 'hobbybuddy-v2';
+// Bump this to force a fresh SW install after deploy.
+const CACHE_NAME = 'hobbybuddy-v3';
+
+// Only cache truly static assets that never change between deploys.
+// Do NOT cache index.html — it's fetched network-first every time.
 const urlsToCache = [
-  '/',
-  '/index.html',
   '/favicon.svg',
   '/images/icon-192.png',
   '/images/icon-512.png',
 ];
 
-// Install: cache core app shell only (not index.html content, just the URL)
+// Install: cache static assets only
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(urlsToCache))
   );
-  // Force the new service worker to activate immediately
   self.skipWaiting();
 });
 
-// Activate: clean up old caches
+// Activate: delete old caches from previous versions
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) =>
@@ -25,56 +26,55 @@ self.addEventListener('activate', (event) => {
       )
     )
   );
-  // Take control of all open tabs immediately
   self.clients.claim();
 });
 
-// Fetch: network-first for navigations (HTML), cache-first for everything else
+// Fetch: network-first for HTML navigations, cache-first for hashed static assets
 self.addEventListener('fetch', (event) => {
   const { request } = event;
+  const url = new URL(request.url);
 
-  // Never cache API calls — always go to network
-  if (request.url.includes('/api/')) {
+  // Never cache API calls or WebSocket upgrades
+  if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/ws-')) {
     event.respondWith(fetch(request));
     return;
   }
 
-  const isNavigation = request.mode === 'navigate'
-    || (request.method === 'GET' && request.headers.get('accept')?.includes('text/html'));
-
-  if (isNavigation) {
-    // Network-first for HTML — always get fresh index.html
+  // Network-first for HTML navigations — always get fresh index.html from server
+  if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          // Cache a fresh copy for offline fallback
           if (response && response.status === 200) {
             const clone = response.clone();
             caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
           }
           return response;
         })
-        .catch(() => {
-          // Offline fallback to cached index.html
-          return caches.match('/index.html').then((cached) => cached || caches.match('/'));
-        })
+        .catch(() => caches.match('/index.html'))
     );
     return;
   }
 
-  // Cache-first for static assets (JS, CSS, images, fonts)
-  event.respondWith(
-    caches.match(request).then((cached) => {
-      if (cached) return cached;
-      return fetch(request).then((response) => {
-        if (!response || response.status !== 200 || response.type !== 'basic') {
+  // Cache-first for versioned/hashed static assets (JS, CSS) — these have
+  // unique filenames per deploy so stale copies are never a problem.
+  // Skip cache-first for unversioned paths that might change (e.g. /version.json).
+  if (url.pathname.startsWith('/images/') || url.pathname.startsWith('/assets/') || url.pathname.startsWith('/icons/')) {
+    event.respondWith(
+      caches.match(request).then((cached) => {
+        if (cached) return cached;
+        return fetch(request).then((response) => {
+          if (response && response.status === 200 && response.type === 'basic') {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+          }
           return response;
-        }
-        // Cache new static assets
-        const clone = response.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
-        return response;
-      });
-    })
-  );
+        });
+      })
+    );
+    return;
+  }
+
+  // Everything else: go to network (version.json, manifest.json, etc.)
+  event.respondWith(fetch(request));
 });

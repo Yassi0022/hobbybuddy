@@ -1,15 +1,20 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 /**
  * Lightweight update detection banner.
  *
- * On each visibility change (user switches back to tab), fetches /version.json.
- * If the build timestamp differs from the one at initial load, shows a banner
- * offering to reload. No polling — only checks on tab focus.
+ * Checks /version.json on tab focus. If the build timestamp differs from the
+ * one embedded in the current page, shows a banner offering to reload.
+ *
+ * Dismissal is session-scoped — once dismissed, won't re-show until next
+ * full navigation. This prevents the banner from appearing on every tab switch
+ * when the user has already acknowledged it.
  */
 export default function UpdateBanner() {
   const [showBanner, setShowBanner] = useState(false);
+  const dismissedRef = useRef(false);
 
+  // Read the build timestamp injected by Vite into the HTML
   const initBuild = (() => {
     try {
       const meta = document.querySelector('meta[name="hb-build"]');
@@ -20,11 +25,13 @@ export default function UpdateBanner() {
   })();
 
   const checkForUpdate = useCallback(async () => {
+    if (dismissedRef.current) return;
     try {
       const res = await fetch('/version.json', { cache: 'no-store' });
       if (!res.ok) return;
       const data = await res.json();
       const remoteBuild = data.build || 0;
+      // Only show if we have a valid local build AND it differs from remote
       if (remoteBuild && initBuild && remoteBuild !== initBuild) {
         setShowBanner(true);
       }
@@ -39,8 +46,9 @@ export default function UpdateBanner() {
         checkForUpdate();
       }
     };
-    // Also show immediately if a new service worker just activated
-    const handleSwUpdated = () => setShowBanner(true);
+    const handleSwUpdated = () => {
+      if (!dismissedRef.current) setShowBanner(true);
+    };
 
     document.addEventListener('visibilitychange', handleVisibility);
     window.addEventListener('sw-updated', handleSwUpdated);
@@ -51,16 +59,14 @@ export default function UpdateBanner() {
   }, [checkForUpdate]);
 
   const handleReload = () => {
-    // Unregister old service worker, then reload
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then((regs) => {
-        Promise.all(regs.map((r) => r.unregister())).then(() => {
-          window.location.reload();
-        });
-      });
-    } else {
-      window.location.reload();
-    }
+    // Clear the dismissed flag so next load can detect future updates
+    dismissedRef.current = false;
+    window.location.reload();
+  };
+
+  const handleDismiss = () => {
+    setShowBanner(false);
+    dismissedRef.current = true;
   };
 
   if (!showBanner) return null;
@@ -85,7 +91,7 @@ export default function UpdateBanner() {
         Reload now
       </button>
       <button
-        onClick={() => setShowBanner(false)}
+        onClick={handleDismiss}
         style={{
           background: 'none', color: '#fff', border: 'none', cursor: 'pointer',
           fontSize: '1.1rem', padding: '2px 6px', opacity: 0.8,
