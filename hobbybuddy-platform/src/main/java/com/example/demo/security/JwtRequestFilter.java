@@ -13,6 +13,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.model.User;
@@ -24,6 +25,10 @@ import java.util.List;
 public class JwtRequestFilter extends OncePerRequestFilter {
 
     private static final Logger logger = LoggerFactory.getLogger(JwtRequestFilter.class);
+
+    /** When false, the email-verification gate is skipped — unverified users can access the API. */
+    @Value("${app.email.verification.required:true}")
+    private boolean emailVerificationRequired;
 
     @Autowired
     private JwtUtil jwtUtil;
@@ -116,7 +121,10 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         // ── Email verification gate ──
         // After authentication is set, check if the user has verified their email.
         // Allowlisted endpoints (login, register, verify, public) skip this check.
-        if (SecurityContextHolder.getContext().getAuthentication() != null && isApiRequest(request)) {
+        // When app.email.verification.required=false, this gate is skipped entirely.
+        if (emailVerificationRequired
+                && SecurityContextHolder.getContext().getAuthentication() != null
+                && isApiRequest(request)) {
             boolean needsVerificationCheck = true;
             String path = request.getRequestURI();
             for (String skipPath : SKIP_VERIFICATION_CHECK) {
@@ -139,6 +147,8 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                     return;
                 }
             }
+        } else if (!emailVerificationRequired && SecurityContextHolder.getContext().getAuthentication() != null) {
+            logger.debug("[AUTH] Email verification gate skipped — app.email.verification.required=false");
         }
 
         chain.doFilter(request, response);

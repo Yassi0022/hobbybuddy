@@ -107,6 +107,7 @@ public class PasswordResetService {
         tokenRepository.save(token);
 
         // Send email (best-effort — never fail the request if email fails)
+        logger.info("[PASSWORD_RESET][EMAIL_ATTEMPT] Attempting reset email to {}", user.getEmail());
         sendResetEmail(user.getEmail(), rawToken);
 
         logger.info("[PASSWORD_RESET] Reset token created for user {}", user.getId());
@@ -161,6 +162,7 @@ public class PasswordResetService {
 
     private void sendResetEmail(String to, String rawToken) {
         String resetLink = frontendUrl + "/reset-password?token=" + rawToken;
+        logger.info("[PASSWORD_RESET][EMAIL_ATTEMPT] Sending reset email to {}", to);
         try {
             SimpleMailMessage msg = new SimpleMailMessage();
             msg.setFrom(emailFrom);
@@ -171,7 +173,7 @@ public class PasswordResetService {
                     + "\n\nThis link expires in 1 hour.\n"
                     + "If you did not request this, you can safely ignore this email.");
             mailSender.send(msg);
-            logger.info("[PASSWORD_RESET] Reset email sent successfully to {}", to);
+            logger.info("[PASSWORD_RESET][EMAIL_SENT] Reset email sent to {}", to);
         } catch (Exception e) {
             // Never fail the request because of email issues — but log loudly
             // so operators know email is broken

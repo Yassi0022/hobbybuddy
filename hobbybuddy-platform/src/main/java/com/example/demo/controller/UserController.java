@@ -89,6 +89,10 @@ public class UserController {
     @Value("${app.email.from:noreply@hobbybuddy.com}")
     private String emailFrom;
 
+    /** When false, users are auto-verified on registration and the email-verification gate is skipped. */
+    @Value("${app.email.verification.required:true}")
+    private boolean emailVerificationRequired;
+
     private void addJwtCookie(HttpServletResponse response, String token) {
         jakarta.servlet.http.HttpServletRequest req =
                 ((org.springframework.web.context.request.ServletRequestAttributes)
@@ -155,31 +159,57 @@ public class UserController {
                 }
             }
 
-            // Generate email verification token — store only SHA-256 hash
-            byte[] verifyBytes = new byte[32];
-            try {
-                SecureRandom.getInstanceStrong().nextBytes(verifyBytes);
-            } catch (java.security.NoSuchAlgorithmException e) {
-                new SecureRandom().nextBytes(verifyBytes);
+            logger.info("[REGISTRATION] User registered — id={} email={} verificationRequired={}",
+                    user.getId(), user.getEmail(), emailVerificationRequired);
+
+            if (emailVerificationRequired) {
+                // ── Normal flow: require email verification before API access ──
+                // Generate email verification token — store only SHA-256 hash
+                byte[] verifyBytes = new byte[32];
+                try {
+                    SecureRandom.getInstanceStrong().nextBytes(verifyBytes);
+                } catch (java.security.NoSuchAlgorithmException e) {
+                    new SecureRandom().nextBytes(verifyBytes);
+                }
+                String rawVerifyToken = Base64.getUrlEncoder().withoutPadding().encodeToString(verifyBytes);
+                PasswordResetToken verificationToken = new PasswordResetToken(
+                        passwordResetService.sha256Hex(rawVerifyToken), user, LocalDateTime.now().plusHours(24));
+                passwordResetTokenRepository.save(verificationToken);
+
+                // Send verification email (best-effort; don't fail registration if email fails)
+                logger.info("[EMAIL][VERIFY_ATTEMPT] Attempting verification email to {}", user.getEmail());
+                sendMailSafely(user.getEmail(), "Verify your HobbyBuddy account",
+                        "Welcome to HobbyBuddy! Click the link to verify your email:\n"
+                                + frontendUrl + "/verify?token=" + rawVerifyToken,
+                        "VERIFY");
+
+                // Do NOT issue JWT until email is verified
+                Map<String, Object> body = new java.util.LinkedHashMap<>();
+                body.put("id", user.getId());
+                body.put("email", user.getEmail());
+                body.put("name", user.getName() != null ? user.getName() : "");
+                body.put("message", "Registration successful. Please check your email to verify your account.");
+                return ResponseEntity.status(HttpStatus.CREATED).body(body);
+            } else {
+                // ── Bypass flow: auto-verify user when verification is not required ──
+                user.setEmailVerified(true);
+                userRepository.save(user);
+
+                logger.info("[REGISTRATION][VERIFICATION_SKIPPED] User {} auto-verified — "
+                        + "app.email.verification.required=false", user.getId());
+
+                // Issue JWT immediately so user can access the API right away
+                String token = jwtUtil.generateToken(user.getEmail(), user.getAuthVersion());
+                addJwtCookie(response, token);
+
+                Map<String, Object> body = new java.util.LinkedHashMap<>();
+                body.put("id", user.getId());
+                body.put("email", user.getEmail());
+                body.put("name", user.getName() != null ? user.getName() : "");
+                body.put("message", "Registration successful. Your account is ready!");
+                body.put("token", token);
+                return ResponseEntity.status(HttpStatus.CREATED).body(body);
             }
-            String rawVerifyToken = Base64.getUrlEncoder().withoutPadding().encodeToString(verifyBytes);
-            PasswordResetToken verificationToken = new PasswordResetToken(
-                    passwordResetService.sha256Hex(rawVerifyToken), user, LocalDateTime.now().plusHours(24));
-            passwordResetTokenRepository.save(verificationToken);
-
-            // Send verification email (best-effort; don't fail registration if email fails)
-            sendMailSafely(user.getEmail(), "Verify your HobbyBuddy account",
-                    "Welcome to HobbyBuddy! Click the link to verify your email:\n"
-                            + frontendUrl + "/verify?token=" + rawVerifyToken,
-                    "VERIFY");
-
-            // Do NOT issue JWT until email is verified
-            Map<String, Object> body = new java.util.LinkedHashMap<>();
-            body.put("id", user.getId());
-            body.put("email", user.getEmail());
-            body.put("name", user.getName() != null ? user.getName() : "");
-            body.put("message", "Registration successful. Please check your email to verify your account.");
-            return ResponseEntity.status(HttpStatus.CREATED).body(body);
         } catch (DataIntegrityViolationException e) {
             logger.warn("Registration conflict: email {} already exists", user.getEmail());
             return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", "Email already registered"));
