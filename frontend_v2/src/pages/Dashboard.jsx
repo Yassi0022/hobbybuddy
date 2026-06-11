@@ -115,9 +115,19 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
-        <div className="spinner-border"></div>
-      </div>
+      <>
+        <div className="bg-mesh"><div className="orb orb-1"></div><div className="orb orb-2"></div><div className="orb orb-3"></div></div>
+        <Navbar />
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+          <div style={{
+            width: 36, height: 36, borderRadius: '50%',
+            border: '3px solid var(--color-border)',
+            borderTopColor: 'var(--color-primary)',
+            animation: 'spin 0.8s linear infinite',
+          }} />
+        </div>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </>
     );
   }
 
@@ -131,7 +141,7 @@ export default function Dashboard() {
 
       <Navbar />
 
-      <div style={{ maxWidth: 720, margin: '0 auto', padding: '88px 24px 48px' }}>
+      <div style={{ maxWidth: 720, margin: '0 auto', padding: '88px 24px 48px' }} className="dashboard-container">
 
         {/* ── Welcome ─────────────────────────── */}
         <div style={{ marginBottom: 36 }}>
@@ -146,7 +156,7 @@ export default function Dashboard() {
         </div>
 
         {/* ── Quick nav cards ──────────────────── */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 36 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 36 }} className="dashboard-nav-cards">
           <Link to="/discover" className="card" style={{
             padding: '22px 20px', textDecoration: 'none', color: 'inherit',
             display: 'flex', flexDirection: 'column', gap: 8,
@@ -197,7 +207,7 @@ export default function Dashboard() {
                   }}>
                     <div style={{
                       width: 48, height: 48, borderRadius: '50%',
-                      background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+                      background: 'var(--gradient-secondary)',
                       color: '#92400e',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       fontSize: '1.1rem', fontWeight: 800, marginBottom: 10,
@@ -272,7 +282,7 @@ export default function Dashboard() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
                     <div style={{
                       width: 28, height: 28, borderRadius: '50%',
-                      background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+                      background: 'var(--gradient-secondary)',
                       color: '#92400e', display: 'flex', alignItems: 'center', justifyContent: 'center',
                       fontSize: '0.72rem', fontWeight: 800, flexShrink: 0,
                     }}>
@@ -324,6 +334,12 @@ export default function Dashboard() {
           )}
         </div>
       </div>
+      <style>{`
+        @media (max-width: 640px) {
+          .dashboard-container { padding: 72px 16px 32px !important; }
+          .dashboard-nav-cards { grid-template-columns: 1fr !important; gap: 10px !important; }
+        }
+      `}</style>
     </>
   );
 }

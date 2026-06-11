@@ -117,7 +117,7 @@ export default function Login() {
               </div>
 
               {error && error.rateLimited && (
-                <div className="form-error" style={{ display: 'block', background: '#fff7ed', borderColor: '#f59e0b', color: '#92400e' }} role="alert">
+                <div className="form-error" style={{ display: 'block', background: 'var(--color-error-bg, #fff7ed)', borderColor: 'var(--color-warning, #f59e0b)', color: 'var(--color-warning-text, #92400e)' }} role="alert">
                   <i className="fas fa-clock"></i> {error.message}
                 </div>
               )}
@@ -127,7 +127,7 @@ export default function Login() {
                 </div>
               )}
               {error && unverified && (
-                <div className="form-error" style={{ display: 'block', background: '#fff7ed', borderColor: '#f59e0b', color: '#92400e' }} role="alert">
+                <div className="form-error" style={{ display: 'block', background: 'var(--color-error-bg, #fff7ed)', borderColor: 'var(--color-warning, #f59e0b)', color: 'var(--color-warning-text, #92400e)' }} role="alert">
                   <i className="fas fa-envelope-circle-xmark"></i> {error.message}
                   <div style={{ marginTop: 10 }}>
                     <button
@@ -173,7 +173,7 @@ export default function Login() {
           <Link to="/privacy" style={{ color: 'inherit', textDecoration: 'none' }}>Privacy Policy</Link>
           <Link to="/terms" style={{ color: 'inherit', textDecoration: 'none' }}>Terms of Use</Link>
         </div>
-        <p style={{ marginTop: '10px' }}>&copy; 2026 HobbyBuddy. Real friendships start here.</p>
+        <p style={{ marginTop: '10px' }}>&copy; {new Date().getFullYear()} HobbyBuddy. Real friendships start here.</p>
       </footer>
     </>
   );
