@@ -40,7 +40,8 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Network-first for HTML navigations — always get fresh index.html from server
+  // Network-first for HTML navigations — always get fresh index.html from server.
+  // Fall back to cached /index.html on network errors OR non-200 responses (e.g. 404).
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request)
@@ -48,8 +49,10 @@ self.addEventListener('fetch', (event) => {
           if (response && response.status === 200) {
             const clone = response.clone();
             caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+            return response;
           }
-          return response;
+          // Non-200 (e.g. Vercel 404) — fall back to cached index.html
+          return caches.match('/index.html');
         })
         .catch(() => caches.match('/index.html'))
     );
