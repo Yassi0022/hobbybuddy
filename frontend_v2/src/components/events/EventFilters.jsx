@@ -1,3 +1,5 @@
+import { HOBBIES_LIST } from '../../utils/constants';
+
 /**
  * Event filter bar — editorial, restrained.
  * Source tabs + hobby filter.
@@ -9,12 +11,12 @@ export default function EventFilters({ filters, onChange, onApply }) {
     { value: 'external', label: 'Public' },
   ];
 
-  const hobbies = [
-    '', 'Photography', 'Hiking', 'Music', 'Cooking',
-    'Art', 'Fitness', 'Board Games', 'Cinema',
-    'Dancing', 'Yoga', 'Reading', 'Gaming',
-    'Cycling', 'Volunteering', 'Travel',
-  ];
+  // Derive hobby names from the canonical constants list.
+  // HOBBIES_LIST entries use the format "Name emoji" (e.g. "Photography 📷").
+  // We extract just the name portion for the filter, keeping the first segment.
+  const hobbyNames = [...new Set(
+    HOBBIES_LIST.map(h => h.replace(/\s*[^\w\s].*$/, '').trim())
+  )].sort();
 
   return (
     <div className="event-filters-bar">
@@ -38,7 +40,7 @@ export default function EventFilters({ filters, onChange, onApply }) {
         onChange={(e) => { onChange('hobby', e.target.value); onApply(0); }}
       >
         <option value="">All hobbies</option>
-        {hobbies.filter(h => h).map(h => (
+        {hobbyNames.map(h => (
           <option key={h} value={h}>{h}</option>
         ))}
       </select>

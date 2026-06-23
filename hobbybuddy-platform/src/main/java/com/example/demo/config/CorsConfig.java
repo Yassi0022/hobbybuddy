@@ -19,6 +19,7 @@ public class CorsConfig {
             "http://localhost:3000",
             "http://localhost:5173",
             "http://localhost:8080",
+            "https://hobbybuddy.app",
             "https://hobbybuddy.vercel.app",
             "https://*.vercel.app",
             "https://hobbybuddy.onrender.com",

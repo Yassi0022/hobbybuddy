@@ -86,7 +86,7 @@ export default function Landing() {
               </h1>
 
               <p className={styles.heroCopy}>
-                Finding people who actually get you shouldn't be this hard. HobbyBuddy connects you with locals who share your interests, energy, and sense of fun.
+                Finding your people shouldn't feel impossible. HobbyBuddy connects you with locals who get your energy, love the same things you do, and actually want to show up.
               </p>
 
               <div className={styles.heroCtas}>
@@ -106,7 +106,7 @@ export default function Landing() {
                   ))}
                 </div>
                 <div className={styles.reviewText}>
-                  People are already connecting in your city
+                  Real people. Real friendships. No swiping.
                 </div>
               </div>
             </div>
@@ -114,7 +114,7 @@ export default function Landing() {
             {/* Right — Visual card */}
             <div className={styles.heroCardWrap}>
               <div className={styles.heroCard} style={{
-                backgroundImage: 'url(https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&q=80)',
+                backgroundImage: 'url(https://d8j0ntlcm91z4.cloudfront.net/user_3F8g8wgqGblsT9ojkykW6TOorbT/hf_20260619_154607_c9e6ad11-20b2-4668-8c09-018e19c37a5a.png)',
               }}>
                 <div className={styles.heroCardBadge}>
                   ✨ New Match
@@ -153,7 +153,7 @@ export default function Landing() {
             <h2 className={styles.sectionTitle}>Made for real connections</h2>
 
             <p className={styles.sectionSubtitle}>
-              We look at what you enjoy, how you connect, and what makes you — you. Then we introduce you to locals who just click.
+              We look at what lights you up, how you connect with others, and what makes you — you. Then we introduce you to people who just click.
             </p>
 
             {/* Row 1 — 3 cards */}
@@ -275,9 +275,9 @@ export default function Landing() {
 
             <div className={styles.stepsGrid}>
               {[
-                { num: '1', title: 'Take the Quiz', desc: 'A quick 20-question vibe check that takes about 3 minutes. Genuinely fun — promise.', icon: 'fa-brain', color: '#c2410c' },
-                { num: '2', title: 'Get Matched', desc: 'Our Vibe Engine finds locals who share your energy, interests, and vibe.', icon: 'fa-heart', color: '#ec4899' },
-                { num: '3', title: 'Show Up & Connect', desc: 'Join local events, grab coffee, or start a hobby together. Real life starts here.', icon: 'fa-calendar-days', color: '#10b981' },
+                { num: '1', title: 'Take the Quiz', desc: 'A quick 20-question personality quiz — takes about 3 minutes and it\'s actually fun. Promise.', icon: 'fa-brain', color: '#c2410c' },
+                { num: '2', title: 'Get Matched', desc: 'Our matching finds locals who share your energy and get you.', icon: 'fa-heart', color: '#ec4899' },
+                { num: '3', title: 'Show Up & Connect', desc: 'Grab coffee, hit a local event, or just hang out. Real life starts here.', icon: 'fa-calendar-days', color: '#10b981' },
               ].map((step, i) => (
                 <div
                   key={i}
@@ -312,7 +312,7 @@ export default function Landing() {
         >
           <div className={styles.ctaBox}>
             <h2 className={styles.ctaTitle}>
-              Your next great friendship<br />is one signup away.
+              Your next great friendship<br />starts here.
             </h2>
             <p className={styles.ctaCopy}>
               Come find them — they're already looking for you.
@@ -344,7 +344,7 @@ export default function Landing() {
                 <span>HobbyBuddy</span>
               </Link>
               <p className={styles.footerBrandText}>
-                Making it easier for adults to make real friends through shared passions. No swiping. No games. Just people.
+                Making it easier for adults to make real friends. No swiping. No games. Just people.
               </p>
             </div>
             <div className={styles.footerLinks}>
@@ -367,10 +367,17 @@ export default function Landing() {
             </div>
           </div>
           <div className={styles.footerBottom}>
-            &copy; {new Date().getFullYear()} HobbyBuddy. For entertainment purposes only — not a psychological or diagnostic tool.
+            &copy; {new Date().getFullYear()} HobbyBuddy. All rights reserved.
           </div>
         </footer>
       </main>
+
+      {/* ── Mobile sticky CTA ── */}
+      <div className={styles.mobileStickyCta}>
+        <Link to="/register" className={styles.mobileStickyCtaButton}>
+          Join Free <i className="fas fa-arrow-right"></i>
+        </Link>
+      </div>
     </>
   );
 }

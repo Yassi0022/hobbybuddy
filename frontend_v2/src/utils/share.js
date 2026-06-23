@@ -1,6 +1,7 @@
 export function shareVibe(archetype) {
+  if (window.plausible) window.plausible('Share Clicked', { props: { channel: 'native' } });
   const userName = localStorage.getItem('userName') || 'Buddy';
-  const shareText = `I just discovered I'm a "${archetype}" on HobbyBuddy! 🧠✨\n\nTake the free personality quiz and find your hobby twin:`;
+  const shareText = `I just found my vibe on HobbyBuddy — I'm a "${archetype}"! 🧠✨\n\nTake the free personality quiz and find your people:`;
   const shareUrl = window.location.origin + '/register?ref=' + localStorage.getItem('userId');
 
   if (navigator.share) {
@@ -17,29 +18,33 @@ export function shareVibe(archetype) {
 }
 
 export function shareToWhatsApp(archetype) {
+  if (window.plausible) window.plausible('Share Clicked', { props: { channel: 'whatsapp' } });
   const text = encodeURIComponent(
-    `I just discovered I'm a "${archetype}" on HobbyBuddy! 🧠✨ Take the free personality quiz: ${window.location.origin}/register?ref=${localStorage.getItem('userId')}`
+    `I just found my vibe on HobbyBuddy — I'm a "${archetype}"! 🧠✨ Take the free personality quiz: ${window.location.origin}/register?ref=${localStorage.getItem('userId')}`
   );
   window.open(`https://wa.me/?text=${text}`, '_blank');
 }
 
 export function shareToTelegram(archetype) {
-  const text = encodeURIComponent(`I just discovered I'm a "${archetype}" on HobbyBuddy! 🧠✨`);
+  if (window.plausible) window.plausible('Share Clicked', { props: { channel: 'telegram' } });
+  const text = encodeURIComponent(`I just found my vibe on HobbyBuddy — I'm a "${archetype}"! 🧠✨`);
   const url = encodeURIComponent(`${window.location.origin}/register?ref=${localStorage.getItem('userId')}`);
   window.open(`https://t.me/share/url?url=${url}&text=${text}`, '_blank');
 }
 
 export function shareToTwitter(archetype) {
+  if (window.plausible) window.plausible('Share Clicked', { props: { channel: 'twitter' } });
   const text = encodeURIComponent(
-    `I just discovered I'm a "${archetype}" on HobbyBuddy! 🧠✨ Take the free personality quiz and find your hobby twin.`
+    `I just found my vibe on HobbyBuddy — I'm a "${archetype}"! 🧠✨ Take the free personality quiz and find your people.`
   );
   const url = encodeURIComponent(`${window.location.origin}/register?ref=${localStorage.getItem('userId')}`);
   window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank');
 }
 
 export function copyInviteLink() {
+  if (window.plausible) window.plausible('Share Clicked', { props: { channel: 'clipboard' } });
   const userId = localStorage.getItem('userId');
   const inviteUrl = window.location.origin + '/register?ref=' + userId;
-  const shareText = `Join me on HobbyBuddy! 🧠✨ Find your hobby twin with AI-powered personality matching: ${inviteUrl}`;
+  const shareText = `Join me on HobbyBuddy! 🧠✨ Take the free personality quiz and find your people: ${inviteUrl}`;
   return navigator.clipboard.writeText(shareText);
 }

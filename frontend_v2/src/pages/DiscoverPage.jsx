@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import useLocation from '../hooks/useLocation';
 import useDiscover from '../hooks/useDiscover';
@@ -23,6 +23,7 @@ import { API_BASE_URL } from '../utils/constants';
  */
 export default function DiscoverPage() {
   const { token } = useAuth();
+  const navigate = useNavigate();
   const {
     city, geoStatus, setManualCity, requestGeolocation, buildParams, hasLocation,
   } = useLocation();
@@ -76,7 +77,7 @@ export default function DiscoverPage() {
   }, [refetch]);
 
   if (!token) {
-    window.location.href = '/login';
+    navigate('/login');
     return null;
   }
 
@@ -161,7 +162,7 @@ export default function DiscoverPage() {
             </h2>
             {!loading && people.length > 0 && (
               <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
-                {people.length} {people.length === 1 ? 'match' : 'matches'}
+                {people.length} {people.length === 1 ? 'person' : 'people'}
               </span>
             )}
           </div>
@@ -182,7 +183,7 @@ export default function DiscoverPage() {
             </div>
           ) : !fallback ? (
             <FallbackState
-              fallback={{ type: 'sparse_area', message: `No compatible people found${city ? ` in ${city}` : ''} yet.`, action: 'explore_all', actionLabel: 'Explore all users' }}
+              fallback={{ type: 'sparse_area', message: `No one found yet${city ? ` in ${city}` : ''}.`, action: 'explore_all', actionLabel: 'Explore everyone', image: 'https://d8j0ntlcm91z4.cloudfront.net/user_3F8g8wgqGblsT9ojkykW6TOorbT/hf_20260619_154708_5b9d1342-bd64-412d-8aa7-5032c79e6283.png' }}
               onSetCity={handleSetCity}
               onExploreAll={handleExploreAll}
             />

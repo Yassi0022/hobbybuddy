@@ -90,7 +90,7 @@ export default function CreateEventModal({ city, onClose, onCreated }) {
           <button onClick={onClose} style={{
             background: 'transparent', border: 'none', fontSize: '1.2rem',
             color: 'var(--color-text-muted)', cursor: 'pointer', padding: 4,
-          }}>✕</button>
+          }} aria-label="Close">✕</button>
         </div>
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>

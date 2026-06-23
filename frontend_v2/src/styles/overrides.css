@@ -17,7 +17,7 @@
 .card[data-static] { transform: none !important; }
 
 /* Ensure legacy named cards have consistent styling */
-.feature-card, .step-card, .floating-card, .post-card, .match-card, .match-card-social, .quiz-card, .auth-card {
+.feature-card, .step-card, .floating-card, .quiz-card, .auth-card {
     background: var(--color-bg-base-alt);
     border-radius: var(--radius-lg);
     border: 1px solid var(--color-border);
@@ -25,11 +25,10 @@
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.feature-card:hover, .floating-card:hover, .post-card:hover, .match-card:hover {
+.feature-card:hover, .floating-card:hover {
     transform: translateY(-2px);
     box-shadow: var(--shadow-hover);
 }
-/* match-card-social hover is defined in pages.css with translateY(-5px) */
 
 /* Button consistency — dark default, warm hover */
 .btn-primary, .btn-form-primary, .btn-accent {
@@ -81,7 +80,7 @@
     100% { transform: scale(1); opacity: 1; }
 }
 
-.match-candidate-card, .match-card-social {
+.match-candidate-card {
     animation: bounceIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important;
 }
 
@@ -113,21 +112,3 @@
 .skeleton-avatar { width: 50px; height: 50px; border-radius: 50%; }
 .skeleton-card { height: 200px; border-radius: 16px; }
 
-/* Post action buttons */
-.post-actions span {
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    padding: 6px 10px;
-    border-radius: var(--radius-sm);
-    transition: var(--transition-fast);
-    font-weight: 500;
-}
-.post-actions span:hover {
-    background: rgba(194, 65, 12, 0.04);
-    color: var(--color-accent-warm);
-}
-.post-actions span:active {
-    transform: scale(0.95);
-}

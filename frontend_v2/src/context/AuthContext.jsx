@@ -59,7 +59,9 @@ export function AuthProvider({ children }) {
       }
       if (res.status === 404) throw new Error('No account found with this email.');
       if (res.status === 401) throw new Error('Wrong password.');
-      throw new Error(errorData.message || 'Login failed');
+      const fallbackErr = new Error(errorData.message || 'Login failed');
+      fallbackErr.status = res.status;
+      throw fallbackErr;
     }
     const data = await res.json();
     localStorage.setItem('userId', data.id);

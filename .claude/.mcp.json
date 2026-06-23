@@ -1,0 +1,18 @@
+{
+    "mcpServers": {
+        "fetch": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@j0hanz/fetch-url-mcp"
+            ]
+        },
+        "memory": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@modelcontextprotocol/server-memory"
+            ]
+        }
+    }
+}

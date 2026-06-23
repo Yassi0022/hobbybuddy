@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import useLocation from '../hooks/useLocation';
 import useEvents from '../hooks/useEvents';
@@ -22,6 +22,7 @@ import { showToast } from '../utils/toast';
  */
 export default function EventsPage() {
   const { token, authFetch } = useAuth();
+  const navigate = useNavigate();
   const { city, geoStatus, setManualCity, requestGeolocation, buildParams } = useLocation();
   const {
     events, pagination, filters, fallback, loading,
@@ -70,7 +71,7 @@ export default function EventsPage() {
   }, [refetch]);
 
   if (!token) {
-    window.location.href = '/login';
+    navigate('/login');
     return null;
   }
 
@@ -138,9 +139,9 @@ export default function EventsPage() {
         {/* ── Fallback ── */}
         {fallback && (
           <EmptyState
-            icon="📅"
+            image={fallback.action === 'no_events' ? 'https://d8j0ntlcm91z4.cloudfront.net/user_3F8g8wgqGblsT9ojkykW6TOorbT/hf_20260619_154708_5b9d1342-bd64-412d-8aa7-5032c79e6283.png' : null}
             title={fallback.message}
-            body={fallback.action === 'no_events' ? 'Be the first to organize something in your area.' : null}
+            body={fallback.action === 'no_events' ? 'Be the first to host something here.' : null}
             action={
               fallback.action === 'create_event' ? { label: 'Create an event', onClick: () => setShowCreateModal(true) }
               : fallback.action === 'set_city' ? { label: 'Set your city', onClick: () => setShowCityInput(true) }
@@ -188,7 +189,7 @@ export default function EventsPage() {
           </>
         ) : !fallback ? (
           <EmptyState
-            icon="🔍"
+            image="https://d8j0ntlcm91z4.cloudfront.net/user_3F8g8wgqGblsT9ojkykW6TOorbT/hf_20260619_154708_5b9d1342-bd64-412d-8aa7-5032c79e6283.png"
             title="No events found"
             body="Try adjusting your filters, or be the first to create an event."
             action={{ label: 'Create an event', onClick: () => setShowCreateModal(true) }}

@@ -5,7 +5,7 @@
 export default function FallbackState({ fallback, onSetCity, onExploreAll }) {
   if (!fallback) return null;
 
-  const { type, message, action, actionLabel } = fallback;
+  const { type, message, action, actionLabel, image } = fallback;
 
   const icon = type === 'no_location' ? '📍'
     : type === 'sparse_area' ? '🌱'
@@ -14,7 +14,13 @@ export default function FallbackState({ fallback, onSetCity, onExploreAll }) {
 
   return (
     <div className="curated-fallback-card">
-      <div style={{ fontSize: '3rem', marginBottom: 16 }}>{icon}</div>
+      {image ? (
+        <div style={{ marginBottom: 16 }}>
+          <img src={image} alt="" style={{ maxWidth: 240, width: '100%', height: 'auto', borderRadius: 12 }} />
+        </div>
+      ) : (
+        <div style={{ fontSize: '3rem', marginBottom: 16 }}>{icon}</div>
+      )}
       <h3 style={{ margin: '0 0 8px', fontSize: '1.2rem', fontWeight: 700 }}>{message}</h3>
       {action && (
         <div style={{ marginTop: 16 }}>

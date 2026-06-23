@@ -1,13 +1,13 @@
 {
-  "name": "HobbyBuddy — Find Your Vibe",
+  "name": "HobbyBuddy — Find Your People",
   "short_name": "HobbyBuddy",
-  "description": "AI-powered personality matching platform. Discover your ideal hobby buddies through a scientifically validated personality quiz.",
+  "description": "Personality-first friendship matching. Take a free vibe quiz and connect with locals who share your energy.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#f8fafc",
-  "theme_color": "#6366f1",
+  "theme_color": "#c2410c",
   "categories": ["social", "lifestyle"],
   "icons": [
     {

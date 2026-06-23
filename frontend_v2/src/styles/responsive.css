@@ -1,11 +1,6 @@
 /* =========================================================================
    RESPONSIVE DESIGN
    ========================================================================= */
-@media (max-width: 1024px) {
-    .dashboard-layout { grid-template-columns: 240px 1fr; }
-    .sidebar:last-child { display: none; }
-}
-
 @media (max-width: 768px) {
     /* Hero */
     .hero-content { grid-template-columns: 1fr; text-align: center; padding-top: 40px; }
@@ -43,33 +38,6 @@
         margin-top: 16px;
     }
 
-    /* Dashboard: stack vertically */
-    .dashboard-layout {
-        display: flex;
-        flex-direction: column;
-        margin-top: 70px;
-        gap: 16px;
-    }
-    .sidebar {
-        position: static;
-        height: auto;
-    }
-    .sidebar-menu {
-        display: flex;
-        overflow-x: auto;
-        gap: 4px;
-        padding: 8px;
-        scrollbar-width: none;
-        -ms-overflow-style: none;
-    }
-    .sidebar-menu::-webkit-scrollbar { display: none; }
-    .menu-item {
-        white-space: nowrap;
-        flex-shrink: 0;
-        padding: 10px 14px;
-        font-size: 0.85rem;
-    }
-    .user-profile-mini { display: none; }
 }
 
 /* =========================================

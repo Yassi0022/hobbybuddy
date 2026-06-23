@@ -74,16 +74,16 @@ export default function UpdateBanner() {
   return (
     <div style={{
       position: 'fixed', top: 0, left: 0, right: 0, zIndex: 9999,
-      background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+      background: 'linear-gradient(135deg, #c2410c, #f43f5e)',
       color: '#fff', padding: '10px 16px', display: 'flex',
       alignItems: 'center', justifyContent: 'center', gap: 12,
-      fontSize: '0.85rem', fontWeight: 600, boxShadow: '0 2px 12px rgba(99,102,241,0.3)',
+      fontSize: '0.85rem', fontWeight: 600, boxShadow: '0 2px 12px rgba(194,65,12,0.3)',
     }}>
       <span>🚀 New version available</span>
       <button
         onClick={handleReload}
         style={{
-          background: '#fff', color: '#6366f1', border: 'none', borderRadius: 6,
+          background: '#fff', color: '#c2410c', border: 'none', borderRadius: 6,
           padding: '5px 14px', fontSize: '0.82rem', fontWeight: 700,
           cursor: 'pointer',
         }}
@@ -96,7 +96,7 @@ export default function UpdateBanner() {
           background: 'none', color: '#fff', border: 'none', cursor: 'pointer',
           fontSize: '1.1rem', padding: '2px 6px', opacity: 0.8,
         }}
-        aria-label="Dismiss"
+        aria-label="Dismiss update banner"
       >
         ×
       </button>

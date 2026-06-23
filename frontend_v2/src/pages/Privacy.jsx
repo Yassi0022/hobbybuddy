@@ -17,13 +17,13 @@ export default function Privacy() {
       <ul style={{ paddingLeft: '1.2rem', fontSize: '1rem', lineHeight: 1.8, color: '#475569' }}>
         <li><strong>Account Information:</strong> Email address, password (encrypted), and display name.</li>
         <li><strong>Profile Information:</strong> Age, city, profile photos (URLs), and icebreaker prompts.</li>
-        <li><strong>Personality Data:</strong> Trait scores derived from a short personality quiz (Mini-IPIP model).</li>
+        <li><strong>Personality Data:</strong> Trait scores derived from a short personality quiz.</li>
         <li><strong>Social Content:</strong> Hobbies, community posts, event participation data, and private messages.</li>
       </ul>
 
       <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0F172A', marginTop: '2.5rem', borderLeft: '4px solid #FF6B35', paddingLeft: '12px' }}>3. How We Use Your Data</h2>
       <ul style={{ paddingLeft: '1.2rem', fontSize: '1rem', lineHeight: 1.8, color: '#475569' }}>
-        <li><strong>Matching Algorithm:</strong> To calculate compatibility scores and suggest potential "hobby twins."</li>
+        <li><strong>Matching Algorithm:</strong> To calculate compatibility scores and suggest people who share your vibe.</li>
         <li><strong>Profile Visibility:</strong> To display your identity card, hobbies, and prompts to other users.</li>
         <li><strong>Community Features:</strong> To enable the social feed, event organization, and messaging.</li>
         <li><strong>Platform Improvement:</strong> To analyze usage patterns and improve matching accuracy.</li>
@@ -52,7 +52,7 @@ export default function Privacy() {
       <p style={{ fontSize: '1rem', lineHeight: 1.8, color: '#475569' }}>Your data is retained as long as your account is active. Upon deletion request, all data is permanently deleted within 30 days.</p>
 
       <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0F172A', marginTop: '2.5rem', borderLeft: '4px solid #FF6B35', paddingLeft: '12px' }}>8. Quiz Methodology</h2>
-      <p style={{ fontSize: '1rem', lineHeight: 1.8, color: '#475569' }}>Our personality quiz is based on the Mini-IPIP model (Donnellan et al., 2006), a validated short-form Big Five instrument. Visit <a href="https://ipip.ori.org" target="_blank" rel="noopener noreferrer">ipip.ori.org</a> for more information.</p>
+      <p style={{ fontSize: '1rem', lineHeight: 1.8, color: '#475569' }}>Our personality quiz is based on a validated psychological framework for understanding social styles. Visit <a href="https://ipip.ori.org" target="_blank" rel="noopener noreferrer">ipip.ori.org</a> for more information.</p>
 
       <footer style={{ marginTop: '80px', paddingTop: '40px', borderTop: '1px solid #e2e8f0', textAlign: 'center', color: '#94a3b8', fontSize: '0.9rem' }}>
         <Link to="/" style={{ color: '#c2410c', textDecoration: 'none', fontWeight: 600 }}>Back to Home</Link>

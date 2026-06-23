@@ -1,0 +1,39 @@
+- generic [ref=e2]:
+  - navigation [ref=e3]:
+    - generic [ref=e4]:
+      - link " HobbyBuddy" [ref=e5] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e6]: 
+        - generic [ref=e7]: HobbyBuddy
+      - list [ref=e8]:
+        - listitem [ref=e9]:
+          - link "Sign In" [ref=e10] [cursor=pointer]:
+            - /url: /login
+  - generic [ref=e13]:
+    - generic [ref=e15]: 
+    - heading "Forgot password?" [level=1] [ref=e16]
+    - paragraph [ref=e17]: No worries — enter your email and we'll send you a reset link.
+    - generic [ref=e18]:
+      - generic [ref=e19]:
+        - generic [ref=e20]:
+          - generic [ref=e21]: 
+          - text: Email
+        - textbox " Email" [ref=e22]:
+          - /placeholder: you@example.com
+      - alert [ref=e32]:
+        - generic [ref=e33]: 
+        - text: Please enter your email address.
+      - button " Send reset link" [active] [ref=e23] [cursor=pointer]:
+        - generic [ref=e24]: 
+        - text: Send reset link
+    - generic [ref=e25]:
+      - text: Remember your password?
+      - link "Sign in" [ref=e26] [cursor=pointer]:
+        - /url: /login
+  - contentinfo [ref=e27]:
+    - generic [ref=e28]:
+      - link "Privacy Policy" [ref=e29] [cursor=pointer]:
+        - /url: /privacy
+      - link "Terms of Use" [ref=e30] [cursor=pointer]:
+        - /url: /terms
+    - paragraph [ref=e31]: © 2026 HobbyBuddy. Real friendships start here.

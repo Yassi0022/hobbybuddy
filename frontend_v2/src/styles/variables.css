@@ -88,7 +88,7 @@ body {
     padding-right: env(safe-area-inset-right);
 }
 
-button, .menu-item, .nav-menu, .badge, .tag, .match-candidate-card, .sidebar-menu {
+button, .menu-item, .nav-menu, .badge, .tag, .match-candidate-card {
     -webkit-user-select: none;
     user-select: none;
 }

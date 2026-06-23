@@ -1,0 +1,52 @@
+- generic [ref=e2]:
+  - navigation [ref=e23]:
+    - generic [ref=e24]:
+      - link " HobbyBuddy" [ref=e25] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e26]: 
+        - generic [ref=e27]: HobbyBuddy
+      - list [ref=e28]:
+        - listitem [ref=e29]:
+          - link "Join Now" [ref=e30] [cursor=pointer]:
+            - /url: /register
+  - generic [ref=e33]:
+    - generic [ref=e35]: 
+    - heading "Welcome back" [level=1] [ref=e36]
+    - paragraph [ref=e37]: Sign in to find your next real friendship
+    - generic [ref=e38]:
+      - generic [ref=e39]:
+        - generic [ref=e40]:
+          - generic [ref=e41]: 
+          - text: Email
+        - textbox " Email" [ref=e42]:
+          - /placeholder: you@example.com
+          - text: test@test.com
+      - generic [ref=e43]:
+        - generic [ref=e44]:
+          - generic [ref=e45]: 
+          - text: Password
+        - generic [ref=e46]:
+          - textbox " Password" [ref=e47]:
+            - /placeholder: Your password
+            - text: password123
+          - button "Show password" [ref=e48] [cursor=pointer]:
+            - generic [ref=e49]: 
+      - link "Forgot password?" [ref=e51] [cursor=pointer]:
+        - /url: /forgot-password
+      - alert [ref=e61]:
+        - generic [ref=e62]: 
+        - text: Login failed
+      - button " Sign In Now" [ref=e52] [cursor=pointer]:
+        - generic [ref=e53]: 
+        - text: Sign In Now
+    - generic [ref=e54]:
+      - text: Don't have an account yet?
+      - link "Join now" [ref=e55] [cursor=pointer]:
+        - /url: /register
+  - contentinfo [ref=e56]:
+    - generic [ref=e57]:
+      - link "Privacy Policy" [ref=e58] [cursor=pointer]:
+        - /url: /privacy
+      - link "Terms of Use" [ref=e59] [cursor=pointer]:
+        - /url: /terms
+    - paragraph [ref=e60]: © 2026 HobbyBuddy. Real friendships start here.

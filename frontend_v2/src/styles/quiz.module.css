@@ -1,0 +1,384 @@
+/* =========================================================================
+   QUIZ PAGE — Warm editorial style
+   Extracted from inline styles in Quiz.jsx. Dynamic values (progress widths,
+   conditional colors) remain inline in the component.
+   ========================================================================== */
+
+/* --- Gamified screen wrapper --- */
+.gamifiedScreen {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    text-align: center;
+    padding: 40px 24px;
+    min-height: 100vh;
+}
+
+.gamifiedScreenBlock {
+    display: block;
+    padding-top: 80px;
+}
+
+.gamifiedScreenFlexColumn {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    padding-top: 70px;
+}
+
+/* --- Progress steps --- */
+.progressSteps {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 36px;
+}
+
+.progressStepItem {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.progressStepCircle {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 800;
+    transition: all 0.3s;
+}
+
+.progressStepLine {
+    width: 20px;
+    height: 2px;
+    border-radius: 1px;
+}
+
+/* --- Progress steps compact (quiz screen) --- */
+.progressStepsCompact {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+
+.progressStepCircleSm {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    font-weight: 800;
+    transition: all 0.3s;
+}
+
+.progressStepLineSm {
+    width: 16px;
+    height: 2px;
+    border-radius: 1px;
+    transition: background 0.3s;
+}
+
+/* --- Progress label --- */
+.progressLabel {
+    font-size: 0.82rem;
+    font-weight: 500;
+}
+
+/* --- Consent box --- */
+.consentBox {
+    max-width: 480px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-card);
+    padding: 24px 28px;
+    border-radius: 16px;
+    text-align: left;
+    margin-bottom: 24px;
+}
+
+.consentLabel {
+    display: flex;
+    gap: 12px;
+    cursor: pointer;
+    align-items: flex-start;
+    color: var(--color-text-main);
+}
+
+.consentCheckbox {
+    margin-top: 4px;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    accent-color: var(--color-accent-warm);
+}
+
+.consentText {
+    font-size: 0.92rem;
+    line-height: 1.5;
+}
+
+.consentLink {
+    color: var(--color-accent-warm);
+}
+
+/* --- Start quiz button --- */
+.startQuizBtn {
+    min-width: 220px;
+    transition: opacity 0.3s;
+}
+
+.startQuizBtnDisabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* --- Unlock screen --- */
+.unlockIcon {
+    font-size: 5rem;
+    margin-bottom: 20px;
+    animation: bounceIn 0.5s ease;
+    color: var(--color-accent-warm);
+}
+
+.unlockTitle {
+    font-size: 2.2rem;
+    margin-bottom: 16px;
+    text-align: center;
+    font-weight: 800;
+}
+
+.unlockSubtitle {
+    color: var(--color-text-muted);
+    max-width: 440px;
+    margin: 0 auto;
+    text-align: center;
+    font-size: 1.05rem;
+}
+
+/* --- Quiz progress bar (top) --- */
+.quizProgressWrapper {
+    padding: 0 20px;
+    margin-top: 16px;
+}
+
+.quizTopProgress {
+    position: relative;
+    top: auto;
+    left: auto;
+    right: auto;
+}
+
+/* --- Hobby selection --- */
+.hobbiesContainer {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 20px 24px;
+}
+
+.hobbiesTitle {
+    font-size: 2.2rem;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.hobbiesSubtitle {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.hobbyCountBadge {
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 100px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    background: rgba(194, 65, 12, 0.06);
+    color: var(--color-accent-warm);
+}
+
+.hobbyCountReady {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 20px;
+    border-radius: 12px;
+    background: rgba(22, 163, 74, 0.06);
+    border: 1px solid rgba(22, 163, 74, 0.15);
+}
+
+.hobbyCountReadyText {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #16a34a;
+}
+
+.hobbyCountMax {
+    font-size: 0.72rem;
+    color: #16a34a;
+}
+
+.hobbyCategory {
+    margin-bottom: 24px;
+}
+
+.hobbyCategoryTitle {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--color-text-muted);
+    margin-bottom: 10px;
+    letter-spacing: 0.01em;
+}
+
+.hobbyCategoryOptions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.hobbyChip {
+    border-radius: 100px;
+    padding: 8px 16px;
+    font-size: 0.88rem;
+}
+
+.hobbiesSubmitWrap {
+    text-align: center;
+    margin-top: 12px;
+}
+
+.hobbiesSubmitBtn {
+    min-width: 220px;
+    transition: opacity 0.3s;
+}
+
+/* --- Reveal --- */
+.revealContainer {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 80px 24px 60px;
+    width: 100%;
+}
+
+.revealTitle {
+    font-size: 2.2rem;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.revealSubtitle {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.revealArchetype {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.revealArchetypeLabel {
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-weight: 700;
+    color: var(--color-accent-warm);
+    margin-bottom: 10px;
+}
+
+.revealArchetypeName {
+    font-size: 3rem;
+    font-weight: 800;
+    color: var(--color-primary);
+    margin: 0;
+}
+
+.revealArchetypeDesc {
+    color: var(--color-text-muted);
+    margin-top: 10px;
+}
+
+/* --- What's next card --- */
+.nextStepsCard {
+    background: #f8fafc;
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+    padding: 20px 24px;
+    margin-bottom: 28px;
+    text-align: left;
+}
+
+.nextStepsTitle {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--color-text-main);
+    margin-bottom: 10px;
+}
+
+.nextStepsList {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.nextStepItem {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.nextStepIcon {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    flex-shrink: 0;
+}
+
+.nextStepText {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+}
+
+/* --- Reveal CTA buttons --- */
+.revealCtaWrap {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.revealCtaBtn {
+    min-width: 260px;
+}
+
+.revealShareRow {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 4px;
+}
+
+.revealShareBtn {
+    padding: 8px 16px;
+    font-size: 0.82rem;
+}
+
+/* --- Fallback spinner --- */
+.fallbackSpinner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}

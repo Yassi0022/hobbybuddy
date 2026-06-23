@@ -1,0 +1,436 @@
+/* =========================================================================
+   DASHBOARD — Home base: welcome, matches, community feed.
+   Premium, clean, consistent with landing/auth design tokens.
+   ========================================================================= */
+
+/* ── Layout ─────────────────────────────────── */
+.dashboardContainer {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 88px 24px 48px;
+}
+
+@media (max-width: 640px) {
+    .dashboardContainer {
+        padding: 72px 16px 32px;
+    }
+    .navCards {
+        grid-template-columns: 1fr !important;
+        gap: 10px !important;
+    }
+}
+
+/* ── Demo banner ───────────────────────────── */
+.demoBanner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 10px 18px;
+    margin-bottom: 20px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(139, 92, 246, 0.06) 100%);
+    border: 1px solid rgba(99, 102, 241, 0.15);
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #6366f1;
+    animation: demoFadeIn 0.3s ease;
+}
+
+.demoBannerDismiss {
+    background: none;
+    border: none;
+    color: #6366f1;
+    cursor: pointer;
+    padding: 2px 6px;
+    font-size: 0.9rem;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+
+.demoBannerDismiss:hover {
+    opacity: 1;
+}
+
+@keyframes demoFadeIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Welcome ───────────────────────────────── */
+.welcomeSection {
+    margin-bottom: 36px;
+}
+
+.welcomeTitle {
+    margin: 0 0 6px;
+    font-size: 1.75rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
+.welcomeArchetype {
+    margin: 0;
+    font-size: 0.92rem;
+    color: var(--color-text-muted);
+}
+
+.welcomeArchetype strong {
+    color: var(--color-primary);
+    font-weight: 700;
+}
+
+/* ── Invite Friends card ────────────────────── */
+.inviteCard {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 18px 22px;
+    margin-bottom: 28px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(194, 65, 12, 0.04) 0%, rgba(244, 63, 94, 0.03) 100%);
+    border: 1px solid rgba(194, 65, 12, 0.1);
+    transition: box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.inviteCard:hover {
+    box-shadow: 0 4px 20px rgba(194, 65, 12, 0.08);
+    border-color: rgba(194, 65, 12, 0.2);
+}
+
+.inviteContent {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex: 1;
+    min-width: 0;
+}
+
+.inviteIcon {
+    font-size: 1.8rem;
+    flex-shrink: 0;
+    line-height: 1;
+}
+
+.inviteText {
+    min-width: 0;
+}
+
+.inviteTitle {
+    margin: 0 0 2px;
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--color-ink);
+    letter-spacing: -0.01em;
+}
+
+.inviteSubtitle {
+    margin: 0;
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+    line-height: 1.4;
+}
+
+.inviteBtn {
+    padding: 9px 18px;
+    font-size: 0.82rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+    .inviteCard {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 16px 18px;
+        gap: 12px;
+    }
+    .inviteBtn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* ── Quick nav cards ────────────────────────── */
+.navCards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 36px;
+}
+
+.navCard {
+    padding: 22px 20px;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.navCard:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-hover);
+}
+
+.navCardEmoji {
+    font-size: 1.6rem;
+    line-height: 1;
+}
+
+.navCardTitle {
+    margin: 0;
+    font-size: 0.97rem;
+    font-weight: 700;
+}
+
+.navCardDesc {
+    margin: 0;
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+    line-height: 1.45;
+}
+
+/* ── Section headings ──────────────────────── */
+.sectionHeading {
+    margin: 0 0 14px;
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+.sectionHeadingRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+}
+
+.sectionLink {
+    font-size: 0.8rem;
+    color: var(--color-accent-warm);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.sectionLink:hover {
+    text-decoration: underline;
+}
+
+/* ── Confirmed matches ────────────────────── */
+.matchesSection {
+    margin-bottom: 44px;
+}
+
+/* ── Confirmed matches horizontal strip ────── */
+.matchesStrip {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    scrollbar-width: none;
+}
+
+.matchesStrip::-webkit-scrollbar {
+    display: none;
+}
+
+.matchCard {
+    min-width: 160px;
+    padding: 14px 16px;
+    text-decoration: none;
+    color: inherit;
+    border-radius: 14px;
+    flex-shrink: 0;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-card);
+    transition: box-shadow 0.2s, border-color 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.matchCard:hover {
+    box-shadow: var(--shadow-hover);
+    border-color: rgba(194, 65, 12, 0.15);
+}
+
+.matchAvatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--gradient-secondary);
+    color: #92400e;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    font-weight: 800;
+    margin-bottom: 10px;
+    flex-shrink: 0;
+}
+
+.matchName {
+    margin: 0 0 2px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+.matchArchetype {
+    margin: 0 0 8px;
+    font-size: 0.7rem;
+    color: var(--color-text-muted);
+    line-height: 1.4;
+}
+
+.matchBadge {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 100px;
+    background: rgba(194, 65, 12, 0.06);
+    color: var(--color-accent-warm);
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+/* ── Feed ──────────────────────────────────── */
+.feedSection {
+    margin-top: 44px;
+}
+
+.postComposer {
+    padding: 18px;
+    margin-bottom: 16px;
+}
+
+.postComposer textarea {
+    width: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--color-text-main);
+    font-size: 0.92rem;
+    resize: vertical;
+    line-height: 1.5;
+    font-family: inherit;
+}
+
+.postComposerActions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 10px;
+    border-top: 1px solid var(--color-border);
+    padding-top: 10px;
+}
+
+.postCard {
+    padding: 18px;
+    margin-bottom: 12px;
+}
+
+.postAuthorRow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.postAuthorAvatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--gradient-secondary);
+    color: #92400e;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.72rem;
+    font-weight: 800;
+    flex-shrink: 0;
+}
+
+.postAuthorName {
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+
+.postContent {
+    margin: 0 0 12px;
+    font-size: 0.92rem;
+    line-height: 1.6;
+}
+
+.postActionsRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.postDate {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+}
+
+.postActions {
+    display: flex;
+    gap: 6px;
+}
+
+.postActionBtn {
+    padding: 5px 14px;
+    font-size: 0.75rem;
+}
+
+.postBtn {
+    padding: 7px 20px;
+    font-size: 0.82rem;
+}
+
+.postActionBtn:hover {
+    border-color: var(--color-accent-warm);
+    color: var(--color-accent-warm);
+}
+
+/* ── Comments placeholder ──────────────────── */
+.commentsPlaceholder {
+    margin-top: 14px;
+    border-top: 1px solid var(--color-border);
+    padding-top: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.commentsPlaceholderText {
+    font-size: 0.82rem;
+    color: var(--color-text-muted);
+    font-style: italic;
+}
+
+/* ── Loading spinner ───────────────────────── */
+.loadingContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 60vh;
+}
+
+.loadingSpinner {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 3px solid var(--color-border);
+    border-top-color: var(--color-primary);
+    animation: dashboardSpin 0.8s linear infinite;
+}
+
+@keyframes dashboardSpin {
+    to { transform: rotate(360deg); }
+}

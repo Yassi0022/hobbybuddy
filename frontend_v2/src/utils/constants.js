@@ -2,8 +2,8 @@ export const IS_LOCAL = window.location.hostname === 'localhost' || window.locat
 // When frontend is served from Spring Boot (integrated build), use relative paths
 // When frontend is on a separate domain (Vercel), use the full backend URL
 const IS_SEPARATE_DOMAIN = window.location.hostname.includes('vercel.app');
-export const API_BASE_URL = IS_LOCAL ? '' : (IS_SEPARATE_DOMAIN ? 'https://hobbybuddy-springboot.onrender.com' : '');
-export const WS_BASE_URL = IS_LOCAL ? '' : (IS_SEPARATE_DOMAIN ? 'wss://hobbybuddy-springboot.onrender.com' : '');
+export const API_BASE_URL = IS_LOCAL ? '' : (IS_SEPARATE_DOMAIN ? 'https://hobbybuddy.onrender.com' : '');
+export const WS_BASE_URL = IS_LOCAL ? '' : (IS_SEPARATE_DOMAIN ? 'wss://hobbybuddy.onrender.com' : '');
 
 export const TRAIT_LABELS = ['Extraversion', 'Agreeableness', 'Conscientiousness', 'Emotional Stability', 'Openness'];
 export const TRAIT_VIBE_LABELS = ['Energy', 'Empathy', 'Steadiness', 'Calm', 'Curiosity'];

@@ -15,7 +15,7 @@ import { Link } from 'react-router-dom';
  *   action     — { label, href, onClick } — primary CTA
  *   secondary  — { label, href, onClick } — optional secondary link
  */
-export default function EmptyState({ icon, title, body, action, secondary }) {
+export default function EmptyState({ icon, image, title, body, action, secondary }) {
   return (
     <div style={{
       textAlign: 'center',
@@ -24,7 +24,11 @@ export default function EmptyState({ icon, title, body, action, secondary }) {
       borderRadius: 16,
       border: '1px solid var(--color-border, #eee)',
     }}>
-      {icon && (
+      {image ? (
+        <div style={{ marginBottom: 20, lineHeight: 1 }}>
+          <img src={image} alt="" style={{ maxWidth: 240, width: '100%', height: 'auto', borderRadius: 12, display: 'inline-block' }} />
+        </div>
+      ) : icon ? (
         <div style={{
           fontSize: '3rem',
           marginBottom: 20,
@@ -32,7 +36,7 @@ export default function EmptyState({ icon, title, body, action, secondary }) {
         }}>
           {icon}
         </div>
-      )}
+      ) : null}
 
       <h3 style={{
         margin: '0 0 10px',
