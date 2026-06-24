@@ -15,7 +15,7 @@ services:
       - key: SPRING_DATASOURCE_PASSWORD
         sync: false
       - key: EMAIL_ENABLED
-        value: "false"
+        value: "true"
       - key: EMAIL_FROM
         value: "noreply@hobbybuddy.com"
       - key: EMAIL_HOST
@@ -28,6 +28,8 @@ services:
         sync: false
       - key: FRONTEND_ORIGINS
         value: "https://hobbybuddy.app,https://hobbybuddy.vercel.app,https://*.vercel.app"
+      - key: FRONTEND_URL
+        value: "https://hobbybuddy.app"
       - key: FASTAPI_URL
         fromService:
           type: web
