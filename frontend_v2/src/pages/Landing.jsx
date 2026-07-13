@@ -114,7 +114,7 @@ export default function Landing() {
             {/* Right — Visual card */}
             <div className={styles.heroCardWrap}>
               <div className={styles.heroCard} style={{
-                backgroundImage: 'url(https://d8j0ntlcm91z4.cloudfront.net/user_3F8g8wgqGblsT9ojkykW6TOorbT/hf_20260619_154607_c9e6ad11-20b2-4668-8c09-018e19c37a5a.png)',
+                backgroundImage: 'url(/images/og-card.svg)',
               }}>
                 <div className={styles.heroCardBadge}>
                   ✨ New Match
