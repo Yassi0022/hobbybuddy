@@ -13,6 +13,8 @@ import Profile from './pages/Profile';
 import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
 import MessagesPage from './pages/MessagesPage';
+import ProfileView from './pages/ProfileView';
+import MatchesPage from './pages/MatchesPage';
 import VerifyEmail from './pages/VerifyEmail';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
@@ -56,8 +58,10 @@ function App() {
           <Route path="/quiz" element={<Quiz />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/discover" element={<DiscoverPage />} />
+          <Route path="/matches" element={<MatchesPage />} />
           <Route path="/events" element={<EventsPage />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/profile/:id" element={<ProfileView />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/messages" element={<MessagesPage />} />

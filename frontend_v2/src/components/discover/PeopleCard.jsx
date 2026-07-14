@@ -2,7 +2,7 @@
  * Person card — editorial, restrained, no dating-app feel.
  * No large photo, no match percentage. Tagline-forward, warm initials avatar.
  */
-export default function PeopleCard({ person, onConnect }) {
+export default function PeopleCard({ person, onConnect, onOpen }) {
   const {
     id,
     name = 'Buddy',
@@ -15,10 +15,29 @@ export default function PeopleCard({ person, onConnect }) {
   const initial = name?.[0]?.toUpperCase() || '?';
   const hobbyList = hobbies ? hobbies.split(',').map(h => h.trim()).filter(Boolean) : [];
 
+  const openProfile = () => {
+    if (onOpen) onOpen(id);
+  };
+
+  const onHeaderKeyDown = (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      openProfile();
+    }
+  };
+
   return (
     <div className="people-card">
-      {/* ── Header: avatar + identity ── */}
-      <div className="people-card-header">
+      {/* ── Header: avatar + identity (opens profile) ── */}
+      <div
+        className="people-card-header"
+        role="button"
+        tabIndex={0}
+        onClick={openProfile}
+        onKeyDown={onHeaderKeyDown}
+        aria-label={`View ${name}'s profile`}
+        style={{ cursor: 'pointer' }}
+      >
         <div className="people-card-avatar">{initial}</div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <h3 className="people-card-name">{name}</h3>
@@ -34,6 +53,7 @@ export default function PeopleCard({ person, onConnect }) {
             )}
           </div>
         </div>
+        <i className="fas fa-chevron-right" style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem', flexShrink: 0 }} aria-hidden="true"></i>
       </div>
 
       {/* Tagline */}

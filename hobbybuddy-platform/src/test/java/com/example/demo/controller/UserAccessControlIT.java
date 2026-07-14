@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.model.User;
+import com.example.demo.repository.MatchRequestRepository;
 import com.example.demo.repository.PasswordResetTokenRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.security.JwtUtil;
@@ -32,6 +33,9 @@ class UserAccessControlIT {
     private PasswordResetTokenRepository passwordResetTokenRepository;
 
     @Autowired
+    private MatchRequestRepository matchRequestRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Autowired
@@ -45,6 +49,7 @@ class UserAccessControlIT {
     @BeforeEach
     void setUp() {
         passwordResetTokenRepository.deleteAll();
+        matchRequestRepository.deleteAll();
         userRepository.deleteAll();
 
         User a = new User();

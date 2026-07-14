@@ -4,6 +4,7 @@ import com.example.demo.model.Message;
 import com.example.demo.model.User;
 import com.example.demo.repository.MessageRepository;
 import com.example.demo.repository.UserRepository;
+import com.example.demo.repository.MatchRequestRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,8 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -30,6 +33,9 @@ public class MessageController {
     private UserRepository userRepository;
 
     @Autowired
+    private MatchRequestRepository matchRequestRepository;
+
+    @Autowired
     private SimpMessagingTemplate messagingTemplate;
 
     /**
@@ -37,7 +43,7 @@ public class MessageController {
      * Only the two participants can read their conversation.
      */
     @GetMapping("/{user1}/{user2}")
-    public ResponseEntity<List<Message>> getConversation(
+    public ResponseEntity<?> getConversation(
             @PathVariable Long user1,
             @PathVariable Long user2,
             Authentication authentication) {
@@ -53,6 +59,16 @@ public class MessageController {
             logger.warn("[Messages] User {} attempted to read conversation between {} and {}",
                     currentUserId, user1, user2);
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        // Require a CONFIRMED match between the authenticated user and the other participant
+        Long otherId = currentUserId.equals(user1) ? user2 : user1;
+        User other = userRepository.findById(otherId).orElse(null);
+        if (other == null || !matchRequestRepository.existsConfirmedMatchBetween(currentUser, other)) {
+            logger.warn("[Messages] User {} attempted to read conversation with non-match {}",
+                    currentUserId, otherId);
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", "You can only view conversations with people you're matched with"));
         }
 
         List<Message> conversation = messageRepository.findConversation(user1, user2);
@@ -86,6 +102,14 @@ public class MessageController {
         // Verify receiver exists
         if (message.getReceiverId() != null && !userRepository.existsById(message.getReceiverId())) {
             return ResponseEntity.badRequest().body(Map.of("error", "Receiver not found"));
+        }
+
+        // Require a CONFIRMED match before allowing a message
+        User receiver = userRepository.findById(message.getReceiverId()).orElse(null);
+        if (receiver == null || !matchRequestRepository.existsConfirmedMatchBetween(currentUser, receiver)) {
+            logger.warn("[Messages] User {} attempted to message non-match {}", currentUser.getId(), message.getReceiverId());
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", "You can only message people you're matched with"));
         }
 
         if (message.getTimestamp() == null) {
@@ -128,12 +152,65 @@ public class MessageController {
             return;
         }
 
+        // Require a CONFIRMED match before persisting or broadcasting
+        User receiver = userRepository.findById(message.getReceiverId()).orElse(null);
+        if (receiver == null || !matchRequestRepository.existsConfirmedMatchBetween(currentUser, receiver)) {
+            logger.warn("[Messages] Blocked WebSocket message from {} to {} — no confirmed match",
+                    currentUser.getId(), message.getReceiverId());
+            return;
+        }
+
         if (message.getTimestamp() == null) {
             message.setTimestamp(java.time.LocalDateTime.now());
         }
 
         Message savedMessage = messageRepository.save(message);
         messagingTemplate.convertAndSend("/topic/chat/" + message.getReceiverId(), savedMessage);
+    }
+
+    /**
+     * Inbox: all distinct conversations for the current user, ordered by the
+     * latest message (newest first). Only surfaces partners with a confirmed match.
+     */
+    @GetMapping("/conversations")
+    public ResponseEntity<?> getConversations(Authentication authentication) {
+        User currentUser = getAuthenticatedUser(authentication);
+        if (currentUser == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Authentication required"));
+        }
+
+        List<Message> all = messageRepository.findAllForUser(currentUser.getId());
+        // newest-first ordering means the first message seen per partner is the latest
+        Map<Long, Message> latestByPartner = new LinkedHashMap<>();
+        for (Message m : all) {
+            Long partnerId = m.getSenderId().equals(currentUser.getId()) ? m.getReceiverId() : m.getSenderId();
+            latestByPartner.putIfAbsent(partnerId, m);
+        }
+
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (Map.Entry<Long, Message> entry : latestByPartner.entrySet()) {
+            Long partnerId = entry.getKey();
+            Message m = entry.getValue();
+            User partner = userRepository.findById(partnerId).orElse(null);
+            if (partner == null) continue;
+            if (!matchRequestRepository.existsConfirmedMatchBetween(currentUser, partner)) continue;
+
+            Map<String, Object> conv = new LinkedHashMap<>();
+            conv.put("partnerId", partnerId);
+            conv.put("partnerName", partner.getName() != null ? partner.getName() : "");
+            conv.put("partnerArchetype", partner.getArchetype() != null ? partner.getArchetype() : "");
+            conv.put("partnerCity", partner.getCity() != null ? partner.getCity() : "");
+
+            Map<String, Object> last = new LinkedHashMap<>();
+            last.put("content", m.getContent());
+            last.put("timestamp", m.getTimestamp() != null ? m.getTimestamp().toString() : null);
+            last.put("senderId", m.getSenderId());
+            conv.put("lastMessage", last);
+            conv.put("lastMessageAt", m.getTimestamp() != null ? m.getTimestamp().toString() : null);
+
+            result.add(conv);
+        }
+        return ResponseEntity.ok(result);
     }
 
     private User getAuthenticatedUser(Authentication authentication) {

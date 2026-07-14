@@ -15,6 +15,8 @@ export default function Navbar({ brandLink = '/dashboard', showLinks }) {
   const defaultLinks = [
     { to: '/dashboard', label: 'Feed' },
     { to: '/discover', label: 'Discover' },
+    { to: '/matches', label: 'Matches' },
+    { to: '/messages', label: 'Messages' },
     { to: '/events', label: 'Events' },
     { to: '/profile', label: 'Profile' },
   ];

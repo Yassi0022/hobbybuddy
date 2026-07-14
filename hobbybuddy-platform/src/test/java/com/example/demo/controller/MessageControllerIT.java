@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import com.example.demo.model.MatchRequest;
 import com.example.demo.model.User;
 import com.example.demo.repository.MatchRequestRepository;
 import com.example.demo.repository.MessageRepository;
@@ -78,6 +79,12 @@ class MessageControllerIT {
         b = userRepository.save(b);
         userBId = b.getId();
         userBToken = jwtUtil.generateToken(b.getEmail());
+
+        // P3: messaging requires a CONFIRMED match. Establish one between A and B
+        // so the messaging tests exercise the authorized path.
+        MatchRequest confirmed = new MatchRequest(a, b);
+        confirmed.setStatus(MatchRequest.Status.CONFIRMED);
+        matchRequestRepository.save(confirmed);
     }
 
     // ── GET /api/messages/{user1}/{user2} ──

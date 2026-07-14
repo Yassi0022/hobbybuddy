@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -28,9 +29,11 @@ import com.example.demo.dto.UserResponseDTO;
 import com.example.demo.model.InviteToken;
 import com.example.demo.model.PasswordResetToken;
 import com.example.demo.model.User;
+import com.example.demo.model.MatchRequest;
 import com.example.demo.repository.InviteTokenRepository;
 import com.example.demo.repository.PasswordResetTokenRepository;
 import com.example.demo.repository.UserRepository;
+import com.example.demo.repository.MatchRequestRepository;
 import com.example.demo.service.MatchingService;
 import com.example.demo.service.PasswordResetService;
 import com.example.demo.service.UserService;
@@ -56,6 +59,9 @@ public class UserController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private MatchRequestRepository matchRequestRepository;
 
     @Autowired
     private AuthenticationManager authenticationManager;
@@ -596,6 +602,77 @@ public class UserController {
         resp.put("photosJson", currentUser.getPhotosJson() != null ? currentUser.getPhotosJson() : "[]");
         resp.put("referralCount", currentUser.getReferralCount());
         resp.put("quizCompleted", currentUser.isQuizCompleted());
+        return ResponseEntity.ok(resp);
+    }
+
+    /**
+     * Public (authenticated-only) profile of ANY user — sanitized view used by
+     * Discover -> profile and the Matches surfaces. Never exposes email, traits,
+     * tokens, authVersion, or internal matching fields.
+     *
+     * Includes the connection status relative to the authenticated viewer so the
+     * UI can render the correct CTA (Connect / Pending / Accept / Decline / Message).
+     */
+    @GetMapping("/{id}/public")
+    public ResponseEntity<?> getPublicProfile(@PathVariable("id") java.lang.Long id,
+                                              Authentication authentication) {
+        User currentUser = getAuthenticatedUser(authentication);
+        if (currentUser == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Authentication required"));
+        }
+
+        User target = userRepository.findById(id).orElse(null);
+        if (target == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "User not found"));
+        }
+
+        // Connection status relative to the viewer:
+        //  none           -> no request, or a previously DECLINED request (re-openable)
+        //  pending_sent   -> viewer requested; awaiting the other's response
+        //  pending_received -> viewer is the recipient; can accept/decline
+        //  confirmed      -> CONFIRMED (or DONE) match; can message
+        String connectionStatus = "none";
+        Long matchRequestId = null;
+        String matchRole = null;
+        java.util.Optional<MatchRequest> between = matchRequestRepository.findBetween(currentUser, target);
+        if (between.isPresent()) {
+            MatchRequest mr = between.get();
+            boolean iAmRequester = mr.getRequester().getId().equals(currentUser.getId());
+            matchRequestId = mr.getId();
+            matchRole = iAmRequester ? "requester" : "candidate";
+            switch (mr.getStatus()) {
+                case CONFIRMED:
+                case DONE:
+                    connectionStatus = "confirmed";
+                    break;
+                case PENDING:
+                    connectionStatus = iAmRequester ? "pending_sent" : "pending_received";
+                    break;
+                case DECLINED:
+                default:
+                    connectionStatus = "none";
+                    matchRequestId = null;
+                    matchRole = null;
+                    break;
+            }
+        }
+
+        Map<String, Object> resp = new LinkedHashMap<>();
+        resp.put("id", target.getId());
+        resp.put("name", target.getName() != null ? target.getName() : "");
+        resp.put("archetype", target.getArchetype() != null ? target.getArchetype() : "");
+        resp.put("archetypeEmoji", matchingService.getArchetypeEmoji(target.getArchetype()));
+        resp.put("hobbies", target.getHobbies() != null ? target.getHobbies() : "");
+        resp.put("city", target.getCity() != null ? target.getCity() : "");
+        resp.put("age", target.getAge());
+        resp.put("personalityTagline", target.getPersonalityTagline() != null ? target.getPersonalityTagline() : "");
+        resp.put("photosJson", target.getPhotosJson() != null ? target.getPhotosJson() : "[]");
+        resp.put("prompt1", target.getPrompt1() != null ? target.getPrompt1() : "");
+        resp.put("prompt2", target.getPrompt2() != null ? target.getPrompt2() : "");
+        resp.put("prompt3", target.getPrompt3() != null ? target.getPrompt3() : "");
+        resp.put("connectionStatus", connectionStatus);
+        resp.put("matchRequestId", matchRequestId);
+        resp.put("matchRole", matchRole);
         return ResponseEntity.ok(resp);
     }
 

@@ -53,6 +53,10 @@ export default function DiscoverPage() {
     refetch();
   }, [setManualCity, refetch]);
 
+  const handleOpenProfile = useCallback((personId) => {
+    navigate(`/profile/${personId}`);
+  }, [navigate]);
+
   const handleConnect = useCallback(async (candidateId) => {
     try {
       const res = await fetch(`${API_BASE_URL}/api/match-requests/${candidateId}`, {
@@ -178,7 +182,7 @@ export default function DiscoverPage() {
               gap: 14,
             }}>
               {people.map((person) => (
-                <PeopleCard key={person.id} person={person} onConnect={handleConnect} />
+                <PeopleCard key={person.id} person={person} onConnect={handleConnect} onOpen={handleOpenProfile} />
               ))}
             </div>
           ) : !fallback ? (

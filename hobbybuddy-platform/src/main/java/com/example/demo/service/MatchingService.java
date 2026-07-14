@@ -339,7 +339,7 @@ public class MatchingService {
         return "Complementary dynamic";
     }
 
-    private String getArchetypeEmoji(String archetype) {
+    public String getArchetypeEmoji(String archetype) {
         if (archetype == null) return "🧭";
         return switch (archetype) {
             case "The Visionary" -> "🔮";

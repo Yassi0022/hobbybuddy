@@ -8,51 +8,6 @@ import Navbar from '../components/ui/Navbar';
 import { copyInviteLink } from '../utils/share';
 import styles from '../styles/dashboard.module.css';
 
-/* ── Demo mode: activated by Ctrl+Shift+D or typing "demo" ── */
-const DEMO_POSTS = [
-  {
-    id: 'demo-1',
-    content: 'Just matched with someone who shares my love for hiking and photography! Can\'t wait to explore the trails together this weekend 📸🥾',
-    author: { name: 'Sarah Chen' },
-    createdAt: new Date(Date.now() - 1000 * 60 * 23).toISOString(),
-    likesCount: 12,
-  },
-  {
-    id: 'demo-2',
-    content: 'Took the HobbyBuddy personality quiz and found out I\'m a "Creative Catalyst" — makes so much sense! Already connected with 3 people who vibe the same way ✨',
-    author: { name: 'Marcus Rivera' },
-    createdAt: new Date(Date.now() - 1000 * 60 * 67).toISOString(),
-    likesCount: 24,
-  },
-  {
-    id: 'demo-3',
-    content: 'Hosted a board game night last Friday through HobbyBuddy — 8 people showed up and we stayed until 2 AM. Already planning the next one! 🎲',
-    author: { name: 'Aisha Patel' },
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(),
-    likesCount: 31,
-  },
-  {
-    id: 'demo-4',
-    content: "Grew up thinking I was the only person who loved stargazing AND cooking. Found my vibe tribe on day one here. We're planning a cookout under the Lyrid meteor shower 🌠",
-    author: { name: 'Erik Johansson' },
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 14).toISOString(),
-    likesCount: 45,
-  },
-  {
-    id: 'demo-5',
-    content: 'Honestly didn\'t expect much from a personality quiz but the matching is scarily good. Paired with two other "Steady Anchors" and we already have a weekly coffee ritual ☕',
-    author: { name: 'Lena Okafor' },
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 36).toISOString(),
-    likesCount: 18,
-  },
-];
-
-const DEMO_MATCHES = [
-  { id: 'dm-1', buddyId: 101, buddyName: 'Sarah Chen', buddyArchetype: 'Creative Catalyst' },
-  { id: 'dm-2', buddyId: 102, buddyName: 'Marcus Rivera', buddyArchetype: 'Social Spark' },
-  { id: 'dm-3', buddyId: 103, buddyName: 'Aisha Patel', buddyArchetype: 'Steady Anchor' },
-];
-
 /**
  * Dashboard — home base: welcome, top matches, community feed.
  *
@@ -67,38 +22,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState('');
   const [userArchetype, setUserArchetype] = useState('');
-  const [postLikes, setPostLikes] = useState({});
-  const [demoActive, setDemoActive] = useState(false);
   const postContentRef = useRef(null);
-  const demoKeyBuf = useRef('');
-
-  /* ── Hidden demo mode: Ctrl+Shift+D or type "demo" ── */
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      // Ctrl+Shift+D toggle
-      if (e.ctrlKey && e.shiftKey && e.key === 'D') {
-        e.preventDefault();
-        setDemoActive(prev => {
-          const next = !prev;
-          showToast(next ? '🎬 Demo mode activated' : '🎬 Demo mode deactivated', 'success');
-          return next;
-        });
-        return;
-      }
-      // Type "demo" (case-insensitive) to toggle
-      demoKeyBuf.current = (demoKeyBuf.current + e.key).slice(-4);
-      if (demoKeyBuf.current.toLowerCase() === 'demo') {
-        demoKeyBuf.current = '';
-        setDemoActive(prev => {
-          const next = !prev;
-          showToast(next ? '🎬 Demo mode activated' : '🎬 Demo mode deactivated', 'success');
-          return next;
-        });
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
 
   useEffect(() => {
     if (!token) { navigate('/login'); return; }
@@ -157,15 +81,6 @@ export default function Dashboard() {
       }
     } catch { showToast('Failed to publish', 'error'); }
   };
-
-  const handleLike = (postId) => {
-    setPostLikes(prev => ({ ...prev, [postId]: (prev[postId] || 0) + 1 }));
-    showToast('Liked!', 'success');
-  };
-
-  /** Demo data merges on top of real data when demo mode is active */
-  const displayPosts = demoActive && posts.length === 0 ? DEMO_POSTS : posts;
-  const displayMatches = demoActive && confirmedMatches.length === 0 ? DEMO_MATCHES : confirmedMatches;
 
   if (loading) {
     return (
@@ -245,31 +160,21 @@ export default function Dashboard() {
           </Link>
         </div>
 
-        {/* ── Demo banner ───────────────────────── */}
-        {demoActive && (
-          <div className={styles.demoBanner}>
-            <span>🎬 Demo Mode — showing sample data</span>
-            <button className={styles.demoBannerDismiss} onClick={() => setDemoActive(false)} aria-label="Exit demo mode">
-              <i className="fas fa-times"></i>
-            </button>
-          </div>
-        )}
-
         {/* ── Confirmed matches ────────────────── */}
         <div className={styles.matchesSection}>
-          {displayMatches.length > 0 ? (
+          {confirmedMatches.length > 0 ? (
             <>
               <div className={styles.sectionHeadingRow}>
                 <h2 className={styles.sectionHeading}>
                   💬 Your matches
                 </h2>
-                <Link to="/discover" className={styles.sectionLink}>
-                  Browse matches →
+                <Link to="/matches" className={styles.sectionLink}>
+                  View all →
                 </Link>
               </div>
 
               <div className={styles.matchesStrip}>
-                {displayMatches.map(m => (
+                {confirmedMatches.map(m => (
                   <Link key={m.id} to={`/messages?with=${m.buddyId}`} className={styles.matchCard} aria-label={`Chat with ${m.buddyName}, ${m.buddyArchetype}`}>
                     <div className={styles.matchAvatar} aria-hidden="true">
                       {m.buddyName?.[0]?.toUpperCase() || '?'}
@@ -317,16 +222,15 @@ export default function Dashboard() {
           </div>
 
           {/* Posts */}
-          {displayPosts.length === 0 ? (
+          {posts.length === 0 ? (
             <EmptyState
               image="https://d8j0ntlcm91z4.cloudfront.net/user_3F8g8wgqGblsT9ojkykW6TOorbT/hf_20260619_154708_5b9d1342-bd64-412d-8aa7-5032c79e6283.png"
               title="Nothing here yet"
               body="Be the first to share something with the community."
             />
           ) : (
-            displayPosts.map(post => (
+            posts.map(post => (
               <div key={post.id} className={`card ${styles.postCard}`}>
-                {/* Author row */}
                 {post.author?.name && (
                   <div className={styles.postAuthorRow}>
                     <div className={styles.postAuthorAvatar}>
@@ -338,22 +242,11 @@ export default function Dashboard() {
 
                 <p className={styles.postContent}>{post.content}</p>
 
-                {/* Actions row */}
                 <div className={styles.postActionsRow}>
                   <span className={styles.postDate}>
                     {new Date(post.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                   </span>
-                  <div className={styles.postActions}>
-                    <button
-                      className={`btn-secondary ${styles.postActionBtn}`}
-                      onClick={() => handleLike(post.id)}
-                      aria-label={`Like post by ${post.author?.name || 'unknown'}`}
-                    >
-                      ❤️ {postLikes[post.id] || post.likesCount || post.likes || 0}
-                    </button>
-                    </div>
                 </div>
-
               </div>
             ))
           )}

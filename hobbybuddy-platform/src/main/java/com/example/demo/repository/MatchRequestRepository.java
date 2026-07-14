@@ -29,4 +29,19 @@ public interface MatchRequestRepository extends JpaRepository<MatchRequest, Long
            "WHERE (mr.requester = :user OR mr.candidate = :user) " +
            "AND mr.status IN (com.example.demo.model.MatchRequest.Status.PENDING, com.example.demo.model.MatchRequest.Status.CONFIRMED)")
     List<Long> findActiveMatchUserIds(@Param("user") User user);
+
+    /** The single request between two users in EITHER direction, regardless of status, or empty. */
+    @Query("SELECT mr FROM MatchRequest mr " +
+           "WHERE (mr.requester = :a AND mr.candidate = :b) OR (mr.requester = :b AND mr.candidate = :a)")
+    Optional<MatchRequest> findBetween(@Param("a") User a, @Param("b") User b);
+
+    /**
+     * True when a messaging-eligible match exists between the two users in either direction.
+     * Both CONFIRMED (active connection) and DONE (finalized connection) authorize messaging;
+     * DONE is a superset of CONFIRMED and must not block an already-connected pair.
+     */
+    @Query("SELECT CASE WHEN COUNT(mr) > 0 THEN true ELSE false END FROM MatchRequest mr " +
+           "WHERE ((mr.requester = :a AND mr.candidate = :b) OR (mr.requester = :b AND mr.candidate = :a)) " +
+           "AND mr.status IN (com.example.demo.model.MatchRequest.Status.CONFIRMED, com.example.demo.model.MatchRequest.Status.DONE)")
+    boolean existsConfirmedMatchBetween(@Param("a") User a, @Param("b") User b);
 }

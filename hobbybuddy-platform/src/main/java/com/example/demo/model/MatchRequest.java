@@ -14,6 +14,7 @@ public class MatchRequest {
     public enum Status {
         PENDING,
         CONFIRMED,
+        DECLINED,
         DONE
     }
 

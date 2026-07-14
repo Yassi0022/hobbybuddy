@@ -156,6 +156,37 @@ public class MatchRequestController {
         ));
     }
 
+    @PostMapping("/{id}/decline")
+    public ResponseEntity<?> decline(@PathVariable Long id, Authentication auth) {
+        User user = userRepository.findByEmail(auth.getName())
+                .orElseThrow(() -> new IllegalStateException("Authenticated user not found in database"));
+
+        MatchRequest mr = matchRequestRepository.findById(id).orElse(null);
+        if (mr == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Match request not found"));
+        }
+
+        if (!mr.getCandidate().getId().equals(user.getId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", "Only the candidate can decline this request"));
+        }
+
+        if (mr.getStatus() != MatchRequest.Status.PENDING) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(Map.of("error", "Match request is already " + mr.getStatus().name().toLowerCase()));
+        }
+
+        mr.setStatus(MatchRequest.Status.DECLINED);
+        matchRequestRepository.save(mr);
+
+        return ResponseEntity.ok(Map.of(
+                "id", mr.getId(),
+                "status", mr.getStatus().name(),
+                "requesterId", mr.getRequester().getId(),
+                "candidateId", mr.getCandidate().getId()
+        ));
+    }
+
     @PostMapping("/{id}/feedback")
     public ResponseEntity<?> submitFeedback(@PathVariable Long id,
                                             @RequestBody Map<String, Object> body,
