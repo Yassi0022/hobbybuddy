@@ -106,10 +106,21 @@ export default function Register() {
       setRegistered(true);
     } catch (err) {
       const msg = err.message || 'Registration failed';
+      // A genuine network/unknown failure (e.g. fetch throws a TypeError
+      // like "Failed to fetch") reaches here unmodified — never surface
+      // raw browser/network text to the user.
+      const isNetworkError =
+        err.name === 'TypeError' ||
+        /failed to fetch|network|load failed/i.test(msg);
       if (err.isRateLimited) {
         setError({ message: msg, rateLimited: true });
       } else if (msg.toLowerCase().includes('email')) {
         setFieldErrors({ email: 'This email is already in use' });
+      } else if (isNetworkError) {
+        setError({
+          message: 'We couldn’t create your account right now. Please try again in a moment.',
+          rateLimited: false,
+        });
       } else {
         setError({ message: msg, rateLimited: false });
       }
