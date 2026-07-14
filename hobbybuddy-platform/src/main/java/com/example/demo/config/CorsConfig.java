@@ -22,7 +22,7 @@ public class CorsConfig {
             "https://hobbybuddy.app",
             "https://hobbybuddy.vercel.app",
             "https://*.vercel.app",
-            "https://hobbybuddy.onrender.com",
+            "https://hobbybuddy-springboot.onrender.com",
             "https://hobbybuddy-matching.onrender.com"
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
