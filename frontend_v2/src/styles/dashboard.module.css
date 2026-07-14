@@ -343,12 +343,7 @@
 
 .postActions {
     display: flex;
-    gap: 6px;
-}
-
-.postActionBtn {
-    padding: 5px 14px;
-    font-size: 0.75rem;
+    gap: 8px;
 }
 
 .postBtn {
@@ -356,25 +351,206 @@
     font-size: 0.82rem;
 }
 
-.postActionBtn:hover {
+.actionBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    background: transparent;
+    border: 1px solid var(--color-border);
+    border-radius: 100px;
+    cursor: pointer;
+    transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.actionBtn:hover:not(:disabled) {
     border-color: var(--color-accent-warm);
     color: var(--color-accent-warm);
 }
 
-/* ── Comments placeholder ──────────────────── */
-.commentsPlaceholder {
-    margin-top: 14px;
+.actionBtn:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+
+.actionBtnActive {
+    color: var(--color-accent-warm);
+    border-color: rgba(194, 65, 12, 0.25);
+    background: rgba(194, 65, 12, 0.06);
+}
+
+.postAuthorTag,
+.commentTag {
+    font-size: 0.66rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    background: var(--color-surface-alt, rgba(120, 53, 15, 0.06));
+    border: 1px solid var(--color-border);
+    border-radius: 100px;
+    padding: 1px 8px;
+    letter-spacing: 0.01em;
+}
+
+/* ── Comments section ──────────────────────── */
+.commentSection {
+    margin-top: 12px;
     border-top: 1px solid var(--color-border);
-    padding-top: 14px;
+    padding-top: 12px;
+}
+
+.commentList {
+    list-style: none;
+    margin: 0 0 12px;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.commentItem {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+}
+
+.commentAvatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--gradient-secondary);
+    color: #92400e;
     display: flex;
     align-items: center;
+    justify-content: center;
+    font-size: 0.72rem;
+    font-weight: 800;
+    flex-shrink: 0;
+}
+
+.commentBody {
+    min-width: 0;
+    flex: 1;
+}
+
+.commentMeta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 2px;
+}
+
+.commentAuthor {
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.commentText {
+    margin: 0;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: var(--color-text-main);
+    word-break: break-word;
+}
+
+.commentEmpty {
+    margin: 0 0 12px;
+    font-size: 0.82rem;
+    color: var(--color-text-muted);
+}
+
+.commentComposer {
+    display: flex;
     gap: 8px;
 }
 
-.commentsPlaceholderText {
+.commentInput {
+    flex: 1;
+    min-width: 0;
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    border-radius: 100px;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-text-main);
+    outline: none;
+}
+
+.commentInput:focus {
+    border-color: var(--color-accent-warm);
+}
+
+.commentSubmit {
+    padding: 8px 16px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    border-radius: 100px;
+    border: none;
+    background: var(--color-primary);
+    color: #fff;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.commentSubmit:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.commentError,
+.commentLoading,
+.feedError {
+    text-align: center;
+    padding: 10px 0;
+}
+
+.commentError p,
+.feedError p {
+    margin: 0 0 8px;
     font-size: 0.82rem;
     color: var(--color-text-muted);
-    font-style: italic;
+}
+
+.commentRetry,
+.loadMoreBtn {
+    padding: 7px 18px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border-radius: 100px;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-text-main);
+    cursor: pointer;
+}
+
+.commentRetry:hover,
+.loadMoreBtn:hover:not(:disabled) {
+    border-color: var(--color-accent-warm);
+    color: var(--color-accent-warm);
+}
+
+.commentPostError {
+    margin: 8px 0 0;
+    font-size: 0.78rem;
+    color: #dc2626;
+}
+
+/* ── Feed load more ────────────────────────── */
+.loadMoreWrap {
+    display: flex;
+    justify-content: center;
+    margin-top: 14px;
+}
+
+.loadMoreBtn {
+    min-width: 140px;
+}
+
+.loadMoreBtn:disabled {
+    opacity: 0.6;
+    cursor: default;
 }
 
 /* ── Loading spinner ───────────────────────── */

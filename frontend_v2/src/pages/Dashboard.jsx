@@ -19,15 +19,22 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [confirmedMatches, setConfirmedMatches] = useState([]);
   const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [hasMore, setHasMore] = useState(false);
+  const [feedLoading, setFeedLoading] = useState(true);
+  const [feedLoadingMore, setFeedLoadingMore] = useState(false);
+  const [feedError, setFeedError] = useState(false);
+  const [openCommentsId, setOpenCommentsId] = useState(null);
+  const [comments, setComments] = useState({}); // postId -> { items, loading, error, posting, postError }
+  const [likingIds, setLikingIds] = useState(() => new Set());
   const [userName, setUserName] = useState('');
   const [userArchetype, setUserArchetype] = useState('');
   const postContentRef = useRef(null);
+  const PAGE_SIZE = 10;
 
   useEffect(() => {
     if (!token) { navigate('/login'); return; }
     fetchCurrentUser();
-    fetchPosts();
+    loadFeed();
     fetchConfirmedMatches();
   }, [token, navigate]);
 
@@ -42,16 +49,40 @@ export default function Dashboard() {
       }
     } catch (err) {
       console.error('Failed to fetch user:', err);
-    } finally {
-      setLoading(false);
     }
   };
 
-  const fetchPosts = async () => {
+  const loadFeed = async () => {
+    setFeedLoading(true);
+    setFeedError(false);
     try {
-      const res = await authFetch(`${API_BASE_URL}/api/posts`);
-      if (res.ok) setPosts(await res.json());
-    } catch (err) { console.error('Failed to fetch posts:', err); }
+      const res = await authFetch(`${API_BASE_URL}/api/posts?limit=${PAGE_SIZE}&offset=0`);
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      setPosts(data.posts || []);
+      setHasMore(data.hasMore || false);
+    } catch (err) {
+      console.error('Failed to fetch posts:', err);
+      setFeedError(true);
+    } finally {
+      setFeedLoading(false);
+    }
+  };
+
+  const loadMorePosts = async () => {
+    setFeedLoadingMore(true);
+    try {
+      const res = await authFetch(`${API_BASE_URL}/api/posts?limit=${PAGE_SIZE}&offset=${posts.length}`);
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      setPosts(prev => [...prev, ...(data.posts || [])]);
+      setHasMore(data.hasMore || false);
+    } catch (err) {
+      console.error('Failed to load more posts:', err);
+      showToast('Could not load more posts', 'error');
+    } finally {
+      setFeedLoadingMore(false);
+    }
   };
 
   /** Fetch confirmed matches for the "Your matches" section */
@@ -75,14 +106,103 @@ export default function Dashboard() {
         body: JSON.stringify({ content }),
       });
       if (res.ok) {
+        const newPost = await res.json();
         postContentRef.current.value = '';
-        fetchPosts();
+        setPosts(prev => [newPost, ...prev]);
         showToast('Post published!', 'success');
+      } else {
+        showToast('Failed to publish', 'error');
       }
-    } catch { showToast('Failed to publish', 'error'); }
+    } catch {
+      showToast('Failed to publish', 'error');
+    }
   };
 
-  if (loading) {
+  const toggleLike = async (post) => {
+    setLikingIds(prev => new Set(prev).add(post.id));
+    try {
+      const res = await authFetch(`${API_BASE_URL}/api/posts/${post.id}/like`, { method: 'POST' });
+      if (res.ok) {
+        const data = await res.json();
+        setPosts(prev => prev.map(p =>
+          p.id === post.id ? { ...p, likesCount: data.likesCount, viewerHasLiked: data.viewerHasLiked } : p));
+      } else {
+        showToast('Could not update like', 'error');
+      }
+    } catch {
+      showToast('Could not update like', 'error');
+    } finally {
+      setLikingIds(prev => {
+        const next = new Set(prev);
+        next.delete(post.id);
+        return next;
+      });
+    }
+  };
+
+  const toggleComments = (post) => {
+    if (openCommentsId === post.id) {
+      setOpenCommentsId(null);
+      return;
+    }
+    setOpenCommentsId(post.id);
+    if (!comments[post.id]) loadComments(post.id);
+  };
+
+  const loadComments = async (postId) => {
+    setComments(prev => ({
+      ...prev,
+      [postId]: { items: [], loading: true, error: false, posting: false, postError: null },
+    }));
+    try {
+      const res = await authFetch(`${API_BASE_URL}/api/posts/${postId}/comments`);
+      if (!res.ok) throw new Error();
+      const items = await res.json();
+      setComments(prev => ({
+        ...prev,
+        [postId]: { items, loading: false, error: false, posting: false, postError: null },
+      }));
+    } catch (err) {
+      console.error('Failed to load comments:', err);
+      setComments(prev => ({
+        ...prev,
+        [postId]: { ...(prev[postId] || { items: [] }), loading: false, error: true },
+      }));
+    }
+  };
+
+  const submitComment = async (postId, text) => {
+    const trimmed = text.trim();
+    if (!trimmed) return;
+    setComments(prev => ({
+      ...prev,
+      [postId]: { ...(prev[postId] || { items: [] }), posting: true, postError: null },
+    }));
+    try {
+      const res = await authFetch(`${API_BASE_URL}/api/posts/${postId}/comments`, {
+        method: 'POST',
+        body: JSON.stringify({ content: trimmed }),
+      });
+      if (res.ok) {
+        const c = await res.json();
+        setComments(prev => {
+          const cur = prev[postId] || { items: [] };
+          return { ...prev, [postId]: { ...cur, items: [...cur.items, c], posting: false, postError: null } };
+        });
+        setPosts(prev => prev.map(p =>
+          p.id === postId ? { ...p, commentsCount: (p.commentsCount || 0) + 1 } : p));
+      } else {
+        throw new Error();
+      }
+    } catch {
+      setComments(prev => ({
+        ...prev,
+        [postId]: { ...(prev[postId] || { items: [] }), posting: false, postError: 'Failed to post comment' },
+      }));
+    }
+  };
+
+  if (feedLoading) {
     return (
       <>
         <div className="bg-mesh"><div className="orb orb-1"></div><div className="orb orb-2"></div><div className="orb orb-3"></div></div>
@@ -222,7 +342,12 @@ export default function Dashboard() {
           </div>
 
           {/* Posts */}
-          {posts.length === 0 ? (
+          {feedError ? (
+            <div className={styles.feedError}>
+              <p>We couldn't load the community feed.</p>
+              <button className={styles.loadMoreBtn} onClick={loadFeed}>Try again</button>
+            </div>
+          ) : posts.length === 0 ? (
             <EmptyState
               image="https://d8j0ntlcm91z4.cloudfront.net/user_3F8g8wgqGblsT9ojkykW6TOorbT/hf_20260619_154708_5b9d1342-bd64-412d-8aa7-5032c79e6283.png"
               title="Nothing here yet"
@@ -233,10 +358,13 @@ export default function Dashboard() {
               <div key={post.id} className={`card ${styles.postCard}`}>
                 {post.author?.name && (
                   <div className={styles.postAuthorRow}>
-                    <div className={styles.postAuthorAvatar}>
+                    <div className={styles.postAuthorAvatar} aria-hidden="true">
                       {post.author.name[0]?.toUpperCase()}
                     </div>
                     <span className={styles.postAuthorName}>{post.author.name}</span>
+                    {post.author.archetype && (
+                      <span className={styles.postAuthorTag}>{post.author.archetype}</span>
+                    )}
                   </div>
                 )}
 
@@ -246,12 +374,126 @@ export default function Dashboard() {
                   <span className={styles.postDate}>
                     {new Date(post.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                   </span>
+
+                  <div className={styles.postActions}>
+                    <button
+                      type="button"
+                      className={`${styles.actionBtn} ${post.viewerHasLiked ? styles.actionBtnActive : ''}`}
+                      onClick={() => toggleLike(post)}
+                      disabled={likingIds.has(post.id)}
+                      aria-pressed={post.viewerHasLiked}
+                      aria-label={post.viewerHasLiked ? 'Unlike this post' : 'Like this post'}
+                    >
+                      <i className={`${post.viewerHasLiked ? 'fas' : 'far'} fa-heart`} aria-hidden="true" />
+                      <span>{post.likesCount || 0}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      className={styles.actionBtn}
+                      onClick={() => toggleComments(post)}
+                      aria-expanded={openCommentsId === post.id}
+                    >
+                      <i className="far fa-comment" aria-hidden="true" />
+                      <span>{post.commentsCount || 0}</span>
+                    </button>
+                  </div>
                 </div>
+
+                {openCommentsId === post.id && (
+                  <CommentSection
+                    state={comments[post.id]}
+                    onRetry={() => loadComments(post.id)}
+                    onSubmit={(text) => submitComment(post.id, text)}
+                  />
+                )}
               </div>
             ))
+          )}
+
+          {hasMore && !feedError && (
+            <div className={styles.loadMoreWrap}>
+              <button
+                className={styles.loadMoreBtn}
+                onClick={loadMorePosts}
+                disabled={feedLoadingMore}
+              >
+                {feedLoadingMore ? 'Loading…' : 'Load more'}
+              </button>
+            </div>
           )}
         </div>
       </div>
     </>
+  );
+}
+
+/** Comments drawer for a single post: list + composer, with loading/error states. */
+function CommentSection({ state, onRetry, onSubmit }) {
+  const [text, setText] = useState('');
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!text.trim() || state?.posting) return;
+    onSubmit(text);
+    setText('');
+  };
+
+  return (
+    <div className={styles.commentSection}>
+      {state?.loading ? (
+        <div className={styles.commentLoading}><div className={styles.loadingSpinner} /></div>
+      ) : state?.error ? (
+        <div className={styles.commentError}>
+          <p>Couldn't load comments.</p>
+          <button className={styles.commentRetry} onClick={onRetry}>Try again</button>
+        </div>
+      ) : (
+        <>
+          {state?.items?.length > 0 ? (
+            <ul className={styles.commentList}>
+              {state.items.map(c => (
+                <li key={c.id} className={styles.commentItem}>
+                  <div className={styles.commentAvatar} aria-hidden="true">
+                    {c.authorName?.[0]?.toUpperCase() || '?'}
+                  </div>
+                  <div className={styles.commentBody}>
+                    <div className={styles.commentMeta}>
+                      <span className={styles.commentAuthor}>{c.authorName}</span>
+                      {c.authorArchetype && (
+                        <span className={styles.commentTag}>{c.authorArchetype}</span>
+                      )}
+                    </div>
+                    <p className={styles.commentText}>{c.content}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className={styles.commentEmpty}>No comments yet — start the conversation.</p>
+          )}
+
+          <form className={styles.commentComposer} onSubmit={handleSubmit}>
+            <input
+              className={styles.commentInput}
+              type="text"
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder="Write a comment…"
+              aria-label="Write a comment"
+              disabled={state?.posting}
+            />
+            <button
+              type="submit"
+              className={styles.commentSubmit}
+              disabled={!text.trim() || state?.posting}
+            >
+              {state?.posting ? 'Posting…' : 'Send'}
+            </button>
+          </form>
+          {state?.postError && <p className={styles.commentPostError}>{state.postError}</p>}
+        </>
+      )}
+    </div>
   );
 }
