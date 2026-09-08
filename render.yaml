@@ -29,7 +29,7 @@ services:
       - key: FRONTEND_ORIGINS
         value: "https://hobbybuddy.app,https://hobbybuddy.vercel.app,https://*.vercel.app"
       - key: FRONTEND_URL
-        value: "https://hobbybuddy.app"
+        value: "https://hobbybuddy.vercel.app"
       - key: FASTAPI_URL
         fromService:
           type: web
