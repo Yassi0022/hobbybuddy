@@ -1,6 +1,5 @@
 export function shareVibe(archetype) {
   if (window.plausible) window.plausible('Share Clicked', { props: { channel: 'native' } });
-  const userName = localStorage.getItem('userName') || 'Buddy';
   const shareText = `I just found my vibe on HobbyBuddy — I'm a "${archetype}"! 🧠✨\n\nTake the free personality quiz and find your people:`;
   const shareUrl = window.location.origin + '/register?ref=' + localStorage.getItem('userId');
 

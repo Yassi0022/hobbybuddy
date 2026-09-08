@@ -21,6 +21,24 @@ export default function VerifyEmail() {
 
   const token = searchParams.get('token');
 
+  const verifyToken = async (t) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/users/verify?token=${encodeURIComponent(t)}`);
+      const data = await res.json();
+      if (res.ok && data.verified) {
+        setStatus('success');
+        setMessage(data.message || 'Email verified successfully!');
+        setTimeout(() => navigate('/login'), 3000);
+      } else {
+        setStatus('error');
+        setMessage(data.error || 'Verification failed. The link may have expired.');
+      }
+    } catch {
+      setStatus('error');
+      setMessage('Something went wrong. Please try again.');
+    }
+  };
+
   useEffect(() => {
     if (!token) {
       setStatus('error');
@@ -29,25 +47,6 @@ export default function VerifyEmail() {
     }
     verifyToken(token);
   }, [token]);
-
-  const verifyToken = async (t) => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/users/verify?token=${encodeURIComponent(t)}`);
-      const data = await res.json();
-      if (res.ok && data.verified) {
-        setStatus('success');
-        setMessage(data.message || 'Email verified successfully!');
-        // Redirect to login after 3 seconds
-        setTimeout(() => navigate('/login'), 3000);
-      } else {
-        setStatus('error');
-        setMessage(data.error || 'Verification failed. The link may have expired.');
-      }
-    } catch (err) {
-      setStatus('error');
-      setMessage('Something went wrong. Please try again.');
-    }
-  };
 
   const handleResend = async () => {
     if (!resendEmail.trim()) return;

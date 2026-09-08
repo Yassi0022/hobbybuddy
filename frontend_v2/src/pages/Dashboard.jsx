@@ -15,7 +15,7 @@ import styles from '../styles/dashboard.module.css';
  * This page keeps things glanceable and action-oriented.
  */
 export default function Dashboard() {
-  const { token, logout, authFetch } = useAuth();
+  const { token, authFetch } = useAuth();
   const navigate = useNavigate();
   const [confirmedMatches, setConfirmedMatches] = useState([]);
   const [posts, setPosts] = useState([]);
@@ -30,13 +30,6 @@ export default function Dashboard() {
   const [userArchetype, setUserArchetype] = useState('');
   const postContentRef = useRef(null);
   const PAGE_SIZE = 10;
-
-  useEffect(() => {
-    if (!token) { navigate('/login'); return; }
-    fetchCurrentUser();
-    loadFeed();
-    fetchConfirmedMatches();
-  }, [token, navigate]);
 
   const fetchCurrentUser = async () => {
     try {
@@ -96,6 +89,13 @@ export default function Dashboard() {
       }
     } catch (err) { console.error('Failed to fetch confirmed matches:', err); }
   };
+
+  useEffect(() => {
+    if (!token) { navigate('/login'); return; }
+    fetchCurrentUser();
+    loadFeed();
+    fetchConfirmedMatches();
+  }, [token, navigate]);
 
   const handlePublishPost = async () => {
     const content = postContentRef.current?.value?.trim();

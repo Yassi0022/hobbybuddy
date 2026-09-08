@@ -10,5 +10,9 @@
       "Bash(powershell -Command *Get-Process*)",
       "Bash(powershell -Command *Get-NetTCPConnection*)"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "playwright"
+  ],
+  "enableAllProjectMcpServers": true
 }

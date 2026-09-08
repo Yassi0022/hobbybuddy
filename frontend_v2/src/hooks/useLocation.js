@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 
 const CITY_STORAGE_KEY = 'hb_user_city';
 const GEO_STORAGE_KEY = 'hb_geo_tried';

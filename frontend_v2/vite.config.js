@@ -17,7 +17,7 @@ export default defineConfig({
         );
       },
       closeBundle() {
-        const versionPath = path.resolve(__dirname, 'dist/version.json');
+        const versionPath = path.resolve('dist/version.json');
         fs.writeFileSync(versionPath, JSON.stringify({ build: buildTimestamp }));
       },
     },

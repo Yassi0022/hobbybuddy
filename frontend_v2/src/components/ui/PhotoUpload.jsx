@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef } from 'react';
 import { showToast } from '../../utils/toast';
 
 /**
@@ -46,19 +46,6 @@ export default function PhotoUpload({ photos, onChange, maxPhotos = 3 }) {
   const handleFiles = (files, index) => {
     if (!files || files.length === 0) return;
     placeFile(files[0], index);
-  };
-
-  /** Append a new photo at the first empty slot */
-  const appendFile = async (file) => {
-    const emptyIdx = photos.findIndex((p) => !p);
-    if (emptyIdx !== -1) {
-      placeFile(file, emptyIdx);
-    } else if (photos.length < maxPhotos) {
-      const base64 = await fileToBase64(file);
-      onChange([...photos, base64]);
-    } else {
-      showToast(`Max ${maxPhotos} photos`, 'error');
-    }
   };
 
   /** Remove a photo at index */

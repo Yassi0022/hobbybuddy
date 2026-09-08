@@ -1,0 +1,156 @@
+- generic [ref=f2e2]:
+  - navigation [ref=f2e3]:
+    - generic [ref=f2e4]:
+      - link " HobbyBuddy" [ref=f2e5] [cursor=pointer]:
+        - /url: /
+        - generic [ref=f2e6]: 
+        - generic [ref=f2e7]: HobbyBuddy
+      - generic [ref=f2e8]:
+        - link "Sign In" [ref=f2e9] [cursor=pointer]:
+          - /url: /login
+        - link "Get Started" [ref=f2e10] [cursor=pointer]:
+          - /url: /register
+  - main [ref=f2e11]:
+    - generic [ref=f2e13]:
+      - generic [ref=f2e14]:
+        - generic [ref=f2e15]: Friendships start here
+        - heading "Find your people. Your vibe attracts your tribe." [level=1] [ref=f2e17]:
+          - text: Find your people.
+          - generic [ref=f2e18]: Your vibe attracts your tribe.
+        - paragraph [ref=f2e19]: Finding your people shouldn't feel impossible. HobbyBuddy connects you with locals who get your energy, love the same things you do, and actually want to show up.
+        - generic [ref=f2e20]:
+          - link "Join Free " [ref=f2e21] [cursor=pointer]:
+            - /url: /register
+            - generic [ref=f2e22]: Join Free
+            - generic [ref=f2e23]: 
+          - link "How it works " [ref=f2e24] [cursor=pointer]:
+            - /url: "#how"
+            - text: How it works
+            - generic [ref=f2e25]: 
+        - generic [ref=f2e26]:
+          - generic [ref=f2e27]:
+            - generic [ref=f2e28]: 
+            - generic [ref=f2e29]: 
+            - generic [ref=f2e30]: 
+            - generic [ref=f2e31]: 
+            - generic [ref=f2e32]: 
+          - generic [ref=f2e33]: Real people. Real friendships. No swiping.
+      - generic [ref=f2e35]:
+        - generic [ref=f2e36]: ✨ New Match
+        - generic [ref=f2e38]:
+          - heading "New friends nearby" [level=2] [ref=f2e39]
+          - generic [ref=f2e40]:
+            - generic [ref=f2e41]: 📷 Photography
+            - generic [ref=f2e42]: 🏃 Running
+            - generic [ref=f2e43]: ☕ Coffee
+    - generic [ref=f2e45]:
+      - generic [ref=f2e46]: How matching works
+      - heading "Made for real connections" [level=2] [ref=f2e47]
+      - paragraph [ref=f2e48]: We look at what lights you up, how you connect with others, and what makes you — you. Then we introduce you to people who just click.
+      - generic [ref=f2e49]:
+        - generic [ref=f2e50]:
+          - generic [ref=f2e51]: 
+          - heading "Curiosity" [level=3] [ref=f2e53]
+          - paragraph [ref=f2e54]: Adventure seeker or homebody — find someone with the same spark.
+        - generic [ref=f2e55]:
+          - generic [ref=f2e56]: 
+          - heading "Energy" [level=3] [ref=f2e58]
+          - paragraph [ref=f2e59]: How fired up you get about the things you love.
+        - generic [ref=f2e60]:
+          - generic [ref=f2e61]: 
+          - heading "Social style" [level=3] [ref=f2e63]
+          - paragraph [ref=f2e64]: Deep one-on-one chats or electric group hangouts — your call.
+      - generic [ref=f2e65]:
+        - generic [ref=f2e66]:
+          - generic [ref=f2e67]: 
+          - heading "Warmth" [level=3] [ref=f2e69]
+          - paragraph [ref=f2e70]: The kindness and generosity you bring to every friendship.
+        - generic [ref=f2e71]:
+          - generic [ref=f2e72]: 
+          - heading "Chill factor" [level=3] [ref=f2e74]
+          - paragraph [ref=f2e75]: Keeping calm and easygoing when life gets busy.
+    - generic [ref=f2e77]:
+      - generic [ref=f2e78]: Why people choose us
+      - heading "Built for real friendships" [level=2] [ref=f2e79]
+      - paragraph [ref=f2e80]: No swiping. No games. Just people who actually want to show up.
+      - generic [ref=f2e81]:
+        - generic [ref=f2e82]:
+          - generic [ref=f2e83]: 
+          - generic [ref=f2e85]:
+            - generic [ref=f2e86]: Real events & hangouts
+            - generic [ref=f2e87]: Show up together, not just scroll
+        - generic [ref=f2e88]:
+          - generic [ref=f2e89]: 
+          - generic [ref=f2e91]:
+            - generic [ref=f2e92]: Profiles you can trust
+            - generic [ref=f2e93]: Real people, real interests — no games
+        - generic [ref=f2e94]:
+          - generic [ref=f2e95]: 
+          - generic [ref=f2e97]:
+            - generic [ref=f2e98]: Right in your neighborhood
+            - generic [ref=f2e99]: Meet locals who are just around the corner
+    - generic [ref=f2e101]:
+      - heading "Three steps to your next real friendship" [level=2] [ref=f2e102]
+      - paragraph [ref=f2e103]: It's quick, free, and actually fun.
+      - generic [ref=f2e104]:
+        - generic [ref=f2e105]:
+          - generic [ref=f2e106]: "1"
+          - generic [ref=f2e107]: 
+          - heading "Take the Quiz" [level=3] [ref=f2e109]
+          - paragraph [ref=f2e110]: A quick 20-question personality quiz — takes about 3 minutes and it's actually fun. Promise.
+        - generic [ref=f2e111]:
+          - generic [ref=f2e112]: "2"
+          - generic [ref=f2e113]: 
+          - heading "Get Matched" [level=3] [ref=f2e115]
+          - paragraph [ref=f2e116]: Our matching finds locals who share your energy and get you.
+        - generic [ref=f2e117]:
+          - generic [ref=f2e118]: "3"
+          - generic [ref=f2e119]: 
+          - heading "Show Up & Connect" [level=3] [ref=f2e121]
+          - paragraph [ref=f2e122]: Grab coffee, hit a local event, or just hang out. Real life starts here.
+    - generic [ref=f2e124]:
+      - heading "Your next great friendship starts here." [level=2] [ref=f2e125]: Your next great friendshipstarts here.
+      - paragraph [ref=f2e126]: Come find them — they're already looking for you.
+      - link "Join Free " [ref=f2e127] [cursor=pointer]:
+        - /url: /register
+        - generic [ref=f2e128]: Join Free
+        - generic [ref=f2e129]: 
+      - generic [ref=f2e130]:
+        - generic [ref=f2e131]: Free Forever
+        - generic [ref=f2e132]: Â· Private & Secure
+        - generic [ref=f2e133]: Â· Cancel Anytime
+    - generic [ref=f2e134]:
+      - generic [ref=f2e135]:
+        - generic [ref=f2e136]:
+          - link " HobbyBuddy" [ref=f2e137] [cursor=pointer]:
+            - /url: /
+            - generic [ref=f2e138]: 
+            - generic [ref=f2e139]: HobbyBuddy
+          - paragraph [ref=f2e140]: Making it easier for adults to make real friends. No swiping. No games. Just people.
+        - generic [ref=f2e141]:
+          - generic [ref=f2e142]:
+            - heading "Platform" [level=4] [ref=f2e143]
+            - list [ref=f2e144]:
+              - listitem [ref=f2e145]:
+                - link "Sign In" [ref=f2e146] [cursor=pointer]:
+                  - /url: /login
+              - listitem [ref=f2e147]:
+                - link "Create Account" [ref=f2e148] [cursor=pointer]:
+                  - /url: /register
+              - listitem [ref=f2e149]:
+                - link "Personality Quiz" [ref=f2e150] [cursor=pointer]:
+                  - /url: /quiz
+          - generic [ref=f2e151]:
+            - heading "Legal" [level=4] [ref=f2e152]
+            - list [ref=f2e153]:
+              - listitem [ref=f2e154]:
+                - link "Privacy Policy" [ref=f2e155] [cursor=pointer]:
+                  - /url: /privacy
+              - listitem [ref=f2e156]:
+                - link "Terms of Service" [ref=f2e157] [cursor=pointer]:
+                  - /url: /terms
+              - listitem [ref=f2e158]:
+                - link "Contact" [ref=f2e159] [cursor=pointer]:
+                  - /url: mailto:hello@hobbybuddy.app
+      - generic [ref=f2e160]: © 2026 HobbyBuddy. All rights reserved.
+  - text: 

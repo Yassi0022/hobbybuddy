@@ -1,0 +1,49 @@
+- generic [ref=f2e2]:
+  - navigation [ref=f2e3]:
+    - generic [ref=f2e4]:
+      - link " HobbyBuddy" [ref=f2e5] [cursor=pointer]:
+        - /url: /
+        - generic [ref=f2e6]: 
+        - generic [ref=f2e7]: HobbyBuddy
+      - list [ref=f2e8]:
+        - listitem [ref=f2e9]:
+          - link "Join Now" [ref=f2e10] [cursor=pointer]:
+            - /url: /register
+  - generic [ref=f2e13]:
+    - generic [ref=f2e14]: 
+    - heading "Welcome back" [level=1] [ref=f2e16]
+    - paragraph [ref=f2e17]: Sign in to find your next real friendship
+    - generic [ref=f2e18]:
+      - generic [ref=f2e19]:
+        - generic [ref=f2e20]:
+          - generic [ref=f2e21]: 
+          - text: Email
+        - textbox " Email" [ref=f2e22]:
+          - /placeholder: you@example.com
+          - text: verify-test@example.com
+      - generic [ref=f2e23]:
+        - generic [ref=f2e24]:
+          - generic [ref=f2e25]: 
+          - text: Password
+        - generic [ref=f2e26]:
+          - textbox " Password" [ref=f2e27]:
+            - /placeholder: Your password
+            - text: TestPassword123!
+          - button "Show password" [ref=f2e28] [cursor=pointer]:
+            - generic [ref=f2e29]: 
+      - link "Forgot password?" [ref=f2e31] [cursor=pointer]:
+        - /url: /forgot-password
+      - button " Signing in..." [disabled] [ref=f2e41]:
+        - generic [ref=f2e33]: 
+        - text: Signing in...
+    - generic [ref=f2e34]:
+      - text: Don't have an account yet?
+      - link "Join now" [ref=f2e35] [cursor=pointer]:
+        - /url: /register
+  - contentinfo [ref=f2e36]:
+    - generic [ref=f2e37]:
+      - link "Privacy Policy" [ref=f2e38] [cursor=pointer]:
+        - /url: /privacy
+      - link "Terms of Use" [ref=f2e39] [cursor=pointer]:
+        - /url: /terms
+    - paragraph [ref=f2e40]: © 2026 HobbyBuddy. Real friendships start here.

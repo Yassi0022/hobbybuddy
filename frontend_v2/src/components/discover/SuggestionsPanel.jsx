@@ -6,7 +6,6 @@ export default function SuggestionsPanel({ suggestions, location }) {
   if (!suggestions) return null;
 
   const { activeUsersInCity, upcomingEventsInCity, localTip } = suggestions;
-  const city = location?.city || 'your area';
 
   return (
     <div className="suggestions-panel">
