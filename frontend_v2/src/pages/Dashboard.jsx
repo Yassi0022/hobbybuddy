@@ -92,9 +92,12 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (!token) { navigate('/login'); return; }
-    fetchCurrentUser();
-    loadFeed();
-    fetchConfirmedMatches();
+    const timer = setTimeout(() => {
+      fetchCurrentUser();
+      loadFeed();
+      fetchConfirmedMatches();
+    }, 0);
+    return () => clearTimeout(timer);
   }, [token, navigate]);
 
   const handlePublishPost = async () => {

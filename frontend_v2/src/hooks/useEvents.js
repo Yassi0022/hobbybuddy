@@ -45,7 +45,8 @@ export default function useEvents(city, buildParams, initialFilters = {}) {
   }, [authFetch, buildParams, filters, pagination.size]);
 
   useEffect(() => {
-    fetchEvents(0);
+    const timer = setTimeout(() => fetchEvents(0), 0);
+    return () => clearTimeout(timer);
   }, [fetchEvents]);
 
   const setFilter = useCallback((key, value) => {

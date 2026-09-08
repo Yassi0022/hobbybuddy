@@ -2,7 +2,7 @@
  * Smart suggestions panel for the Discover page.
  * Shows local stats and contextual tips to make discovery feel alive.
  */
-export default function SuggestionsPanel({ suggestions, location }) {
+export default function SuggestionsPanel({ suggestions }) {
   if (!suggestions) return null;
 
   const { activeUsersInCity, upcomingEventsInCity, localTip } = suggestions;

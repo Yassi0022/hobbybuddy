@@ -34,7 +34,8 @@ export default function useDiscover(city, buildParams) {
   }, [authFetch, buildParams]);
 
   useEffect(() => {
-    fetchDiscover();
+    const timer = setTimeout(() => fetchDiscover(), 0);
+    return () => clearTimeout(timer);
   }, [fetchDiscover]);
 
   return {

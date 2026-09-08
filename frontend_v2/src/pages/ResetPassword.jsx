@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { API_BASE_URL } from '../utils/constants';
 import AuthLayout from '../components/auth/AuthLayout';
@@ -23,16 +23,10 @@ export default function ResetPassword() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [status, setStatus] = useState('idle'); // idle | loading | success | error | invalid
+  const [status, setStatus] = useState(token ? 'idle' : 'invalid'); // idle | loading | success | error | invalid
   const [errorMsg, setErrorMsg] = useState('');
 
   const strength = useMemo(() => passwordStrength(password), [password]);
-
-  useEffect(() => {
-    if (!token) {
-      setStatus('invalid');
-    }
-  }, [token]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

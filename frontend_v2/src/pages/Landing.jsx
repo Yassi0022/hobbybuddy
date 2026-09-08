@@ -5,7 +5,6 @@ import styles from '../styles/landing.module.css';
 export default function Landing() {
   const navbarRef = useRef(null);
   const [searchParams] = useSearchParams();
-  const [scrollY, setScrollY] = useState(0);
   const [visibleSections, setVisibleSections] = useState(new Set());
   const sectionRefs = useRef([]);
 
@@ -18,7 +17,6 @@ export default function Landing() {
   /* ── Navbar scroll state ── */
   useEffect(() => {
     const handleScroll = () => {
-      setScrollY(window.scrollY);
       if (navbarRef.current) {
         navbarRef.current.classList.toggle('scrolled', window.scrollY > 60);
       }

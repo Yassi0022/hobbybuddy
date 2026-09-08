@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL } from '../utils/constants';
 import { showToast } from '../utils/toast';
@@ -45,7 +45,10 @@ export default function MatchesPage() {
     }
   }, [authFetch]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    const timer = setTimeout(() => load(), 0);
+    return () => clearTimeout(timer);
+  }, [load]);
 
   const act = async (id, method, path, successMsg) => {
     setActionLoadingId(id);

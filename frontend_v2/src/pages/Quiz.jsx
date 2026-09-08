@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { API_BASE_URL, QUESTIONS, TRAIT_VIBE_LABELS, TRAIT_ICONS, TRAIT_VIBE_CLASSES, SCALE_LABELS, HOBBIES_LIST, HOBBY_CATEGORIES, TOTAL } from '../utils/constants';
+import { Link } from 'react-router-dom';
+import { API_BASE_URL, QUESTIONS, TRAIT_VIBE_LABELS, TRAIT_ICONS, TRAIT_VIBE_CLASSES, SCALE_LABELS, HOBBY_CATEGORIES, TOTAL } from '../utils/constants';
 import { getArchetype } from '../utils/archetype';
 import { showToast } from '../utils/toast';
 import { shareVibe, shareToWhatsApp, shareToTelegram, shareToTwitter } from '../utils/share';
@@ -26,26 +27,6 @@ export default function Quiz() {
   const traitIdx = currentQ[0];
   const questionText = currentQ[1];
 
-  const handleAnswer = useCallback((value) => {
-    const newAnswers = { ...answers, [currentIdx]: value };
-    const nextIdx = currentIdx + 1;
-    const pct = Math.round((nextIdx / TOTAL) * 100);
-    setProgress(pct);
-
-    if (nextIdx >= TOTAL) {
-      calculateTraits(newAnswers);
-    } else if (nextIdx % 4 === 0 && nextIdx < TOTAL) {
-      setScreen('unlock');
-      setTimeout(() => {
-        setCurrentIdx(nextIdx);
-        setScreen('quiz');
-      }, 1500);
-    } else {
-      setCurrentIdx(nextIdx);
-      setAnswers(newAnswers);
-    }
-  }, [currentIdx, answers]);
-
   const calculateTraits = (allAnswers) => {
     const scores = [0, 0, 0, 0, 0];
     const counts = [0, 0, 0, 0, 0];
@@ -69,14 +50,34 @@ export default function Quiz() {
     setScreen('hobbies');
   };
 
+  const handleAnswer = useCallback((value) => {
+    const newAnswers = { ...answers, [currentIdx]: value };
+    const nextIdx = currentIdx + 1;
+    const pct = Math.round((nextIdx / TOTAL) * 100);
+    setProgress(pct);
+
+    if (nextIdx >= TOTAL) {
+      calculateTraits(newAnswers);
+    } else if (nextIdx % 4 === 0 && nextIdx < TOTAL) {
+      setScreen('unlock');
+      setTimeout(() => {
+        setCurrentIdx(nextIdx);
+        setScreen('quiz');
+      }, 1500);
+    } else {
+      setCurrentIdx(nextIdx);
+      setAnswers(newAnswers);
+    }
+  }, [currentIdx, answers]);
+
   const toggleHobby = (hobby) => {
+    const isRemoving = selectedHobbies.has(hobby);
+    const willExceed = !isRemoving && selectedHobbies.size >= 5;
+    if (willExceed) { showToast('Max 5 hobbies', 'error'); return; }
     setSelectedHobbies((prev) => {
       const next = new Set(prev);
-      if (next.has(hobby)) { next.delete(hobby); }
-      else {
-        if (next.size >= 5) { showToast('Max 5 hobbies', 'error'); return prev; }
-        next.add(hobby);
-      }
+      if (next.has(hobby)) { next.delete(hobby); return next; }
+      next.add(hobby);
       return next;
     });
   };

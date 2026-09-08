@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL, HOBBY_CATEGORIES } from '../utils/constants';
 import { showToast } from '../utils/toast';
@@ -7,7 +7,7 @@ import PhotoUpload from '../components/ui/PhotoUpload';
 import Navbar from '../components/ui/Navbar';
 
 export default function Profile() {
-  const { token, user, authFetch } = useAuth();
+  const { token, authFetch } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -24,11 +24,6 @@ export default function Profile() {
   });
   const [selectedHobbies, setSelectedHobbies] = useState(new Set());
   const [photos, setPhotos] = useState(['', '', '']);
-
-  useEffect(() => {
-    if (!token) { navigate('/login'); return; }
-    fetchProfile();
-  }, [token, navigate]);
 
   const fetchProfile = async () => {
     try {
@@ -62,14 +57,20 @@ export default function Profile() {
     }
   };
 
+  useEffect(() => {
+    if (!token) { navigate('/login'); return; }
+    const timer = setTimeout(() => fetchProfile(), 0);
+    return () => clearTimeout(timer);
+  }, [token, navigate]);
+
   const toggleHobby = (hobby) => {
+    const isRemoving = selectedHobbies.has(hobby);
+    const willExceed = !isRemoving && selectedHobbies.size >= 5;
+    if (willExceed) { showToast('Max 5 hobbies', 'error'); return; }
     setSelectedHobbies((prev) => {
       const next = new Set(prev);
-      if (next.has(hobby)) { next.delete(hobby); }
-      else {
-        if (next.size >= 5) { showToast('Max 5 hobbies', 'error'); return prev; }
-        next.add(hobby);
-      }
+      if (next.has(hobby)) { next.delete(hobby); return next; }
+      next.add(hobby);
       return next;
     });
   };
@@ -95,7 +96,7 @@ export default function Profile() {
       } else {
         showToast('Failed to save profile', 'error');
       }
-    } catch (err) {
+    } catch {
       showToast('Failed to save profile', 'error');
     } finally {
       setSaving(false);

@@ -6,17 +6,19 @@ const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(() => localStorage.getItem('hb_token'));
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const savedToken = localStorage.getItem('hb_token');
     const savedUserId = localStorage.getItem('userId');
     const savedName = localStorage.getItem('userName');
     if (savedToken && savedUserId) {
-      setToken(savedToken);
-      setUser({ id: savedUserId, name: savedName });
+      const timer = setTimeout(() => {
+        setToken(savedToken);
+        setUser({ id: savedUserId, name: savedName });
+      }, 0);
+      return () => clearTimeout(timer);
     }
-    setLoading(false);
   }, []);
 
   const saveToken = (t) => {

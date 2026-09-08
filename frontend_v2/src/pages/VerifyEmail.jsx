@@ -14,12 +14,11 @@ import { API_BASE_URL } from '../utils/constants';
 export default function VerifyEmail() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [status, setStatus] = useState('loading'); // 'loading' | 'success' | 'error'
-  const [message, setMessage] = useState('');
+  const token = searchParams.get('token');
+  const [status, setStatus] = useState(token ? 'loading' : 'error');
+  const [message, setMessage] = useState(token ? '' : 'No verification token found. Please check your email link.');
   const [resendEmail, setResendEmail] = useState('');
   const [resendStatus, setResendStatus] = useState(null); // null | 'sending' | 'sent' | 'error'
-
-  const token = searchParams.get('token');
 
   const verifyToken = async (t) => {
     try {
@@ -40,12 +39,10 @@ export default function VerifyEmail() {
   };
 
   useEffect(() => {
-    if (!token) {
-      setStatus('error');
-      setMessage('No verification token found. Please check your email link.');
-      return;
+    if (token) {
+      const timer = setTimeout(() => verifyToken(token), 0);
+      return () => clearTimeout(timer);
     }
-    verifyToken(token);
   }, [token]);
 
   const handleResend = async () => {

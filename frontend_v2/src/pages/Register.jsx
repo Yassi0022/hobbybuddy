@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { showToast } from '../utils/toast';
+import { API_BASE_URL } from '../utils/constants';
 import AuthLayout from '../components/auth/AuthLayout';
 
 /**
