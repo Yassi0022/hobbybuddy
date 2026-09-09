@@ -15,7 +15,7 @@ services:
       - key: SPRING_DATASOURCE_PASSWORD
         sync: false
       - key: EMAIL_ENABLED
-        value: "true"
+        value: "false"
       - key: EMAIL_FROM
         value: "noreply@hobbybuddy.com"
       - key: EMAIL_HOST

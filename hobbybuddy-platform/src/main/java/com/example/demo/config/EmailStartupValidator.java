@@ -33,6 +33,11 @@ public class EmailStartupValidator implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
+        String emailEnabled = System.getenv("EMAIL_ENABLED");
+        if ("false".equalsIgnoreCase(emailEnabled)) {
+            logger.info("[EmailStartupValidator] EMAIL_ENABLED=false — skipping SMTP startup check (email disabled safely)");
+            return;
+        }
         if (!(javaMailSender instanceof JavaMailSenderImpl impl)) {
             logger.warn("[EmailStartupValidator] JavaMailSender is not JavaMailSenderImpl — skipping connectivity check");
             return;

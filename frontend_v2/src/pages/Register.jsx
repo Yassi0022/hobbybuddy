@@ -156,10 +156,10 @@ export default function Register() {
           <div className="auth-icon" style={{ background: 'linear-gradient(135deg, #16a34a, #22c55e)' }}>
             <i className="fas fa-envelope-open-text"></i>
           </div>
-          <h1 className="auth-title">Check your email</h1>
+          <h1 className="auth-title">Account created</h1>
           <p className="auth-subtitle">
-            We sent a verification link to <strong>{registeredEmail}</strong>.
-            Click the link to verify your account, then sign in.
+            Your profile <strong>{registeredEmail}</strong> is registered.
+            Email verification is temporarily unavailable, so please sign in to continue.
           </p>
 
           {/* Next steps guidance */}
@@ -171,42 +171,21 @@ export default function Register() {
               What to do next:
             </p>
             <ol style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', paddingLeft: '16px', margin: 0, lineHeight: 1.8 }}>
-              <li>Open the verification email from HobbyBuddy</li>
-              <li>Click the link inside — it lasts 24 hours</li>
-              <li>Sign in and take your vibe quiz</li>
+              <li>Sign in with your email and password</li>
+              <li>Take your vibe quiz and start meeting locals</li>
             </ol>
           </div>
 
-          {/* Resend verification */}
-          {resendStatus !== 'sent' ? (
-            <button
-              type="button"
-              onClick={handleResendVerification}
-              disabled={resendStatus === 'sending'}
-              className="btn-secondary"
-              style={{ marginBottom: '16px', minWidth: '220px' }}
-            >
-              {resendStatus === 'sending' ? (
-                <><i className="fas fa-spinner fa-spin"></i> Sending…</>
-              ) : (
-                <><i className="fas fa-paper-plane"></i> Resend verification email</>
-              )}
-            </button>
-          ) : (
-            <p style={{ color: '#16a34a', fontWeight: 600, fontSize: '0.88rem', marginBottom: '16px' }}>
-              <i className="fas fa-check-circle"></i> Sent! Check your inbox.
-            </p>
-          )}
-          {resendStatus === 'error' && (
-            <p style={{ color: '#dc2626', fontSize: '0.8rem', marginBottom: '12px' }}>
-              <i className="fas fa-exclamation-triangle"></i> Failed to send. Try again in a moment.
-            </p>
-          )}
+          {/* Resend verification — disabled when email unavailable */}
+          <p style={{ color: 'var(--color-text-muted)', fontSize: '0.82rem', marginBottom: '16px' }}>
+            <i className="fas fa-info-circle" style={{ marginRight: 6 }}></i>
+            Verification emails are temporarily unavailable. Please sign in to continue.
+          </p>
 
           <p style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', marginBottom: '20px' }}>
             <span style={{ display: 'inline-flex', gap: '6px', alignItems: 'center' }}>
-              <i className="fas fa-inbox" style={{ color: 'var(--color-text-light)' }}></i>
-              Not in your inbox? Check your spam folder.
+              <i className="fas fa-lock" style={{ color: 'var(--color-text-light)' }}></i>
+              Sign in with your new account to access all features.
             </span>
           </p>
 
