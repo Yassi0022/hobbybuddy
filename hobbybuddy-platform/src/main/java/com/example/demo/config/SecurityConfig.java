@@ -94,7 +94,7 @@ public class SecurityConfig {
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/events", "/api/events/**").permitAll()
                 .requestMatchers("/api/**").authenticated()
                 // SPA routes
-                .requestMatchers("/", "/login", "/register", "/quiz", "/dashboard", "/discover", "/events", "/profile", "/privacy", "/terms", "/messages", "/feed", "/settings", "/verify").permitAll()
+                .requestMatchers("/", "/login", "/register", "/quiz", "/discover", "/events", "/profile", "/privacy", "/terms", "/messages", "/feed", "/settings", "/verify").permitAll()
                 .anyRequest().authenticated()
             )
             .exceptionHandling(ex -> ex
