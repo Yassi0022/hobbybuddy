@@ -5,6 +5,7 @@ import { API_BASE_URL, HOBBY_CATEGORIES } from '../utils/constants';
 import { showToast } from '../utils/toast';
 import PhotoUpload from '../components/ui/PhotoUpload';
 import Navbar from '../components/ui/Navbar';
+import { ProfileProgress } from '../ProfileProgress';
 
 export default function Profile() {
   const { token, authFetch } = useAuth();
@@ -103,6 +104,24 @@ export default function Profile() {
     }
   };
 
+  const computeProfilePercent = () => {
+    let count = 0;
+    try {
+      const raw = profile?.photosJson;
+      if (typeof raw === 'string' && raw.trim() !== '') {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          count = parsed.filter((item) => typeof item === 'string' && item.trim().length > 0).length;
+        }
+      }
+    } catch {
+      count = 0;
+    }
+    const percent = count > 0 ? 70 : 30;
+    if (!Number.isFinite(percent) || percent < 0 || percent > 100) return 30;
+    return Math.round(Math.max(0, Math.min(100, percent)));
+  };
+
   if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
@@ -126,6 +145,8 @@ export default function Profile() {
           <h1 style={{ fontSize: '2.2rem', fontWeight: 800, marginBottom: '8px' }}>Edit Your Profile</h1>
           <p style={{ color: 'var(--color-text-muted)' }}>Make your profile feel like you</p>
         </div>
+
+        <ProfileProgress percent={computeProfilePercent()} />
 
         <div className="auth-card" style={{ marginBottom: '30px' }}>
           <h3 style={{ marginBottom: '20px', fontSize: '1.2rem' }}><i className="fas fa-user" style={{ color: 'var(--color-accent-warm)', marginRight: '10px' }}></i>Basic Info</h3>

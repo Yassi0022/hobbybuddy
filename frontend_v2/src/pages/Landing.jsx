@@ -84,7 +84,7 @@ export default function Landing() {
               </h1>
 
               <p className={styles.heroCopy}>
-                Finding your people shouldn't feel impossible. HobbyBuddy connects you with locals who get your energy, love the same things you do, and actually want to show up.
+                Finding your people shouldn't feel impossible. HobbyBuddy connects you with locals who share your hobbies, get your energy, love the same things you do, and actually want to show up.
               </p>
 
               <div className={styles.heroCtas}>
@@ -357,6 +357,10 @@ export default function Landing() {
               <div className={styles.footerCol}>
                 <h4 className={styles.footerColTitle}>Legal</h4>
                 <ul>
+                  <li><Link to="/faq">FAQ</Link></li>
+                  <li><Link to="/help">Help</Link></li>
+                  <li><Link to="/contact">Contact</Link></li>
+                  <li><Link to="/cookie-policy">Cookie Policy</Link></li>
                   <li><Link to="/privacy">Privacy Policy</Link></li>
                   <li><Link to="/terms">Terms of Service</Link></li>
                   <li><a href="mailto:hello@hobbybuddy.app">Contact</a></li>

@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL } from '../utils/constants';
 import { showToast } from '../utils/toast';
+import Skeleton from '../Skeleton';
 import EmptyState from '../components/ui/EmptyState';
 import Navbar from '../components/ui/Navbar';
 import { copyInviteLink } from '../utils/share';
@@ -211,7 +212,7 @@ export default function Dashboard() {
         <div className="bg-mesh"><div className="orb orb-1"></div><div className="orb orb-2"></div><div className="orb orb-3"></div></div>
         <Navbar />
         <div className={styles.loadingContainer}>
-          <div className={styles.loadingSpinner} />
+          <Skeleton width="240px" height="1.5rem" />
         </div>
       </>
     );
@@ -240,6 +241,12 @@ export default function Dashboard() {
             </p>
           )}
         </div>
+
+        {!userArchetype && (
+          <div style={{ marginTop: 16, padding: 16, background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 12, color: '#92400e' }}>
+            <strong>Complete your personality quiz</strong> — take the quick quiz to get matched. <Link to="/quiz" style={{ marginLeft: 8, fontWeight: 600, color: '#c2410c' }}>Start quiz →</Link>
+          </div>
+        )}
 
         {/* ── Invite Friends ────────────────────── */}
         <div className={styles.inviteCard}>

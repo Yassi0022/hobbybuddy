@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
 import UpdateBanner from './components/ui/UpdateBanner';
+import ErrorBoundary from './ErrorBoundary';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -18,6 +19,11 @@ import MatchesPage from './pages/MatchesPage';
 import VerifyEmail from './pages/VerifyEmail';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import FAQ from './pages/FAQ';
+import Help from './pages/Help';
+import Contact from './pages/Contact';
+import CookiePolicy from './pages/CookiePolicy';
+import NotFound from './pages/NotFound';
 import './styles/variables.css';
 import './styles/components.css';
 import './styles/layout.css';
@@ -51,6 +57,7 @@ function App() {
             },
           }}
         />
+        <ErrorBoundary>
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
@@ -68,8 +75,13 @@ function App() {
           <Route path="/verify" element={<VerifyEmail />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="/faq" element={<FAQ />} />
+          <Route path="/help" element={<Help />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/cookie-policy" element={<CookiePolicy />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
+        </ErrorBoundary>
       </BrowserRouter>
     </AuthProvider>
   );
