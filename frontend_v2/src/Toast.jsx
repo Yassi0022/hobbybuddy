@@ -1,5 +1,5 @@
 /* Toast notifications */
-export function showToast(message, type = 'success') {
+export function showToast(message, _type = 'success') {
   const toast = document.createElement('div');
   toast.className = 'toast';
   toast.textContent = message;
