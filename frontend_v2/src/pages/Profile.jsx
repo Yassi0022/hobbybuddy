@@ -6,6 +6,7 @@ import { showToast } from '../utils/toast';
 import PhotoUpload from '../components/ui/PhotoUpload';
 import Navbar from '../components/ui/Navbar';
 import { ProfileProgress } from '../ProfileProgress';
+import SocialShare from '../SocialShare';
 
 export default function Profile() {
   const { token, authFetch } = useAuth();
@@ -147,6 +148,19 @@ export default function Profile() {
         </div>
 
         <ProfileProgress percent={computeProfilePercent()} />
+
+        {(() => {
+          const userId = typeof localStorage !== 'undefined' ? localStorage.getItem('userId') : null;
+          if (!userId || userId.trim() === '') {
+            return (
+              <div style={{ marginBottom: 16, padding: 12, background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 12, color: '#92400e', fontSize: '0.85rem' }} aria-live="polite">
+                Public profile share unavailable — please sign in to access your profile link.
+              </div>
+            );
+          }
+          const publicUrl = (typeof window !== 'undefined' ? window.location.origin : '') + '/profile/' + userId;
+          return <SocialShare url={publicUrl} />;
+        })()}
 
         <div className="auth-card" style={{ marginBottom: '30px' }}>
           <h3 style={{ marginBottom: '20px', fontSize: '1.2rem' }}><i className="fas fa-user" style={{ color: 'var(--color-accent-warm)', marginRight: '10px' }}></i>Basic Info</h3>
