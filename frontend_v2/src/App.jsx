@@ -24,6 +24,8 @@ import Help from './pages/Help';
 import Contact from './pages/Contact';
 import CookiePolicy from './pages/CookiePolicy';
 import NotFound from './pages/NotFound';
+import InviteFriends from './pages/InviteFriends';
+import WelcomeTour from './pages/WelcomeTour';
 import './styles/variables.css';
 import './styles/components.css';
 import './styles/layout.css';
@@ -65,7 +67,6 @@ function App() {
           <Route path="/quiz" element={<Quiz />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/discover" element={<DiscoverPage />} />
-          <Route path="/matches" element={<MatchesPage />} />
           <Route path="/events" element={<EventsPage />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/profile/:id" element={<ProfileView />} />
@@ -79,6 +80,8 @@ function App() {
           <Route path="/help" element={<Help />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/cookie-policy" element={<CookiePolicy />} />
+          <Route path="/invite" element={<InviteFriends />} />
+          <Route path="/welcome-tour" element={<WelcomeTour />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
         </ErrorBoundary>

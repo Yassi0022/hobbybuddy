@@ -7,6 +7,7 @@ import Skeleton from '../Skeleton';
 import EmptyState from '../components/ui/EmptyState';
 import Navbar from '../components/ui/Navbar';
 import { copyInviteLink } from '../utils/share';
+import InviteFriends from '../pages/InviteFriends';
 import styles from '../styles/dashboard.module.css';
 
 /**
@@ -271,6 +272,9 @@ export default function Dashboard() {
             <i className="fas fa-share-alt"></i> Share Quiz Link
           </button>
         </div>
+
+        {/* ── Invite Friends Component ─────────── */}
+        <InviteFriends />
 
         {/* ── Quick nav cards ──────────────────── */}
         <div className={styles.navCards}>

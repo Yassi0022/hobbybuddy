@@ -7,6 +7,7 @@ import PhotoUpload from '../components/ui/PhotoUpload';
 import Navbar from '../components/ui/Navbar';
 import { ProfileProgress } from '../ProfileProgress';
 import SocialShare from '../SocialShare';
+import WelcomeTour from './WelcomeTour';
 
 export default function Profile() {
   const { token, authFetch } = useAuth();
@@ -161,6 +162,9 @@ export default function Profile() {
           const publicUrl = (typeof window !== 'undefined' ? window.location.origin : '') + '/profile/' + userId;
           return <SocialShare url={publicUrl} />;
         })()}
+        <div style={{ marginTop: 24 }}>
+          <WelcomeTour />
+        </div>
 
         <div className="auth-card" style={{ marginBottom: '30px' }}>
           <h3 style={{ marginBottom: '20px', fontSize: '1.2rem' }}><i className="fas fa-user" style={{ color: 'var(--color-accent-warm)', marginRight: '10px' }}></i>Basic Info</h3>
