@@ -1,20 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
-/**
- * Lightweight update detection banner.
- *
- * Checks /version.json on tab focus. If the build timestamp differs from the
- * one embedded in the current page, shows a banner offering to reload.
- *
- * Dismissal is session-scoped — once dismissed, won't re-show until next
- * full navigation. This prevents the banner from appearing on every tab switch
- * when the user has already acknowledged it.
- */
 export default function UpdateBanner() {
   const [showBanner, setShowBanner] = useState(false);
   const dismissedRef = useRef(false);
 
-  // Read the build timestamp injected by Vite into the HTML
   const initBuild = (() => {
     try {
       const meta = document.querySelector('meta[name="hb-build"]');
@@ -31,12 +20,26 @@ export default function UpdateBanner() {
       if (!res.ok) return;
       const data = await res.json();
       const remoteBuild = data.build || 0;
-      // Only show if we have a valid local build AND it differs from remote
       if (remoteBuild && initBuild && remoteBuild !== initBuild) {
         setShowBanner(true);
       }
     } catch {
-      // Network error — ignore silently
+      // ignore silently
+    }
+  }, [initBuild]);
+
+  const handleSwUpdated = useCallback(async () => {
+    if (dismissedRef.current) return;
+    try {
+      const res = await fetch('/version.json', { cache: 'no-store' });
+      if (!res.ok) return;
+      const data = await res.json();
+      const remoteBuild = data.build || 0;
+      if (remoteBuild && initBuild && remoteBuild !== initBuild) {
+        setShowBanner(true);
+      }
+    } catch {
+      // ignore
     }
   }, [initBuild]);
 
@@ -46,20 +49,15 @@ export default function UpdateBanner() {
         checkForUpdate();
       }
     };
-    const handleSwUpdated = () => {
-      if (!dismissedRef.current) setShowBanner(true);
-    };
-
     document.addEventListener('visibilitychange', handleVisibility);
     window.addEventListener('sw-updated', handleSwUpdated);
     return () => {
       document.removeEventListener('visibilitychange', handleVisibility);
       window.removeEventListener('sw-updated', handleSwUpdated);
     };
-  }, [checkForUpdate]);
+  }, [checkForUpdate, handleSwUpdated]);
 
   const handleReload = () => {
-    // Clear the dismissed flag so next load can detect future updates
     dismissedRef.current = false;
     window.location.reload();
   };
@@ -82,6 +80,7 @@ export default function UpdateBanner() {
       <span>🚀 New version available</span>
       <button
         onClick={handleReload}
+        aria-label="Reload page to apply update"
         style={{
           background: '#fff', color: '#c2410c', border: 'none', borderRadius: 6,
           padding: '5px 14px', fontSize: '0.82rem', fontWeight: 700,
@@ -92,11 +91,11 @@ export default function UpdateBanner() {
       </button>
       <button
         onClick={handleDismiss}
+        aria-label="Dismiss update banner"
         style={{
           background: 'none', color: '#fff', border: 'none', cursor: 'pointer',
           fontSize: '1.1rem', padding: '2px 6px', opacity: 0.8,
         }}
-        aria-label="Dismiss update banner"
       >
         ×
       </button>
