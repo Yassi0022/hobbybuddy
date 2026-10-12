@@ -69,7 +69,7 @@ export default function SocialShare({ url = '' }) {
         </p>
       )}
       {status === 'visible' && (
-        <div style={{ marginTop: 8 }}>
+        <div style={{ marginTop: 8 }} aria-live="polite" aria-atomic="true">
           <p style={{ fontSize: '0.85rem', color: '#5a3e2b', marginBottom: 4 }}>
             Copy your public profile link:
           </p>
