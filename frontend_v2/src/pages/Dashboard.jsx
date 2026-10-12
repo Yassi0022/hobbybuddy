@@ -273,9 +273,6 @@ export default function Dashboard() {
           </button>
         </div>
 
-        {/* ── Invite Friends Component ─────────── */}
-        <InviteFriends />
-
         {/* ── Quick nav cards ──────────────────── */}
         <div className={styles.navCards}>
           <Link to="/discover" className={`card ${styles.navCard}`}>
