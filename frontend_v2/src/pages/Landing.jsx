@@ -78,7 +78,7 @@ export default function Landing() {
                 Friendships start here
               </div>
 
-              <h1 className={styles.heroTitle}>
+              <h1 className={styles.heroTitle} style={{ animation: 'gradientShine 4s ease infinite' }}>
                 Find your people.
                 <span className={styles.heroTitleAccent}>Your vibe attracts your tribe.</span>
               </h1>

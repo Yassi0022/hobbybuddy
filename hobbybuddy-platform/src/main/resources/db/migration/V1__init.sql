@@ -2,7 +2,7 @@
 -- This migration creates the core tables used by the application.
 
 CREATE TABLE users (
-    id BIGSERIAL PRIMARY KEY,
+    id AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255),
     password VARCHAR(255),
     email VARCHAR(255) NOT NULL UNIQUE,
@@ -27,7 +27,7 @@ CREATE TABLE users (
 );
 
 CREATE TABLE password_reset_tokens (
-    id BIGSERIAL PRIMARY KEY,
+    id AUTO_INCREMENT PRIMARY KEY,
     token_hash VARCHAR(255) NOT NULL,
     user_id BIGINT NOT NULL UNIQUE,
     expiry TIMESTAMP WITHOUT TIME ZONE NOT NULL,
@@ -36,7 +36,7 @@ CREATE TABLE password_reset_tokens (
 
 -- Additional tables (simplified) for other entities – these can be expanded later.
 CREATE TABLE posts (
-    id BIGSERIAL PRIMARY KEY,
+    id AUTO_INCREMENT PRIMARY KEY,
     author_id BIGINT NOT NULL,
     content TEXT,
     created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -44,7 +44,7 @@ CREATE TABLE posts (
 );
 
 CREATE TABLE events (
-    id BIGSERIAL PRIMARY KEY,
+    id AUTO_INCREMENT PRIMARY KEY,
     created_by_id BIGINT NOT NULL,
     title VARCHAR(255),
     description TEXT,
@@ -54,7 +54,7 @@ CREATE TABLE events (
 );
 
 CREATE TABLE messages (
-    id BIGSERIAL PRIMARY KEY,
+    id AUTO_INCREMENT PRIMARY KEY,
     sender_id BIGINT NOT NULL,
     receiver_id BIGINT NOT NULL,
     content TEXT,
@@ -64,7 +64,7 @@ CREATE TABLE messages (
 );
 
 CREATE TABLE hobbies (
-    id BIGSERIAL PRIMARY KEY,
+    id AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT NOT NULL,
     name VARCHAR(255),
     CONSTRAINT fk_hobby_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE

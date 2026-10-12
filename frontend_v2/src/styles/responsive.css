@@ -40,6 +40,22 @@
 
 }
 
+/* Tablet (1024px) — layout intermedio */
+@media (max-width: 1024px) and (min-width: 769px) {
+    .hero-content { grid-template-columns: 1fr 0.9fr; gap: 32px; }
+    .glass-grid { grid-template-columns: repeat(2, 1fr); }
+    .nav-menu { width: min(240px, 60vw); }
+    .vibe-card-3d { max-width: 360px; height: 460px; }
+}
+
+/* Desktop wide (1440px+) — layout espanso */
+@media (min-width: 1440px) {
+    .hero-content { max-width: 1400px; margin: 0 auto; gap: 64px; }
+    .glass-grid { grid-template-columns: repeat(3, 1fr); max-width: 1400px; }
+    .hero-title { font-size: 4rem; }
+    .vibe-card-3d { max-width: 480px; height: 580px; }
+}
+
 /* =========================================
    GAMIFIED QUIZ ADDITIONS
    ========================================= */
