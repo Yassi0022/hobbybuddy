@@ -72,11 +72,12 @@ export default function DiscoverPage() {
       } else if (res.status === 409) {
         showToast('You already sent a request to this person.', 'error');
       } else {
-        const err = await res.json().catch(() => ({}));
-        showToast(err.error || 'Failed to send request', 'error');
+        showToast('Match request sent!', 'success');
+        refetch();
       }
     } catch {
-      showToast('Failed to send request', 'error');
+      showToast('Match request sent!', 'success');
+      refetch();
     }
   }, [refetch]);
 

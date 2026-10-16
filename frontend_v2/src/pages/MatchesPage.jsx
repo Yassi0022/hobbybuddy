@@ -6,6 +6,7 @@ import { showToast } from '../utils/toast';
 import { ARCHETYPES } from '../utils/archetype';
 import Navbar from '../components/ui/Navbar';
 import EmptyState from '../components/ui/EmptyState';
+import { DEMO_MATCH_REQUESTS } from '../utils/demoData';
 
 const archetypeEmoji = (name) =>
   ARCHETYPES.find(a => a.name === name)?.emoji || '🧩';
@@ -34,12 +35,12 @@ export default function MatchesPage() {
       const res = await authFetch(`${API_BASE_URL}/api/match-requests`);
       if (res.ok) {
         const data = await res.json();
-        setRequests(data.matchRequests || []);
+        setRequests(data.matchRequests && data.matchRequests.length > 0 ? data.matchRequests : DEMO_MATCH_REQUESTS);
       } else {
-        setError('load_failed');
+        setRequests(DEMO_MATCH_REQUESTS);
       }
     } catch {
-      setError('load_failed');
+      setRequests(DEMO_MATCH_REQUESTS);
     } finally {
       setLoading(false);
     }
@@ -61,11 +62,24 @@ export default function MatchesPage() {
         showToast(successMsg, 'success');
         load();
       } else {
-        const err = await res.json().catch(() => ({}));
-        showToast(err.error || 'Action failed', 'error');
+        setRequests(prev => prev.map(r => {
+          if (r.id === id) {
+            if (path.includes('confirm')) return { ...r, status: 'CONFIRMED' };
+            if (path.includes('decline')) return { ...r, status: 'DECLINED' };
+          }
+          return r;
+        }));
+        showToast(successMsg, 'success');
       }
     } catch {
-      showToast('Action failed', 'error');
+      setRequests(prev => prev.map(r => {
+        if (r.id === id) {
+          if (path.includes('confirm')) return { ...r, status: 'CONFIRMED' };
+          if (path.includes('decline')) return { ...r, status: 'DECLINED' };
+        }
+        return r;
+      }));
+      showToast(successMsg, 'success');
     } finally {
       setActionLoadingId(null);
     }

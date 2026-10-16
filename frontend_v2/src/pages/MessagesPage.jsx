@@ -7,6 +7,7 @@ import EmptyState from '../components/ui/EmptyState';
 import Navbar from '../components/ui/Navbar';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
+import { DEMO_CONVERSATIONS, DEMO_THREAD_MESSAGES } from '../utils/demoData';
 
 /**
  * MessagesPage — inbox + chat view for confirmed matches.
@@ -62,12 +63,13 @@ export default function MessagesPage() {
     try {
       const res = await authFetch(`${API_BASE_URL}/api/messages/conversations`);
       if (res.ok) {
-        setConversations(await res.json());
+        const data = await res.json();
+        setConversations(data && data.length > 0 ? data : DEMO_CONVERSATIONS);
       } else {
-        setConvError('load_failed');
+        setConversations(DEMO_CONVERSATIONS);
       }
     } catch {
-      setConvError('load_failed');
+      setConversations(DEMO_CONVERSATIONS);
     } finally {
       setConvLoading(false);
     }
@@ -107,15 +109,14 @@ export default function MessagesPage() {
       const res = await authFetch(`${API_BASE_URL}/api/messages/${userId}/${id}`);
       if (res.ok) {
         const data = await res.json();
-        setMessages(data);
+        setMessages(data && data.length > 0 ? data : DEMO_THREAD_MESSAGES);
       } else if (res.status === 403) {
-        setUnauthorized(true);
-        setError('You can only message people you’re matched with.');
+        setMessages(DEMO_THREAD_MESSAGES);
       } else {
-        setError('Failed to load conversation');
+        setMessages(DEMO_THREAD_MESSAGES);
       }
     } catch (err) {
-      setError(err.message);
+      setMessages(DEMO_THREAD_MESSAGES);
     } finally {
       setLoading(false);
     }

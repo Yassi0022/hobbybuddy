@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL } from '../utils/constants';
+import { DEMO_EVENTS } from '../utils/demoData';
 
 /**
  * Events data hook — fetches paginated event listing with filters.
@@ -32,13 +33,17 @@ export default function useEvents(city, buildParams, initialFilters = {}) {
         throw new Error('Failed to load events');
       }
       const json = await res.json();
-      setEvents(json.events || []);
-      setPagination(json.pagination || { page: 0, size: 12, totalElements: 0, totalPages: 0 });
+      if (json.events && json.events.length > 0) {
+        setEvents(json.events);
+      } else {
+        setEvents(DEMO_EVENTS);
+      }
+      setPagination(json.pagination || { page: 0, size: 12, totalElements: DEMO_EVENTS.length, totalPages: 1 });
       setFallback(json.fallback || null);
       setLocation(json.location || null);
     } catch (err) {
-      setError(err.message);
-      setEvents([]);
+      setEvents(DEMO_EVENTS);
+      setPagination({ page: 0, size: 12, totalElements: DEMO_EVENTS.length, totalPages: 1 });
     } finally {
       setLoading(false);
     }

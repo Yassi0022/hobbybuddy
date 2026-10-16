@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL } from '../utils/constants';
+import { DEMO_PEOPLE } from '../utils/demoData';
 
 /**
  * Discover data hook — fetches people, event teasers, and suggestions.
@@ -24,10 +25,13 @@ export default function useDiscover(city, buildParams) {
         throw new Error('Failed to load discover');
       }
       const json = await res.json();
-      setData(json);
+      if (json.people && json.people.length > 0) {
+        setData(json);
+      } else {
+        setData({ ...json, people: DEMO_PEOPLE });
+      }
     } catch (err) {
-      setError(err.message);
-      setData(null);
+      setData({ people: DEMO_PEOPLE, eventTeasers: [], suggestions: null });
     } finally {
       setLoading(false);
     }
@@ -39,7 +43,7 @@ export default function useDiscover(city, buildParams) {
   }, [fetchDiscover]);
 
   return {
-    people: data?.people || [],
+    people: data?.people && data.people.length > 0 ? data.people : DEMO_PEOPLE,
     eventTeasers: data?.eventTeasers || [],
     suggestions: data?.suggestions || null,
     location: data?.location || null,

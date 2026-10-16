@@ -13,7 +13,7 @@ export default function Login() {
   const [unverified, setUnverified] = useState(false);
   const [resendStatus, setResendStatus] = useState(null); // null | 'sending' | 'sent'
   const [fieldErrors, setFieldErrors] = useState({});
-  const { login } = useAuth();
+  const { login, loginAsDemo } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -200,6 +200,34 @@ export default function Login() {
           <button type="submit" className="btn-form-primary" id="btn-login" disabled={loading}>
             {loading ? <><i className="fas fa-spinner fa-spin"></i> Signing in...</> : <><i className="fas fa-sign-in-alt"></i> Sign In Now</>}
           </button>
+
+          <div style={{ textAlign: 'center', marginTop: '16px' }}>
+            <button
+              type="button"
+              onClick={() => {
+                loginAsDemo();
+                navigate('/dashboard');
+              }}
+              style={{
+                width: '100%',
+                padding: '12px',
+                borderRadius: '12px',
+                border: '1px solid rgba(194, 65, 12, 0.3)',
+                background: 'rgba(194, 65, 12, 0.05)',
+                color: 'var(--color-primary, #c2410c)',
+                fontWeight: 700,
+                fontSize: '0.92rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              <i className="fas fa-sparkles"></i> Explore Demo Account (Instant Access)
+            </button>
+          </div>
         </form>
         <div className="auth-footer" style={{ paddingTop: '20px' }}>Don't have an account yet? <Link to="/register">Join now</Link></div>
       </div>

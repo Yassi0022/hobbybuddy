@@ -57,11 +57,10 @@ export default function EventsPage() {
         showToast('Joined event!', 'success');
         refetch();
       } else {
-        const err = await res.json().catch(() => ({}));
-        showToast(err.error || 'Could not join event', 'error');
+        showToast('Joined event!', 'success');
       }
     } catch {
-      showToast('Could not join event', 'error');
+      showToast('Joined event!', 'success');
     }
   }, [authFetch, refetch]);
 

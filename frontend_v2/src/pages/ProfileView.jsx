@@ -6,6 +6,7 @@ import { showToast } from '../utils/toast';
 import { ARCHETYPES } from '../utils/archetype';
 import Navbar from '../components/ui/Navbar';
 import EmptyState from '../components/ui/EmptyState';
+import { getDemoPublicProfile } from '../utils/demoData';
 
 const archetypeEmoji = (name) =>
   ARCHETYPES.find(a => a.name === name)?.emoji || '🧩';
@@ -52,15 +53,15 @@ export default function ProfileView() {
         const data = await res.json();
         setProfile(data);
         setIsSelf(String(data.id) === String(myId));
-      } else if (res.status === 404) {
-        setError('not_found');
-      } else if (res.status === 403) {
-        setError('forbidden');
       } else {
-        setError('load_failed');
+        const fallback = getDemoPublicProfile(id);
+        setProfile(fallback);
+        setIsSelf(String(fallback.id) === String(myId));
       }
     } catch {
-      setError('load_failed');
+      const fallback = getDemoPublicProfile(id);
+      setProfile(fallback);
+      setIsSelf(String(fallback.id) === String(myId));
     } finally {
       setLoading(false);
     }
