@@ -12,11 +12,12 @@ export default function EventCard({ event, onJoin }) {
     joined = false, source = 'internal', externalUrl = null, createdBy = null,
   } = event;
 
-  const formattedDate = date
-    ? new Date(date).toLocaleDateString('en-US', {
+  const parsedDate = date ? new Date(date) : null;
+  const formattedDate = parsedDate && !isNaN(parsedDate.getTime())
+    ? parsedDate.toLocaleDateString('en-US', {
         weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
       })
-    : null;
+    : typeof date === 'string' ? date : null;
 
   const spotsLeft = maxParticipants - currentParticipants;
   const isFull = spotsLeft <= 0;

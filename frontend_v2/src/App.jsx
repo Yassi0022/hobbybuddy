@@ -67,6 +67,7 @@ function App() {
           <Route path="/quiz" element={<Quiz />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/discover" element={<DiscoverPage />} />
+          <Route path="/matches" element={<MatchesPage />} />
           <Route path="/events" element={<EventsPage />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/profile/:id" element={<ProfileView />} />

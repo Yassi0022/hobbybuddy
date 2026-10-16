@@ -144,11 +144,11 @@ export const DEMO_EVENTS = [
     description: 'Casual street & architectural photography walk along the canals. Open to all skill levels!',
     city: 'Milano',
     location: 'Darsena / Navigli, Milano',
-    date: 'Saturday, 18:00',
-    hobby: 'Photography',
+    date: new Date(Date.now() + 86400000 * 2).toISOString(),
+    hobbyCategory: 'Photography',
     source: 'community',
     maxParticipants: 15,
-    participantsCount: 8,
+    currentParticipants: 8,
     host: { id: 2, name: 'Giulia Colombo', archetype: 'The Luminary' },
   },
   {
@@ -157,11 +157,11 @@ export const DEMO_EVENTS = [
     description: 'Catan, Wingspan, and social party games. Beginner friendly, snacks provided!',
     city: 'Milano',
     location: 'Isola District, Milano',
-    date: 'Friday, 20:00',
-    hobby: 'Board Games',
+    date: new Date(Date.now() + 86400000 * 3).toISOString(),
+    hobbyCategory: 'Board Games',
     source: 'community',
     maxParticipants: 12,
-    participantsCount: 9,
+    currentParticipants: 9,
     host: { id: 3, name: 'Matteo Ferrari', archetype: 'The Architect' },
   },
   {
@@ -170,14 +170,15 @@ export const DEMO_EVENTS = [
     description: 'Lakeside run followed by breakfast and great conversations.',
     city: 'Milano',
     location: 'Idroscalo, Milano',
-    date: 'Sunday, 09:30',
-    hobby: 'Running',
+    date: new Date(Date.now() + 86400000 * 4).toISOString(),
+    hobbyCategory: 'Running',
     source: 'community',
     maxParticipants: 20,
-    participantsCount: 14,
+    currentParticipants: 14,
     host: { id: 4, name: 'Sara Bianchi', archetype: 'The Dynamo' },
   },
 ];
+
 
 export const DEMO_CONVERSATIONS = [
   {
