@@ -13,7 +13,12 @@ export default function PeopleCard({ person, onConnect, onOpen }) {
   } = person;
 
   const initial = name?.[0]?.toUpperCase() || '?';
-  const hobbyList = hobbies ? hobbies.split(',').map(h => h.trim()).filter(Boolean) : [];
+  const hobbyList = Array.isArray(hobbies)
+    ? hobbies
+    : typeof hobbies === 'string'
+      ? hobbies.split(',').map(h => h.trim()).filter(Boolean)
+      : [];
+  const displayTagline = personalityTagline || person.bio || '';
 
   const openProfile = () => {
     if (onOpen) onOpen(id);
@@ -57,8 +62,8 @@ export default function PeopleCard({ person, onConnect, onOpen }) {
       </div>
 
       {/* Tagline */}
-      {personalityTagline && (
-        <p className="people-card-tagline">"{personalityTagline}"</p>
+      {displayTagline && (
+        <p className="people-card-tagline">"{displayTagline}"</p>
       )}
 
       {/* Hobbies */}

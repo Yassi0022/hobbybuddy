@@ -91,6 +91,7 @@ export const DEMO_PEOPLE = [
     compatibility: 94,
     matchReason: 'Shared love for street photography and creative arts',
     hobbies: ['Photography 📷', 'Art 🎨', 'Coffee ☕', 'Travel ✈️'],
+    personalityTagline: 'Photographer and visual designer. Looking for weekend explore buddies and gallery visits.',
     bio: 'Photographer and visual designer. Looking for weekend explore buddies and gallery visits.',
     connected: false,
   },
@@ -103,6 +104,7 @@ export const DEMO_PEOPLE = [
     compatibility: 89,
     matchReason: 'High openness score and mutual enthusiasm for tech & gaming',
     hobbies: ['Coding 💻', 'Gaming 🎮', 'Electronic Music 🎵', 'Board Games 🎲'],
+    personalityTagline: 'Software engineer by day, indie game tinkerer by night.',
     bio: 'Software engineer by day, indie game tinkerer by night.',
     connected: false,
   },
@@ -115,6 +117,7 @@ export const DEMO_PEOPLE = [
     compatibility: 87,
     matchReason: 'Vibrant outdoor energy and shared fitness routines',
     hobbies: ['Running 🏃', 'Hiking 🥾', 'Yoga 🧘', 'Cooking 🍳'],
+    personalityTagline: 'Trail enthusiast, amateur baker, always hunting for the next scenic view.',
     bio: 'Trail enthusiast, amateur baker, always hunting for the next scenic view.',
     connected: false,
   },
@@ -127,10 +130,12 @@ export const DEMO_PEOPLE = [
     compatibility: 84,
     matchReason: 'Deep conversational style and love for book clubs',
     hobbies: ['Reading 📚', 'Writing ✍️', 'Cinema 🎬', 'Cycling 🚴'],
+    personalityTagline: 'Avid reader and cinema lover. Let\'s grab an espresso and discuss good books.',
     bio: 'Avid reader and cinema lover. Let\'s grab an espresso and discuss good books.',
     connected: false,
   },
 ];
+
 
 export const DEMO_EVENTS = [
   {

@@ -145,10 +145,11 @@ export default function ProfileView() {
 
   const photos = profile ? parsePhotos(profile.photosJson) : [];
   const firstPhoto = photos[0];
-  const initial = profile?.name?.[0]?.toUpperCase() || '?';
-  const hobbyList = profile?.hobbies
-    ? profile.hobbies.split(',').map(h => h.trim()).filter(Boolean)
-    : [];
+  const hobbyList = Array.isArray(profile?.hobbies)
+    ? profile.hobbies
+    : typeof profile?.hobbies === 'string'
+      ? profile.hobbies.split(',').map(h => h.trim()).filter(Boolean)
+      : [];
   const prompts = [
     { q: 'A perfect weekend is…', a: profile?.prompt1 },
     { q: 'I’m secretly good at…', a: profile?.prompt2 },
