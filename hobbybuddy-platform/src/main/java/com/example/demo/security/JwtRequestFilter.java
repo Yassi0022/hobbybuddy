@@ -27,7 +27,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     private static final Logger logger = LoggerFactory.getLogger(JwtRequestFilter.class);
 
     /** When false, the email-verification gate is skipped — unverified users can access the API. */
-    @Value("${app.email.verification.required:true}")
+    @Value("${app.email.verification.required:false}")
     private boolean emailVerificationRequired;
 
     @Autowired

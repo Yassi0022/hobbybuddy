@@ -21,6 +21,7 @@ node_modules/
 .env.*
 
 # === IDE ===
+.claude/
 .idea/
 .vscode/
 *.iml

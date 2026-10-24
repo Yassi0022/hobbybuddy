@@ -96,15 +96,17 @@ export default function Register() {
       const userData = { name, email, password };
       if (refId) userData.referredBy = parseInt(refId);
       const data = await register(userData);
-      // If the server returned a token, the user was auto-verified — go straight to dashboard
+      if (window.plausible) window.plausible('Signup Completed');
+      // If the server returned a token, the user is auto-verified — go straight to quiz or dashboard
       if (data?.token) {
         showToast('Account created! Welcome to HobbyBuddy.', 'success');
-        navigate('/dashboard');
+        navigate(data.quizCompleted ? '/dashboard' : '/quiz');
         return;
       }
-      if (window.plausible) window.plausible('Signup Completed');
-      setRegisteredEmail(email);
-      setRegistered(true);
+      // If server didn't return token, user is still ready to sign in or take quiz
+      showToast('Account created! You can now sign in.', 'success');
+      navigate('/login');
+      return;
     } catch (err) {
       const msg = err.message || 'Registration failed';
       // A genuine network/unknown failure (e.g. fetch throws a TypeError
@@ -287,6 +289,30 @@ export default function Register() {
           <button type="submit" className="btn-form-primary" id="btn-register" disabled={loading}>
             {loading ? <><i className="fas fa-spinner fa-spin"></i> Creating your account...</> : <>Create my free account <i className="fas fa-arrow-right"></i></>}
           </button>
+
+          <div style={{ textAlign: 'center', marginTop: '16px' }}>
+            <Link
+              to="/quiz"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                width: '100%',
+                padding: '12px',
+                borderRadius: '12px',
+                border: '1px solid rgba(194, 65, 12, 0.3)',
+                background: 'rgba(194, 65, 12, 0.05)',
+                color: 'var(--color-primary, #c2410c)',
+                fontWeight: 700,
+                fontSize: '0.92rem',
+                textDecoration: 'none',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              <i className="fas fa-sparkles"></i> Take Quiz First (No Registration Needed)
+            </Link>
+          </div>
         </form>
         <div className="auth-footer">Already have an account? <Link to="/login">Sign in</Link></div>
       </div>

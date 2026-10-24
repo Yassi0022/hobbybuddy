@@ -96,7 +96,7 @@ public class UserController {
     private String emailFrom;
 
     /** When false, users are auto-verified on registration and the email-verification gate is skipped. */
-    @Value("${app.email.verification.required:true}")
+    @Value("${app.email.verification.required:false}")
     private boolean emailVerificationRequired;
 
     private void addJwtCookie(HttpServletResponse response, String token) {
@@ -261,13 +261,17 @@ public class UserController {
 
             User user = userRepository.findByEmail(email).orElseThrow();
 
-            // Block login if email is not verified
-            if (!user.isEmailVerified()) {
+            // Block login if email is not verified (only when verification is required)
+            if (emailVerificationRequired && !user.isEmailVerified()) {
                 logger.warn("[AUTH] Login blocked — email not verified: {}", email);
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
                         "error", "EMAIL_NOT_VERIFIED",
                         "message", "Please verify your email before logging in. Check your inbox or request a new verification email."
                 ));
+            } else if (!user.isEmailVerified()) {
+                // Auto-verify user when email verification is disabled
+                user.setEmailVerified(true);
+                userRepository.save(user);
             }
 
             // Include authVersion in JWT so we can invalidate on password change
